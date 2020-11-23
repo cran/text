@@ -1,0 +1,44 @@
+Package: text
+Type: Package
+Title: Analyses of Text using Natural Language Processing and Machine
+        Learning
+Version: 0.9.0
+Authors@R: c(
+    person("Oscar", "Kjell", , "oscar.kjell@psy.lu.se", role = c("aut", "cre"), 
+      comment = c(ORCID = "0000-0002-2728-6278"),
+    ),
+    person("Salvatore", "Giorgi", role = c("aut"), 
+      comment = c(ORCID = "0000-0001-7381-6295")
+    ),
+    person("Andrew", "Schwartz", role = c("aut"), 
+      comment = c(ORCID = "0000-0002-6383-3339"))
+    )
+Description: Transforms text variables to word embeddings; where the word embeddings are used to statistically test the mean difference between set of texts, compute semantic similarity scores between texts, predict numerical variables, and visual statistically significant words according to various dimensions etc. For more information see  <https://www.r-text.org>.
+License: GPL-3
+URL: https://r-text.org/, https://github.com/OscarKjell/text/
+BugReports: https://github.com/OscarKjell/text/issues/
+Encoding: UTF-8
+Archs: x64
+SystemRequirements: Python (>= 3.6.0)
+LazyData: true
+BuildVignettes: true
+Imports: dplyr, tokenizers, tibble, stringr, tidyr, ggplot2, ggrepel,
+        cowplot, rlang, purrr, magrittr, parsnip, recipes, rsample,
+        reticulate, tune, workflows, yardstick, future, furrr
+RoxygenNote: 7.1.0
+Suggests: knitr, rmarkdown, testthat, rio, glmnet, randomForest, covr,
+        xml2, ranger
+VignetteBuilder: knitr
+Depends: R (>= 4.00)
+Config/reticulate: list( packages = list( list(package = "torch", pip =
+        TRUE), list(package = "transformers", version = "3.3.1", pip =
+        TRUE), list(package = "nltk", pip = TRUE), list(package =
+        "numpy", pip = TRUE) ) )
+NeedsCompilation: no
+Packaged: 2020-11-20 16:22:21 UTC; oscarkjell
+Author: Oscar Kjell [aut, cre] (<https://orcid.org/0000-0002-2728-6278>),
+  Salvatore Giorgi [aut] (<https://orcid.org/0000-0001-7381-6295>),
+  Andrew Schwartz [aut] (<https://orcid.org/0000-0002-6383-3339>)
+Maintainer: Oscar Kjell <oscar.kjell@psy.lu.se>
+Repository: CRAN
+Date/Publication: 2020-11-23 09:30:02 UTC
