@@ -2,7 +2,7 @@ Package: text
 Type: Package
 Title: Analyses of Text using Natural Language Processing and Machine
         Learning
-Version: 0.9.0
+Version: 0.9.10
 Authors@R: c(
     person("Oscar", "Kjell", , "oscar.kjell@psy.lu.se", role = c("aut", "cre"), 
       comment = c(ORCID = "0000-0002-2728-6278"),
@@ -35,10 +35,10 @@ Config/reticulate: list( packages = list( list(package = "torch", pip =
         TRUE), list(package = "nltk", pip = TRUE), list(package =
         "numpy", pip = TRUE) ) )
 NeedsCompilation: no
-Packaged: 2020-11-20 16:22:21 UTC; oscarkjell
+Packaged: 2020-12-14 09:21:41 UTC; oscarkjell
 Author: Oscar Kjell [aut, cre] (<https://orcid.org/0000-0002-2728-6278>),
   Salvatore Giorgi [aut] (<https://orcid.org/0000-0001-7381-6295>),
   Andrew Schwartz [aut] (<https://orcid.org/0000-0002-6383-3339>)
 Maintainer: Oscar Kjell <oscar.kjell@psy.lu.se>
 Repository: CRAN
-Date/Publication: 2020-11-23 09:30:02 UTC
+Date/Publication: 2020-12-14 09:50:02 UTC

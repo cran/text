@@ -7,21 +7,28 @@
 textTrainRegression(
   x,
   y,
-  outside_folds_v = 10,
+  cv_method = "validation_split",
+  outside_folds = 10,
   outside_strata_y = "y",
-  inside_folds_prop = 3/4,
+  outside_breaks = 4,
+  inside_folds = 3/4,
   inside_strata_y = "y",
+  inside_breaks = 4,
   model = "regression",
   eval_measure = "default",
+  preprocess_step_center = TRUE,
+  preprocess_step_scale = TRUE,
   preprocess_PCA = NA,
   penalty = 10^seq(-16, 16),
   mixture = c(0),
-  Npredictors = NA,
+  first_n_predictors = NA,
+  impute_missing = FALSE,
   method_cor = "pearson",
   model_description = "Consider writing a description of your model here",
   multi_cores = "multi_cores_sys_default",
   save_output = "all",
-  seed = 2020
+  seed = 2020,
+  ...
 )
 }
 \arguments{
@@ -29,18 +36,33 @@ textTrainRegression(
 
 \item{y}{Numeric variable to predict.}
 
-\item{outside_folds_v}{Number of folds for the outer folds (default = 10).}
+\item{cv_method}{Cross-validation method to use within a pipeline of nested outer and inner loops of folds (see nested_cv in rsample).
+Default is using cv_folds in the outside folds and "validation_split" using rsample::validation_split in the inner loop to achieve a development and assessment
+set (note that for validation_split the inside_folds should be a proportion, e.g., inside_folds = 3/4); whereas "cv_folds" uses rsample::vfold_cv to achieve n-folds
+in both the outer and inner loops.}
+
+\item{outside_folds}{Number of folds for the outer folds (default = 10).}
 
 \item{outside_strata_y}{Variable to stratify according (default y; can set to NULL).}
 
-\item{inside_folds_prop}{Number of folds for the inner folds (default proportion = 3/4).}
+\item{outside_breaks}{The number of bins wanted to stratify a numeric stratification variable in the outer cross-validation loop.}
+
+\item{inside_folds}{The proportion of data to be used for modeling/analysis; (default proportion = 3/4). For more information
+see validation_split in rsample.}
 
 \item{inside_strata_y}{Variable to stratify according (default y; can set to NULL).}
 
+\item{inside_breaks}{The number of bins wanted to stratify a numeric stratification variable in the inner cross-validation loop.}
+
 \item{model}{Type of model. Default is "regression"; see also "logistic" for classification.}
 
-\item{eval_measure}{Type of evaluative measure to select models from; default =  "rmse" for regression and "bal_accuracy"
-for logistic.}
+\item{eval_measure}{Type of evaluative measure to select models from. Default = "rmse" for regression and "bal_accuracy"
+for logistic. For regression use "rsq" or "rmse"; and for classification use "accuracy", "bal_accuracy", "sens", "spec", "precision", "kappa", "f_measure",
+or "roc_auc",(for more details see the yardstick package).}
+
+\item{preprocess_step_center}{normalizes dimensions to have a mean of zero; default is set to TRUE. For more info see (step_center in recipes).}
+
+\item{preprocess_step_scale}{normalize dimensions to have a standard deviation of one. For more info see (step_scale in recipes).}
 
 \item{preprocess_PCA}{Pre-processing threshold for PCA (to skip this step set it to NA).
 Can select amount of variance to retain (e.g., .90 or as a grid c(0.80, 0.90)); or
@@ -53,10 +75,12 @@ preprocess_PCA = round(max(min(number_features/2), number_participants/2), min(5
 
 \item{mixture}{hyper parameter that is tuned default = 0 (hence a pure ridge regression).}
 
-\item{Npredictors}{by efault this setting is turned of (i.e., NA). The setting uses  set to the highest number of predictors you want to test.
+\item{first_n_predictors}{by default this setting is turned off (i.e., NA). To use this method, set it to the highest number of predictors you want to test.
 Then the X first dimensions are used in training, using a sequence from Kjell et al., 2019 paper in Psychological Methods.
 Adding 1, then multiplying by 1.3 and finally rounding to the nearest integer (e.g., 1, 3, 5, 8).
 This option is currently only possible for one embedding at the time.}
+
+\item{impute_missing}{default FALSE (can be set to TRUE if something else than wordembeddings are trained).}
 
 \item{method_cor}{Type of correlation used in evaluation (default "pearson";
 can set to "spearman" or "kendall").}
@@ -69,6 +93,8 @@ makes the analyses considerably faster to run. Default is "multi_cores_sys_defau
 \item{save_output}{Option not to save all output; default "all". see also "only_results" and "only_results_predictions".}
 
 \item{seed}{Set different seed.}
+
+\item{...}{For example settings in yardstick::accuracy to set event_level (e.g., event_level = "second").}
 }
 \value{
 A (one-sided) correlation test between predicted and observed values; tibble of predicted values, as well as information
@@ -79,12 +105,9 @@ Train word embeddings to a numeric variable.
 }
 \examples{
 \donttest{
-wordembeddings <- wordembeddings4
-ratings_data <- Language_based_assessment_data_8
-
 results <- textTrainRegression(
-  wordembeddings$harmonytext,
-  ratings_data$hilstotal,
+  wordembeddings4$harmonytext,
+  Language_based_assessment_data_8$hilstotal,
   multi_cores = FALSE # This is FALSE due to CRAN testing and Windows machines.
 )
 }

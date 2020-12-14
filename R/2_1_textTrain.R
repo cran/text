@@ -1,6 +1,6 @@
 
 
-
+# library(tidyverse)
 # devtools::document()
 #' Train word embeddings to a numeric (ridge regression) or categorical (random forest) variable.
 #'
@@ -63,7 +63,6 @@ textTrain <- function(x,
     train_method <- "random_forest"
   }
 
-
   # Analyze according to train_method decided above.
   if (train_method == "regression") {
     # textTrainLists x; if more than one wordembedding list; or more than one column of numeric/categorical variable
@@ -102,8 +101,6 @@ textTrain <- function(x,
     }
   }
 }
-
-
 
 # devtools::document()
 #' Sorts out the output from a regression model for the list format.
@@ -214,14 +211,6 @@ sort_classification_output_list <- function(output, save_output, descriptions, .
       purrr::reduce(dplyr::full_join, "id_nr") %>%
       dplyr::arrange(id_nr)
 
-    # colnames(output_predscore_reg) <- c(paste(descriptions, "_pred", sep = ""))
-
-    # output_predscore1 <- lapply(output, "[[", "truth_predictions")
-    #
-    # help(do.call)
-    # output_predscore <- do.call(cbind, output_predscore1) %>%
-    #   tibble::as_tibble() %>%
-    #   dplyr::arrange()
 
     results <- list(output1, output_predscore, output_ordered_named1)
     names(results) <- c("all_output", "predictions", "results")
@@ -233,7 +222,7 @@ sort_classification_output_list <- function(output, save_output, descriptions, .
 }
 
 
-# library(data.table)
+# library(tidyverse)
 # devtools::document()
 #' Individually trains word embeddings from several text variables to several numeric or categorical variables. It is possible
 #' to have  word embeddings from one text variable and several numeric/categprical variables; or vice verse, word embeddings from
@@ -351,6 +340,7 @@ textTrainLists <- function(x,
     } else if (model == "logistic") {
       results <- sort_classification_output_list(output = output, save_output = save_output, descriptions = descriptions)
     }
+
   } else if (train_method == "random_forest") { #
 
     # Apply textTrainRandomForest function between each list element and sort outcome.
@@ -395,7 +385,9 @@ textTrainLists <- function(x,
 #' @importFrom stats predict
 #' @importFrom tibble is_tibble as_tibble_col
 #' @export
-textPredict <- function(model_info, new_data, type = NULL, ...) {
+textPredict <- function(model_info,
+                        new_data,
+                        type = NULL, ...) {
 
   # In case the embedding is in list form get the tibble form
   if (!tibble::is_tibble(new_data) & length(new_data) == 1) {
@@ -424,13 +416,13 @@ textPredict <- function(model_info, new_data, type = NULL, ...) {
       variable_name_index_pca[i] <- paste("Dim_we", i, sep = "")
     }
 
-    # Make one df rather then list.
+    # Make one df rather than list.
     new_data1 <- dplyr::bind_cols(new_datalist)
 
     # Get original columns names, to remove these column from output
     original_colnames <- colnames(new_data1)
 
-    # Add id
+    # Add ID
     new_data1$id_nr <- c(1:nrow(new_data1))
     new_data_id_nr_col <- tibble::as_tibble_col(1:nrow(new_data1), column_name = "id_nr")
 
@@ -452,16 +444,16 @@ textPredict <- function(model_info, new_data, type = NULL, ...) {
   data_prepared_with_recipe <- recipes::bake(model_info$final_recipe, new_data1)
 
   # Get column names to be removed
-  colnames_to_b_removed <- colnames(data_prepared_with_recipe)
-  colnames_to_b_removed <- colnames_to_b_removed[!colnames_to_b_removed == "id_nr"]
+   colnames_to_b_removed <- colnames(data_prepared_with_recipe)
+   colnames_to_b_removed <- colnames_to_b_removed[!colnames_to_b_removed == "id_nr"]
 
-  # Get scores
-  predicted_scores <- data_prepared_with_recipe %>%
-    bind_cols(stats::predict(model_info$final_model, new_data = data_prepared_with_recipe, type = type, ...)) %>%
+  # Get Prediction scores help(predict)
+  predicted_scores2 <- data_prepared_with_recipe %>%
+    bind_cols(stats::predict(model_info$final_model, new_data = new_data1, type = type), ...) %>%
     select(-!!colnames_to_b_removed) %>%
     full_join(new_data_id_nr_col, by = "id_nr") %>%
     arrange(id_nr) %>%
     select(-id_nr)
-
-  predicted_scores
 }
+
+

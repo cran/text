@@ -83,7 +83,7 @@ def hgTransformerGetEmbedding(text_strings,
                 all_toks.append(tokens)
             
             with torch.no_grad():
-                hidden_states = transformer_model(torch.tensor(input_ids),attention_mask=torch.tensor(attention_mask))[2]
+                hidden_states = transformer_model(torch.tensor(input_ids),attention_mask=torch.tensor(attention_mask))[-1]
                 if layers != 'all': 
                     hidden_states = [hidden_states[l] for l in layers]
                 hidden_states = [h.tolist() for h in hidden_states]
@@ -101,7 +101,7 @@ def hgTransformerGetEmbedding(text_strings,
             if return_tokens:
                 tokens = tokenizer.convert_ids_to_tokens(input_ids)
             with torch.no_grad():
-                hidden_states = transformer_model(torch.tensor([input_ids]))[2]
+                hidden_states = transformer_model(torch.tensor([input_ids]))[-1]
                 if layers != 'all': 
                     hidden_states = [hidden_states[l] for l in layers]
                 hidden_states = [h.tolist() for h in hidden_states]

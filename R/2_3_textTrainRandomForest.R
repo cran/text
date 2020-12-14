@@ -1,4 +1,4 @@
-#library(magrittr)
+
 #  devtools::document()
 #' Select evaluation measure and compute it (also used in logistic regression)
 #'
@@ -31,10 +31,18 @@ select_eval_measure_val <- function(eval_measure = "bal_accuracy", holdout_pred 
     eval_measure_val <- yardstick::roc_auc(holdout_pred, truth = y, class1_name)
   } else if (eval_measure == "rmse") {
     eval_measure_val <- yardstick::rmse(holdout_pred, truth = y, estimate = .pred)
+  } else if (eval_measure == "rsq") {
+    eval_measure_val <- yardstick::rsq(holdout_pred, truth = y, estimate = .pred)
+  }  else if (eval_measure == "cor_test") {
+    cor_testing <- cor.test(holdout_pred$y, holdout_pred$.pred, na.action=na.omit)
+    estimate1 <- cor_testing[[4]][[1]]
+    metric <- "cor_test"
+    estimator <- "standard"
+    eval_measure_val <- tibble(metric, estimator, as.numeric(estimate1))
+    colnames(eval_measure_val) <- c(".metric", ".estimator", ".estimate")
   }
   eval_measure_val
 }
-
 
 #  devtools::document()
 #' Select evaluation measure and compute it (also used in logistic regression)
@@ -110,10 +118,15 @@ fit_model_accuracy_rf <- function(object,
                                   mtry = 1,
                                   min_n = 1,
                                   trees = 1000,
+                                  preprocess_step_center = TRUE,
+                                  preprocess_scale_center = TRUE,
                                   preprocess_PCA = NA,
                                   variable_name_index_pca = NA,
                                   eval_measure = "bal_accuracy",
                                   extremely_randomised_splitrule = NULL) {
+
+  data_train <- rsample::analysis(object)   # mdata_train <- rsample::assessment(object)
+  data_train <- tibble::as_tibble(data_train)
 
   # Recipe for one embedding input
   if (colnames(rsample::analysis(object)[1]) == "Dim1") {
@@ -122,10 +135,18 @@ fit_model_accuracy_rf <- function(object,
       recipes::update_role(id_nr, new_role = "id variable") %>% # New
       recipes::update_role(-id_nr, new_role = "predictor") %>% # New
       recipes::update_role(y, new_role = "outcome") %>% # New
-      recipes::step_naomit(Dim1, skip = FALSE) %>%
-      recipes::step_center(recipes::all_predictors()) %>%
-      recipes::step_scale(recipes::all_predictors()) %>%
-      recipes::step_BoxCox(recipes::all_predictors()) %>%
+      recipes::step_naomit(recipes::all_predictors(), skip = FALSE) #%>%
+      #recipes::step_BoxCox(recipes::all_predictors()) %>%
+
+    if (preprocess_step_center) {
+        xy_recipe <- recipes::step_center(xy_recipe, recipes::all_predictors())
+      }
+    if (preprocess_scale_center) {
+      xy_recipe <- recipes::step_scale(xy_recipe, recipes::all_predictors())
+    }
+
+    # If preprocess_PCA is not NULL add PCA step with number of component of % of variance to retain specification
+    xy_recipe <- xy_recipe %>%
       # If preprocess_PCA is not NULL add PCA step with number of component of % of variance to retain specification
       {
         if (!is.na(preprocess_PCA)) {
@@ -139,8 +160,9 @@ fit_model_accuracy_rf <- function(object,
         } else {
           .
         }
-      } %>%
-      recipes::prep()
+      } #%>%
+      #recipes::prep()
+    xy_recipe_prep <- recipes::prep(xy_recipe)
 
     # Recipe for multiple word embedding input (with possibility of separate PCAs)
   } else {
@@ -175,31 +197,53 @@ fit_model_accuracy_rf <- function(object,
         }
       }
     }
-    xy_recipe <- recipes::prep(xy_recipe)
+   xy_recipe_prep <- recipes::prep(xy_recipe)
   }
 
   # To load the prepared training data into a variable juice() is used.
   # It extracts the data from the xy_recipe object.
-  xy_training <- recipes::juice(xy_recipe)
+  #xy_training <- recipes::juice(xy_recipe)
+
+  # Number of predictors (if more than one should use standard linear regression)
+  # number_of_predictors <- sum(xy_recipe$var_info$role == "predictor")
+
 
   # Create and fit model. help(rand_forest)
   if (is.null(extremely_randomised_splitrule)) {
-    mod <-
+    mod_spec <-
       parsnip::rand_forest(mode = mode_rf, trees = trees, mtry = mtry, min_n = min_n) %>%
       # parsnip::set_engine("ranger")
-      parsnip::set_engine("randomForest") %>%
-      parsnip::fit(y ~ ., data = xy_training)
+      parsnip::set_engine("randomForest") #%>%
+      #parsnip::fit(y ~ ., data = xy_training)
+
+    # Create Workflow (to know variable roles from recipes)
+    wf <- workflows::workflow() %>%
+      workflows::add_model(mod_spec) %>%
+      workflows::add_recipe(xy_recipe)
+
+    # Fit model
+    mod <-  parsnip::fit(wf, data = data_train)
+
   } else if (is.character(extremely_randomised_splitrule)) {
-    mod <-
+    mod_spec <-
       parsnip::rand_forest(mode = mode_rf) %>%
       parsnip::set_engine("ranger", splitrule = extremely_randomised_splitrule) %>%
-      # parsnip::set_mode("classification") %>%
-      parsnip::fit(y ~ ., data = xy_training)
+      parsnip::set_mode("classification") #%>%
+      #parsnip::fit(y ~ ., data = xy_training)
+
+    # Create Workflow (to know variable roles from recipes)
+    wf <- workflows::workflow() %>%
+      workflows::add_model(mod_spec) %>%
+      workflows::add_recipe(xy_recipe)
+
+    # Fit model
+    mod <-  parsnip::fit(wf, data = data_train)
+
+
   }
 
   # Prepare the test data according to the recipe
-  xy_testing <- xy_recipe %>%
-    recipes::bake(rsample::assessment(object))
+  xy_testing <- rsample::assessment(object)
   # look at xy_testing: glimpse(xy_testing)
 
   # Apply model on new data
@@ -257,6 +301,8 @@ fit_model_accuracy_wrapper_rf <- function(mtry,
                                           object,
                                           mode_rf,
                                           trees,
+                                          preprocess_step_center,
+                                          preprocess_scale_center,
                                           preprocess_PCA,
                                           variable_name_index_pca,
                                           eval_measure,
@@ -267,6 +313,8 @@ fit_model_accuracy_wrapper_rf <- function(mtry,
     mtry,
     min_n,
     trees,
+    preprocess_step_center,
+    preprocess_scale_center,
     preprocess_PCA,
     variable_name_index_pca,
     eval_measure,
@@ -290,6 +338,8 @@ tune_over_cost_rf <- function(object,
                               mtry,
                               min_n,
                               trees,
+                              preprocess_step_center,
+                              preprocess_scale_center,
                               preprocess_PCA,
                               variable_name_index_pca,
                               eval_measure,
@@ -333,6 +383,8 @@ tune_over_cost_rf <- function(object,
   mode_rf = mode_rf,
   variable_name_index_pca = variable_name_index_pca,
   eval_measure = eval_measure,
+  preprocess_step_center = preprocess_step_center,
+  preprocess_scale_center = preprocess_scale_center,
   extremely_randomised_splitrule
   )
 
@@ -367,6 +419,8 @@ summarize_tune_results_rf <- function(object,
                                       mtry,
                                       min_n,
                                       trees,
+                                      preprocess_step_center = preprocess_step_center,
+                                      preprocess_scale_center = preprocess_scale_center,
                                       preprocess_PCA,
                                       variable_name_index_pca,
                                       eval_measure,
@@ -380,6 +434,8 @@ summarize_tune_results_rf <- function(object,
     mtry = mtry,
     min_n = min_n,
     trees = trees,
+    preprocess_step_center = preprocess_step_center,
+    preprocess_scale_center = preprocess_scale_center,
     preprocess_PCA = preprocess_PCA,
     variable_name_index_pca = variable_name_index_pca,
     eval_measure = eval_measure,
@@ -392,11 +448,19 @@ summarize_tune_results_rf <- function(object,
 #'
 #' @param x Word embeddings from textEmbed.
 #' @param y Categorical variable to predict.
-#' @param outside_folds_v Number of folds for the outer folds (default = 10).
+#' @param cv_method Cross-validation method to use within a pipeline of nested outer and inner loops of folds (see nested_cv in rsample).
+#' Default is using cv_folds in the outside folds and "validation_split" using rsample::validation_split in the inner loop to achieve a development and assessment
+#' set (note that for validation_split the inside_folds should be a proportion, e.g., inside_folds = 3/4); whereas "cv_folds" uses rsample::vfold_cv to achieve n-folds
+#' in both the outer and inner loops.
+#' @param outside_folds Number of folds for the outer folds (default = 10).
 #' @param outside_strata_y Variable to stratify according (default "y"; can also set to NULL).
-#' @param inside_folds_prop Number of folds for the inner folds (default = 3/4).
+#' @param outside_breaks The number of bins wanted to stratify a numeric stratification variable in the outer cross-validation loop.
+#' @param inside_folds Number of folds for the inner folds (default = 3/4).
 #' @param inside_strata_y Variable to stratify according (default "y"; can also set to NULL).
+#' @param inside_breaks The number of bins wanted to stratify a numeric stratification variable in the inner cross-validation loop.
 #' @param mode_rf Default is "classification" ("regression" is not supported yet).
+#' @param preprocess_step_center normalizes dimensions to have a mean of zero; default is set to TRUE. For more info see (step_center in recipes).
+#' @param preprocess_scale_center  normalize dimensions to have a standard deviation of one. For more info see (step_scale in recipes).
 #' @param preprocess_PCA Pre-processing threshold for PCA. Can select amount of variance to retain (e.g., .90 or as a grid c(0.80, 0.90)); or
 #' number of components to select (e.g., 10). Default is "min_halving", which is a function that selects the number of PCA components based on number
 #' of participants and feature (word embedding dimensions) in the data. The formula is:
@@ -420,15 +484,14 @@ summarize_tune_results_rf <- function(object,
 #' these measures see the yardstick r-package documentation).
 #' @examples
 #' \donttest{
-#' wordembeddings <- wordembeddings4
-#' example_categories <- as.factor(c(1, 2, 1, 2, 1, 2, 1, 2, 1, 2))
-#' results <- textTrainRandomForest(wordembeddings$harmonywords,
-#'   example_categories,
-#'   trees = c(1000, 1500),
-#'   mtry  = c(1), # this is short because of testing
-#'   min_n = c(1), # this is short because of testing
-#'   multi_cores = FALSE # This is FALSE due to CRAN testing and Windows machines.
-#' )
+#'results <- textTrainRandomForest(
+#'  wordembeddings4$harmonywords,
+#'  as.factor(Language_based_assessment_data_8$gender),
+#'  trees = c(1000, 1500),
+#'  mtry  = c(1), # this is short because of testing
+#'  min_n = c(1), # this is short because of testing
+#'  multi_cores = FALSE # This is FALSE due to CRAN testing and Windows machines.
+#')
 #' }
 #' @seealso see \code{\link{textTrainLists}} \code{\link{textSimilarityTest}}
 #' @importFrom stats cor.test na.omit chisq.test fisher.test complete.cases
@@ -445,11 +508,16 @@ summarize_tune_results_rf <- function(object,
 #' @export
 textTrainRandomForest <- function(x,
                                   y,
-                                  outside_folds_v = 10,
+                                  cv_method = "validation_split",
+                                  outside_folds = 10,
                                   outside_strata_y = "y",
-                                  inside_folds_prop = 3 / 4,
+                                  outside_breaks = 4,
+                                  inside_folds = 3/4,
                                   inside_strata_y = "y",
+                                  inside_breaks = 4,
                                   mode_rf = "classification",
+                                  preprocess_step_center = FALSE,
+                                  preprocess_scale_center = FALSE,
                                   preprocess_PCA = NA,
                                   extremely_randomised_splitrule = "extratrees",
                                   mtry = c(1, 10, 20, 40),
@@ -522,7 +590,6 @@ textTrainRandomForest <- function(x,
     x1 <- dplyr::bind_cols(xlist)
 
   }
-
   ############ End for multiple word embeddings ############
   ##########################################################
 
@@ -533,24 +600,46 @@ textTrainRandomForest <- function(x,
     y <- as.factor(y)
   }
   xy <- cbind(x1, y)
+  xy <- as_tibble(xy)
 
 
   xy$id_nr <- c(seq_len(nrow(xy)))
   id_nr <- tibble::as_tibble_col(c(seq_len(nrow(xy))), column_name = "id_nr")
-  xy1 <- tibble::as_tibble(xy[stats::complete.cases(xy), ])
+  xy <- tibble::as_tibble(xy[stats::complete.cases(xy), ])
 
-  results_nested_resampling <- rlang::expr(rsample::nested_cv(xy1,
-    outside = rsample::vfold_cv(
-      v = !!outside_folds_v,
-      repeats = 1,
-      strata = !!outside_strata_y
-    ), #
-    inside = rsample::validation_split(
-      prop = !!inside_folds_prop,
-      strata = !!inside_strata_y,
-      breaks = 1
-    )
-  ))
+
+  # Cross-Validation help(nested_cv) help(vfold_cv) help(validation_split)
+  if(cv_method == "cv_folds") {
+    results_nested_resampling <- rlang::expr(rsample::nested_cv(xy,
+                                                                outside = rsample::vfold_cv(
+                                                                  v       = !!outside_folds,
+                                                                  repeats = 1,
+                                                                  strata  = !!outside_strata_y,
+                                                                  breaks  = !!outside_breaks
+                                                                ), #
+                                                                inside = rsample::vfold_cv(
+                                                                  v       = !!inside_folds,
+                                                                  repeats = 1,
+                                                                  strata  = !!inside_strata_y,
+                                                                  breaks  = !!inside_breaks
+                                                                )
+    ))
+  }
+  if(cv_method == "validation_split") {
+    results_nested_resampling <- rlang::expr(rsample::nested_cv(xy,
+                                                                outside = rsample::vfold_cv(
+                                                                  v       = !!outside_folds,
+                                                                  repeats = 1,
+                                                                  strata  = !!outside_strata_y,
+                                                                  breaks  = !!outside_breaks
+                                                                ), #
+                                                                inside = rsample::validation_split(
+                                                                  prop   = !!inside_folds,
+                                                                  strata = !!inside_strata_y,
+                                                                  breaks = !!inside_breaks
+                                                                )
+    ))
+  }
 
   results_nested_resampling <- rlang::eval_tidy(results_nested_resampling)
 
@@ -577,6 +666,8 @@ textTrainRandomForest <- function(x,
       mtry = mtry,
       min_n = min_n,
       trees = trees,
+      preprocess_step_center = preprocess_step_center,
+      preprocess_scale_center = preprocess_scale_center,
       preprocess_PCA = preprocess_PCA,
       variable_name_index_pca = variable_name_index_pca,
       eval_measure = eval_measure,
@@ -593,6 +684,8 @@ textTrainRandomForest <- function(x,
       mtry = mtry,
       min_n = min_n,
       trees = trees,
+      preprocess_step_center = preprocess_step_center,
+      preprocess_scale_center = preprocess_scale_center,
       preprocess_PCA = preprocess_PCA,
       variable_name_index_pca = variable_name_index_pca,
       eval_measure = eval_measure,
@@ -600,8 +693,13 @@ textTrainRandomForest <- function(x,
     )
   }
 
-  # Function to get the lowest eval_measure_val
-  bestParameters <- function(dat) dat[which.min(dat$eval_measure), ]
+
+  # Function to get the lowest eval_measure_val library(tidyverse)
+  if(eval_measure %in% c("accuracy" , "bal_accuracy", "sens", "spec", "precision", "kappa", "f_measure", "roc_auc", "rsq", "cor_test")) {
+    bestParameters <- function(dat) dat[which.max(dat$eval_measure), ]
+  } else if (eval_measure == "rmse"){
+    bestParameters <- function(dat) dat[which.min(dat$eval_measure), ]
+  }
 
   # Determine the best parameter estimate from each INNER sample to be used
   # for each of the outer resampling iterations:
@@ -642,19 +740,27 @@ textTrainRandomForest <- function(x,
   ##### Construct final model to be saved and applied on other data  ########
   ############################################################################
 
-  xy_short <- xy
+  xy_all <- xy
 
   ######### One word embedding as input
-  if (colnames(xy_short[1]) == "Dim1") {
+  if (colnames(xy_all[1]) == "Dim1") {
     final_recipe <- # xy %>%
-      recipes::recipe(y ~ ., xy_short[0, ]) %>%
+      recipes::recipe(y ~ ., xy_all[0, ]) %>%
       recipes::update_role(id_nr, new_role = "id variable") %>%
       recipes::update_role(-id_nr, new_role = "predictor") %>%
       recipes::update_role(y, new_role = "outcome") %>%
-      recipes::step_naomit(Dim1, skip = FALSE) %>%
-      recipes::step_center(recipes::all_predictors()) %>%
-      recipes::step_scale(recipes::all_predictors()) %>%
+      recipes::step_naomit(recipes::all_predictors(), skip = FALSE) #%>%
       # recipes::step_BoxCox(recipes::all_predictors()) %>%
+
+   if (preprocess_step_center) {
+     final_recipe <- recipes::step_center(final_recipe, recipes::all_predictors())
+   }
+  if (preprocess_scale_center) {
+    final_recipe <- recipes::step_scale(final_recipe, recipes::all_predictors())
+   }
+
+    # If preprocess_PCA is not NULL add PCA step with number of component of % of variance to retain specification
+    final_recipe <- final_recipe %>%
       {
         if (!is.na(preprocess_PCA[1])) {
           if (preprocess_PCA[1] >= 1) {
@@ -670,15 +776,21 @@ textTrainRandomForest <- function(x,
       }
     ######### More than one word embeddings as input
   } else {
-    V1 <- colnames(xy_short[1])
+    V1 <- colnames(xy_all[1])
 
-    final_recipe <- recipes::recipe(y ~ ., xy_short[0, ]) %>%
+    final_recipe <- recipes::recipe(y ~ ., xy_all[0, ]) %>%
       recipes::update_role(id_nr, new_role = "id variable") %>%
       recipes::update_role(-id_nr, new_role = "predictor") %>%
       recipes::update_role(y, new_role = "outcome") %>%
-      recipes::step_naomit(recipes::all_predictors(), skip = TRUE) %>%
-      recipes::step_center(recipes::all_predictors()) %>%
-      recipes::step_scale(recipes::all_predictors())
+      recipes::step_naomit(recipes::all_predictors(), skip = TRUE) #%>%
+      # recipes::step_BoxCox(recipes::all_predictors()) %>%
+
+    if (preprocess_step_center) {
+      final_recipe <- recipes::step_center(final_recipe, recipes::all_predictors())
+    }
+    if (preprocess_scale_center) {
+      final_recipe <- recipes::step_scale(final_recipe, recipes::all_predictors())
+    }
 
     # Adding a PCA in each loop; first selecting all variables starting with i="Dim_we1"; and then "Dim_we2" etc
     if (!is.na(preprocess_PCA)) {
@@ -704,34 +816,29 @@ textTrainRandomForest <- function(x,
 
 
   # Creating new environment to keep saving size down
-  # Creating recipe in another environment sto avoid saving unnessarily large parts of the environment
+  # Creating recipe in another environment sto avoid saving unnecessarily large parts of the environment
   # when saving the object to rda, rds or Rdata.
   # http://r.789695.n4.nabble.com/Model-object-when-generated-in-a-function-saves-entire-environment-when-saved-td4723192.html
-  recipe_save_small_size <- function(final_recipe, xy_short){
+  recipe_save_small_size <- function(final_recipe, xy_all){
 
     env_final_recipe <- new.env(parent = globalenv())
-    env_final_recipe$xy_short <- xy_short
+    env_final_recipe$xy_all <- xy_all
     env_final_recipe$final_recipe <- final_recipe
 
     with(env_final_recipe, preprocessing_recipe_save <- suppressWarnings(recipes::prep(final_recipe,
-                                                                                       xy_short,
+                                                                                       xy_all,
                                                                                        retain = FALSE)))
   }
-  preprocessing_recipe_save <- recipe_save_small_size(final_recipe = final_recipe, xy_short = xy_short)
-  #preprocessing_recipe_save <- recipes::prep(final_recipe, xy_short, retain = FALSE)
-
-  preprocessing_recipe_use <- recipes::prep(final_recipe, xy_short)
-
-
+  preprocessing_recipe_save <- recipe_save_small_size(final_recipe = final_recipe, xy_all = xy_all)
 
   # To load the prepared training data into a variable juice() is used.
   # It extracts the data from the xy_recipe object.
-   xy_final <- recipes::juice(preprocessing_recipe_use)
 
-   model_save_small_size <- function(xy_final, xy_short, results_split_parameter, mode_rf){
+   model_save_small_size <- function(xy_all, final_recipe, results_split_parameter, mode_rf){
      env_final_model <- new.env(parent = globalenv())
-     env_final_model$xy_final <- xy_final
-     env_final_model$xy_short <- xy_short
+     env_final_model$xy_all <- xy_all
+     env_final_model$final_recipe <- final_recipe
+
      #env_final_model$results_split_parameter <- results_split_parameter
 
      env_final_model$trees_mode <- statisticalMode(results_split_parameter$trees)
@@ -742,21 +849,26 @@ textTrainRandomForest <- function(x,
      env_final_model$statisticalMode <- statisticalMode
      env_final_model$`%>%`  <-  `%>%`
 
-     with(env_final_model, final_predictive_model <-
-    parsnip::rand_forest(
-      mode = mode_rf,
-      trees = trees_mode,
-      mtry = mtry_mode,
-      min_n = min_n_mode
-    ) %>%
-    # set_engine("ranger")
-    parsnip::set_engine("randomForest") %>%
-    parsnip::fit(y ~ ., data = xy_final)
+     with(env_final_model,
 
-     )
+          final_predictive_model_spec <-
+            parsnip::rand_forest(mode = mode_rf,
+                                 trees = trees_mode,
+                                 mtry = mtry_mode,
+                                 min_n = min_n_mode) %>%
+            parsnip::set_engine("randomForest"))
+
+     with(env_final_model,
+    wf_final <- workflows::workflow() %>%
+      workflows::add_model(final_predictive_model_spec) %>%
+      workflows::add_recipe(final_recipe))
+
+     with(env_final_model,
+    # Fit model
+    final_predictive_model <-  parsnip::fit(wf_final, data = xy_all))
      }
 
-   final_predictive_model <- model_save_small_size(xy_final, xy_short, results_split_parameter, mode_rf)
+   final_predictive_model <- model_save_small_size(xy_all, final_recipe, results_split_parameter, mode_rf)
 
 
 
@@ -771,10 +883,10 @@ textTrainRandomForest <- function(x,
     min_n_description <- paste("min_n  in final model =", deparse(statisticalMode(results_split_parameter$min_n)))
     min_n_fold_description <- paste("min_n in each fold =", deparse(results_split_parameter$min_n))
   } else {
-    mtry_description <- c("-")
-    mtry_fold_description <- c("-")
-    min_n_description <- c("-")
-    min_n_fold_description <- c("-")
+    mtry_description <- c("NA")
+    mtry_fold_description <- c("NA")
+    min_n_description <- c("NA")
+    min_n_fold_description <- c("NA")
   }
   mode_rf_description <- paste("mode =", mode_rf)
   trees_description <- paste("trees in final model =", statisticalMode(results_split_parameter$trees))
@@ -783,16 +895,19 @@ textTrainRandomForest <- function(x,
   preprocess_PCA_fold_description <- paste("preprocess_PCA in each fold = ", deparse(results_split_parameter$preprocess_PCA))
   eval_measure <- paste("eval_measure = ", eval_measure)
 
+  preprocess_step_center <- paste("preprocess_step_center_setting = ", deparse(preprocess_step_center))
+  preprocess_scale_center <- paste("preprocess_scale_center_setting = ", deparse(preprocess_scale_center))
+
   if (is.character(extremely_randomised_splitrule)) {
     extremely_randomised_splitrule <- paste("extremely_randomised_splitrule = ", extremely_randomised_splitrule)
   } else {
-    extremely_randomised_splitrule <- c("-")
+    extremely_randomised_splitrule <- c("NA")
   }
 
-
-  outside_folds_v_description <- paste("outside_folds_v = ", deparse(outside_folds_v))
+  cv_method_description <- paste("cv_method = ", deparse(cv_method))
+  outside_folds_description <- paste("outside_folds = ", deparse(outside_folds))
   outside_strata_y_description <- paste("outside_strata_y = ", deparse(outside_strata_y))
-  inside_folds_prop_description <- paste("inside_folds_prop = ", deparse(inside_folds_prop))
+  inside_folds_description <- paste("inside_folds = ", deparse(inside_folds))
   inside_strata_y_description <- paste("inside_strata_y = ", deparse(inside_strata_y))
 
   preprocess_PCA_setting <- paste("preprocess_PCA_setting = ", deparse(preprocess_PCA))
@@ -817,11 +932,14 @@ textTrainRandomForest <- function(x,
   model_description_detail <- c(
     x_name,
     y_name,
-    outside_folds_v_description,
+    cv_method_description,
+    outside_folds_description,
     outside_strata_y_description,
-    inside_folds_prop_description,
+    inside_folds_description,
     inside_strata_y_description,
     mode_rf_description,
+    preprocess_step_center,
+    preprocess_scale_center,
     preprocess_PCA_setting,
     preprocess_PCA_description,
     preprocess_PCA_fold_description,
@@ -897,7 +1015,6 @@ textTrainRandomForest <- function(x,
   remove(x1)
   remove(y)
   remove(xy)
-  remove(xy1)
   remove(id_nr)
 
   remove(preprocessing_recipe_save)
@@ -909,10 +1026,8 @@ textTrainRandomForest <- function(x,
   remove(results_split_parameter)
   remove(results_outer)
   remove(outputlist_results_outer)
-  remove(xy_short)
+  remove(xy_all)
   remove(final_recipe)
-  remove(preprocessing_recipe_use)
-  remove(xy_final)
 
   final_results
 }
