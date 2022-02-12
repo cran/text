@@ -7,10 +7,6 @@ library(text)
 context("Big analyses flow")
 
 
-#testing_size_model_NEW2_New <- textTrainRegression(wordembeddings4$harmonywords, Language_based_assessment_data_8$hilstotal)
-
-#
-
 test_that("Testing textEmbed as well as train", {
   skip_on_cran()
 
@@ -24,7 +20,7 @@ test_that("Testing textEmbed as well as train", {
   )
 
   text_train_results <- textTrain(
-    x = harmony_word_embeddings$harmonywords,
+    x = harmony_word_embeddings$satisfactiontexts,
     y = Language_based_assessment_data_8$hilstotal,
     cv_method = "cv_folds",
     outside_folds = 2,
@@ -44,7 +40,7 @@ test_that("Testing textEmbed as well as train", {
   # Predict
   hils_predicted_scores1 <- textPredict(
     model_info = text_train_results,
-    new_data = harmony_word_embeddings$harmonywords
+    new_data = harmony_word_embeddings$satisfactiontexts
   )
 
   expect_that(hils_predicted_scores1$.pred[1], is_a("numeric"))

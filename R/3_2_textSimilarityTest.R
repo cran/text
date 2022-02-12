@@ -11,12 +11,12 @@
 #' @param seed Set different seed.
 #' @return A list with a p-value, cosine_estimate and permuted values if output.permutations=TRUE.
 #' @examples
-#' x <- wordembeddings4$harmonywords
-#' y <- wordembeddings4$satisfactionwords
+#' x <- word_embeddings_4$harmonywords
+#' y <- word_embeddings_4$satisfactionwords
 #' textSimilarityTest(x,
 #'   y,
 #'   method = "paired",
-#'   Npermutations = 10,
+#'   Npermutations = 100,
 #'   N_cluster_nodes = 1,
 #'   alternative = "two_sided"
 #' )
@@ -34,7 +34,7 @@ textSimilarityTest <- function(x,
   T1_textSimilarityTest <- Sys.time()
 
   set.seed(seed)
-  if ((nrow(x) != nrow(y))) {
+  if (method == "paired" & (nrow(x) != nrow(y))) {
     stop("x and y must have the same number of rows for a paired textSimilarityTest test.")
   }
   alternative <- match.arg(alternative)
@@ -105,7 +105,9 @@ textSimilarityTest <- function(x,
   NULLresults <- unlist(distribution_mean_cosine_permutated)
 
   # Examine how the ordered data's mean of the cosine compare with the random data's, null comparison distribution
-  p_value <- p_value_comparing_with_Null(NULLresults, Observedresults = results["cosine_estimate"], Npermutations = Npermutations, alternative = alternative)
+  p_value <- p_value_comparing_with_Null(NULLresults,
+                                         Observedresult = results["cosine_estimate"],
+                                         alternative = alternative)
   results["p.value"] <- p_value
   results <- as.list(results)
 
@@ -124,7 +126,8 @@ textSimilarityTest <- function(x,
   # Time
   T2_textSimilarityTest <- Sys.time()
   Time_textSimilarityTest <- T2_textSimilarityTest - T1_textSimilarityTest
-  Time_textSimilarityTest <- sprintf("Duration to run the test: %f %s", Time_textSimilarityTest, units(Time_textSimilarityTest))
+  Time_textSimilarityTest <- sprintf("Duration to run the test: %f %s", Time_textSimilarityTest,
+                                     units(Time_textSimilarityTest))
   Date_textSimilarityTest <- Sys.time()
   time_date <- paste(Time_textSimilarityTest,
     "; Date created: ", Date_textSimilarityTest,
@@ -151,6 +154,5 @@ textSimilarityTest <- function(x,
     descriptions,
     results
   )
-
   results
 }

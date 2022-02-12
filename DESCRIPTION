@@ -2,7 +2,7 @@ Package: text
 Type: Package
 Title: Analyses of Text using Natural Language Processing and Machine
         Learning
-Version: 0.9.10
+Version: 0.9.50
 Authors@R: c(
     person("Oscar", "Kjell", , "oscar.kjell@psy.lu.se", role = c("aut", "cre"), 
       comment = c(ORCID = "0000-0002-2728-6278"),
@@ -22,23 +22,19 @@ Archs: x64
 SystemRequirements: Python (>= 3.6.0)
 LazyData: true
 BuildVignettes: true
-Imports: dplyr, tokenizers, tibble, stringr, tidyr, ggplot2, ggrepel,
-        cowplot, rlang, purrr, magrittr, parsnip, recipes, rsample,
-        reticulate, tune, workflows, yardstick, future, furrr
-RoxygenNote: 7.1.0
+Imports: dplyr, tibble, stringi, tidyr, ggplot2, ggrepel, cowplot,
+        rlang, purrr, magrittr, parsnip, recipes, rsample, reticulate,
+        tune, workflows, yardstick, future, furrr, overlapping
+RoxygenNote: 7.1.2
 Suggests: knitr, rmarkdown, testthat, rio, glmnet, randomForest, covr,
         xml2, ranger
 VignetteBuilder: knitr
 Depends: R (>= 4.00)
-Config/reticulate: list( packages = list( list(package = "torch", pip =
-        TRUE), list(package = "transformers", version = "3.3.1", pip =
-        TRUE), list(package = "nltk", pip = TRUE), list(package =
-        "numpy", pip = TRUE) ) )
 NeedsCompilation: no
-Packaged: 2020-12-14 09:21:41 UTC; oscarkjell
+Packaged: 2022-02-12 06:12:40 UTC; oscarkjell
 Author: Oscar Kjell [aut, cre] (<https://orcid.org/0000-0002-2728-6278>),
   Salvatore Giorgi [aut] (<https://orcid.org/0000-0001-7381-6295>),
   Andrew Schwartz [aut] (<https://orcid.org/0000-0002-6383-3339>)
 Maintainer: Oscar Kjell <oscar.kjell@psy.lu.se>
 Repository: CRAN
-Date/Publication: 2020-12-14 09:50:02 UTC
+Date/Publication: 2022-02-12 23:10:02 UTC

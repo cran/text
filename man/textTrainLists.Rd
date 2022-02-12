@@ -2,9 +2,10 @@
 % Please edit documentation in R/2_1_textTrain.R
 \name{textTrainLists}
 \alias{textTrainLists}
-\title{Individually trains word embeddings from several text variables to several numeric or categorical variables. It is possible
-to have  word embeddings from one text variable and several numeric/categprical variables; or vice verse, word embeddings from
-several text variables to one numeric/categorical variable. It is not possible to mix numeric and categorical variables.}
+\title{Individually trains word embeddings from several text variables to several numeric or categorical variables.
+It is possible to have  word embeddings from one text variable and several numeric/categprical variables;
+or vice verse, word embeddings from several text variables to one numeric/categorical variable.
+It is not possible to mix numeric and categorical variables.}
 \usage{
 textTrainLists(
   x,
@@ -24,13 +25,14 @@ textTrainLists(
 \item{y}{Tibble with several numeric or categorical variables to predict. Please note that you cannot mix numeric and
 categorical variables.}
 
-\item{force_train_method}{default is automatic; see also "regression" and "random_forest".}
+\item{force_train_method}{Default is automatic; see also "regression" and "random_forest".}
 
-\item{save_output}{Option not to save all output; default "all". see also "only_results" and "only_results_predictions".}
+\item{save_output}{Option not to save all output; default "all". see also "only_results"
+and "only_results_predictions".}
 
-\item{method_cor}{"pearson",}
+\item{method_cor}{Default "Pearson".}
 
-\item{model}{type of model to use in regression; default is "regression"; see also "logistic".
+\item{model}{Type of model to use in regression; default is "regression"; see also "logistic".
 (To set different random forest algorithms see extremely_randomised_splitrule parameter in textTrainRandomForest)}
 
 \item{eval_measure}{Type of evaluative measure to assess models on.}
@@ -44,16 +46,17 @@ categorical variables.}
 Correlations between predicted and observed values.
 }
 \description{
-Individually trains word embeddings from several text variables to several numeric or categorical variables. It is possible
-to have  word embeddings from one text variable and several numeric/categprical variables; or vice verse, word embeddings from
-several text variables to one numeric/categorical variable. It is not possible to mix numeric and categorical variables.
+Individually trains word embeddings from several text variables to several numeric or categorical variables.
+It is possible to have  word embeddings from one text variable and several numeric/categprical variables;
+or vice verse, word embeddings from several text variables to one numeric/categorical variable.
+It is not possible to mix numeric and categorical variables.
 }
 \examples{
 \dontrun{
-wordembeddings <- wordembeddings4[1:2]
+word_embeddings <- word_embeddings_4[1:2]
 ratings_data <- Language_based_assessment_data_8[5:6]
 results <- textTrainLists(
-  wordembeddings,
+  word_embeddings,
   ratings_data
 )
 results

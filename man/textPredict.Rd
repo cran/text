@@ -11,9 +11,9 @@ textPredict(model_info, new_data, type = NULL, ...)
 
 \item{new_data}{Word embeddings from new data to be predicted from.}
 
-\item{type}{Type of prediction; e.g., "prob", "class"}
+\item{type}{Type of prediction; e.g., "prob", "class".}
 
-\item{...}{From predict}
+\item{...}{Setting trom stats::predict can be called.}
 }
 \value{
 Predicted scores from word embeddings.
@@ -22,7 +22,7 @@ Predicted scores from word embeddings.
 Predict scores or classification from, e.g., textTrain.
 }
 \examples{
-wordembeddings <- wordembeddings4
+word_embeddings <- word_embeddings_4
 ratings_data <- Language_based_assessment_data_8
 }
 \seealso{

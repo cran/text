@@ -19,14 +19,17 @@ textEmbed(
   decontext_aggregation_layers = "concatenate",
   decontext_aggregation_tokens = "mean",
   decontext_tokens_select = NULL,
-  decontext_tokens_deselect = NULL
+  decontext_tokens_deselect = NULL,
+  device = "cpu",
+  print_python_warnings = FALSE
 )
 }
 \arguments{
 \item{x}{A character variable or a tibble/dataframe with at least one character variable.}
 
 \item{model}{Character string specifying pre-trained language model (default 'bert-base-uncased').
- For full list of options see pretrained models at \href{https://huggingface.co/transformers/pretrained_models.html}{HuggingFace}.
+ For full list of options see pretrained models at
+ \href{https://huggingface.co/transformers/pretrained_models.html}{HuggingFace}.
  For example use "bert-base-multilingual-cased", "openai-gpt",
 "gpt2", "ctrl", "transfo-xl-wt103", "xlnet-base-cased", "xlm-mlm-enfr-1024", "distilbert-base-cased",
 "roberta-base", or "xlm-roberta-base".}
@@ -40,15 +43,16 @@ These layers can then be aggregated in the textEmbedLayerAggregation function. I
 (standard method; default = TRUE).}
 
 \item{context_layers}{Specify the layers that should be aggregated (default the number of layers extracted above).
-Layer 0 is the decontextualized input layer (i.e., not comprising hidden states) and thus advised not to be used.}
+Layer 0 is the decontextualized input layer (i.e., not comprising hidden states)
+and thus advised not to be used.}
 
-\item{context_aggregation_layers}{Method to aggregate the contextualized layers (e.g., "mean", "min" or "max, which takes the
-minimum, maximum or mean, respectively, across each column; or "concatenate", which links together each word embedding layer
-to one long row.}
+\item{context_aggregation_layers}{Method to aggregate the contextualized layers (e.g., "mean", "min" or
+"max, which takes the minimum, maximum or mean, respectively, across each column; or "concatenate", which links
+ together each word embedding layer to one long row.}
 
-\item{context_aggregation_tokens}{Method to aggregate the contextualized tokens (e.g., "mean", "min" or "max, which takes the
-minimum, maximum or mean, respectively, across each column; or "concatenate", which links together each word embedding layer
-to one long row.}
+\item{context_aggregation_tokens}{Method to aggregate the contextualized tokens (e.g., "mean", "min" or
+"max, which takes the minimum, maximum or mean, respectively, across each column; or "concatenate",
+which links together each word embedding layer to one long row.}
 
 \item{context_tokens_select}{Option to select word embeddings linked to specific tokens
 such as [CLS] and [SEP] for the context embeddings.}
@@ -61,19 +65,23 @@ such as [CLS] and [SEP] for the context embeddings.}
 
 \item{decontext_layers}{Layers to aggregate for the decontext embeddings  the number of layers extracted above.}
 
-\item{decontext_aggregation_layers}{Method to aggregate the decontextualized layers (e.g., "mean", "min" or "max, which takes the
-minimum, maximum or mean, respectively, across each column; or "concatenate", which links together each word embedding layer
-to one long row.}
+\item{decontext_aggregation_layers}{Method to aggregate the decontextualized layers (e.g., "mean", "min" or
+"max, which takes the minimum, maximum or mean, respectively, across each column; or "concatenate",
+which links together each word embedding layer to one long row.}
 
-\item{decontext_aggregation_tokens}{Method to aggregate the decontextualized tokens (e.g., "mean", "min" or "max, which takes the
-minimum, maximum or mean, respectively, across each column; or "concatenate", which links together each word embedding layer
-to one long row.}
+\item{decontext_aggregation_tokens}{Method to aggregate the decontextualized tokens (e.g., "mean", "min" or "max,
+which takes the minimum, maximum or mean, respectively, across each column; or "concatenate", which links
+together each word embedding layer to one long row.}
 
 \item{decontext_tokens_select}{Option to select embeddings linked to specific tokens
 such as [CLS] and [SEP] for the decontext embeddings.}
 
 \item{decontext_tokens_deselect}{option to deselect embeddings linked to specific tokens
 such as [CLS] and [SEP] for the decontext embeddings.}
+
+\item{device}{Name of device to use: 'cpu', 'gpu', or 'gpu:k' where k is a specific device number}
+
+\item{print_python_warnings}{bolean; when true any warnings from python environment are printed to the console.}
 }
 \value{
 A tibble with tokens, a column for layer identifier and word embeddings.
@@ -84,15 +92,15 @@ Extract layers and aggregate them to word embeddings, for all character variable
 }
 \examples{
 \donttest{
-x <- Language_based_assessment_data_8[1:2, 1:2]
+# x <- Language_based_assessment_data_8[1:2, 1:2]
 # Example 1
-wordembeddings <- textEmbed(x, layers = 9:11, context_layers = 11, decontext_layers = 9)
+# word_embeddings <- textEmbed(x, layers = 9:11, context_layers = 11, decontext_layers = 9)
 # Show information that have been saved with the embeddings about how they were constructed
-comment(wordembeddings$satisfactionwords)
-comment(wordembeddings$singlewords_we)
-comment(wordembeddings)
+# comment(word_embeddings$satisfactionwords)
+# comment(word_embeddings$singlewords_we)
+# comment(word_embeddings)
 # Example 2
-wordembeddings <- textEmbed(x, layers = "all", context_layers = "all", decontext_layers = "all")
+# word_embeddings <- textEmbed(x, layers = "all", context_layers = "all", decontext_layers = "all")
 }
 }
 \seealso{

@@ -2,7 +2,7 @@ library(text)
 library(tibble)
 library(testthat)
 
-context("Embedding of text and retrieval of word embeddings")
+context("Installation and Embedding of text and retrieval of word embeddings")
 
 # helper function to skip tests if we don't have the 'foo' module
 skip_if_no_transformers <- function() {
@@ -18,10 +18,10 @@ skip_if_no_torch <- function() {
   }
 }
 
+
 test_that("textEmbedLayerAggregation 'all': layer =  aggregate_tokens = 'mean' produces aggregated word embeddings", {
   skip_on_cran()
 
-  # skip_on_cran()
   aggregated_embeddings <- textEmbedLayerAggregation(embeddings_from_huggingface2$context,
     layers = 0:1,
     aggregate_layers = "mean",
@@ -42,20 +42,15 @@ test_that("textEmbedLayerAggregation 'all': layer =  aggregate_tokens = 'mean' p
 
   # Expect error
   expect_error(aggregated_embeddings <- textEmbedLayerAggregation(embeddings_from_huggingface2$context,
-                                                    layers = 0:3,
-                                                    aggregate_layers = "mean",
-                                                    aggregate_tokens = "mean"
-  )
-  )
-
-
+    layers = 0:3,
+    aggregate_layers = "mean",
+    aggregate_tokens = "mean"
+  ))
 })
-
 
 test_that("textEmbedLayerAggregation 1:2 'min' tokens_select = '[CLS]' produces aggregated word embeddings", {
   skip_on_cran()
 
-  # skip_on_cran()
   aggregated_embeddings <- textEmbedLayerAggregation(embeddings_from_huggingface2$context,
     layers = 1:2,
     aggregate_layers = "concatenate",
@@ -70,17 +65,16 @@ test_that("textEmbedLayerAggregation 1:2 'min' tokens_select = '[CLS]' produces 
 test_that("textEmbedLayerAggregation 1:2 'max' tokens_deselect = '[CLS]' produces aggregated word embeddings", {
   skip_on_cran()
 
-  # skip_on_cran()
+  # skip_on_cran() library(purrr)
   aggregated_embeddings <- textEmbedLayerAggregation(embeddings_from_huggingface2$context,
     layers = "all",
     aggregate_tokens = "max",
-    tokens_deselect = "[CLS]"
+    tokens_deselect = c("[CLS]")
   )
 
   expect_is(aggregated_embeddings$harmonywords[[1]][1], "numeric")
   expect_true(tibble::is_tibble(aggregated_embeddings$harmonywords))
 })
-
 
 test_that("textEmbedStatic with example space", {
   skip_on_cran()
@@ -101,22 +95,18 @@ test_that("textEmbedStatic with example space", {
   # Test function
   test_result <- textEmbedStatic(df = tibble_response, space = test_space, tk_df = "null", aggregate = "mean")
   test_result
-  # rlang::last_error()
+
   expect_is(test_result$word_response[[1]][[1]], "numeric")
   expect_is(test_result, "list")
 })
 
-
 # Potentially below works on GitHUB but not on Mac?
+
+
 
 test_that("textEmbedLayersOutput contexts=TRUE, decontexts = FALSE returns a list", {
   skip_on_cran()
 
-  # skip_on_cran()
-  # skip_if_no_transformers()
-  # skip_if_no_torch
-
-  # x <- Language_based_assessment_data_8[1:2, 1:2]
   text_to_test_import1 <- c("test this", "hope it works")
   text_to_test_import2 <- c("I am happy", "Let us go")
   x <- tibble::tibble(text_to_test_import1, text_to_test_import2)
@@ -125,10 +115,9 @@ test_that("textEmbedLayersOutput contexts=TRUE, decontexts = FALSE returns a lis
     model = "bert-base-uncased",
     contexts = TRUE,
     decontexts = FALSE,
+    return_tokens = TRUE,
     layers = "all"
   )
-
-  expect_that(embeddings, is_a("list"))
 
   # Is the first value there and numeric
   expect_that(embeddings[[1]][[1]][[1]][[1]][[1]], is.character)
@@ -139,10 +128,8 @@ test_that("textEmbedLayersOutput contexts=TRUE, decontexts = FALSE returns a lis
 
 test_that("textEmbedLayersOutput bert-base-uncased contexts=FALSE, decontexts = TRUE returns a list", {
   skip_on_cran()
-  # skip_if_no_transformers()
-  # skip_if_no_torch
 
-  # x <- Language_based_assessment_data_8[1:2, 1:2]
+
   text_to_test_import1 <- c("jag mår bra", "vad händer")
   text_to_test_import2 <- c("ön är vacker", "molnen svävar")
   x <- tibble::tibble(text_to_test_import1, text_to_test_import2)
@@ -164,10 +151,7 @@ test_that("textEmbedLayersOutput bert-base-uncased contexts=FALSE, decontexts = 
 
 test_that("textEmbed", {
   skip_on_cran()
-  # skip_if_no_transformers()
-  # skip_if_no_torch
 
-  # x <- Language_based_assessment_data_8[1:2, 1:2]
   text_to_test_import1 <- c("test this", "hope it works")
   text_to_test_import2 <- c("I am happy", "Let us go")
   x <- tibble::tibble(text_to_test_import1, text_to_test_import2)

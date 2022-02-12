@@ -17,8 +17,8 @@ cosines <- function(x, y) {
 #' @return A vector comprising cosine semantic similarity scores.
 #' @examples
 #' library(dplyr)
-#' wordembeddings <- wordembeddings4
-#' similiarty_scores <- textSimilarity(wordembeddings$harmonytext, wordembeddings$satisfactiontext)
+#' word_embeddings <- word_embeddings_4
+#' similiarty_scores <- textSimilarity(word_embeddings$harmonytext, word_embeddings$satisfactiontext)
 #' comment(similiarty_scores)
 #' @seealso see \code{\link{textSimilarityNorm}} and \code{\link{textSimilarityTest}}
 #' @export
@@ -52,11 +52,11 @@ textSimilarity <- function(x, y) {
 #' satisfactionnorm <- c("satisfaction achievement")
 #'
 #' norms <- tibble::tibble(harmonynorm, satisfactionnorm)
-#' wordembeddings <- wordembeddings4
-#' wordembeddings_wordnorm <- textEmbed(norms)
+#' word_embeddings <- word_embeddings_4
+#' word_embeddings_wordnorm <- textEmbed(norms)
 #' similarity_scores <- textSimilarityNorm(
-#'   wordembeddings$harmonytext,
-#'   wordembeddings_wordnorm$harmonynorm
+#'   word_embeddings$harmonytext,
+#'   word_embeddings_wordnorm$harmonynorm
 #' )
 #' }
 #' @seealso see \code{\link{textSimilarity}} and \code{\link{textSimilarityTest}}
@@ -68,7 +68,7 @@ textSimilarityNorm <- function(x, y) {
   y1 <- dplyr::select(as_tibble(as.list(y)), dplyr::starts_with("Dim"))
 
   y2 <- y1 %>%
-    dplyr::slice(rep(row_number(), nrow(x1)))
+    dplyr::slice(rep(dplyr::row_number(), nrow(x1)))
 
   # Apply the cosines functions
   ss <- cosines(x1, y2)

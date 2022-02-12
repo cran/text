@@ -50,8 +50,7 @@
 "embeddings_from_huggingface2"
 
 
-
-#' Wordembeddings for 4 text variables for 40 participants
+#' Word embeddings for 4 text variables for 40 participants
 #'
 #' The dataset is a shortened version of the data sets of Study 3-5
 #' from Kjell, Kjell, Garcia and Sikström 2018.
@@ -65,7 +64,7 @@
 #'   \item{Dim1:Dim768}{Word embeddings dimensions}
 #' }
 #' @source \url{https://psyarxiv.com/er6t7/}
-"wordembeddings4"
+"word_embeddings_4"
 
 
 #' Data for plotting a Dot Product Projection Plot.
@@ -108,6 +107,7 @@
 #' }
 #' @source \url{https://link.springer.com/article/10.1007/s11205-015-0903-z}
 "centrality_data_harmony"
+
 
 #' Example data for plotting a Principle Component Projection Plot.
 #'

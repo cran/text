@@ -1,23 +1,26 @@
 
-
-# library(tidyverse)
-# devtools::document()
 #' Train word embeddings to a numeric (ridge regression) or categorical (random forest) variable.
 #'
-#' @param x Word embeddings from textEmbed (or textEmbedLayerAggreation). Can analyze several variables at the same time; but if training to several
-#' outcomes at the same time use a tibble within the list as input rather than just a tibble input (i.e., keep the name of the wordembedding).
-#' @param y Numeric variable to predict. Can be several; although then make sure to have them within a tibble (this is required
+#' @param x Word embeddings from textEmbed (or textEmbedLayerAggreation).
+#' Can analyze several variables at the same time; but if training to several
+#' outcomes at the same time use a tibble within the list as input rather than just a
+#' tibble input (i.e., keep the name of the wordembedding).
+#' @param y Numeric variable to predict. Can be several; although then make
+#' sure to have them within a tibble (this is required
 #' even if it is only one outcome but several word embeddings variables).
-#' @param force_train_method default is "automatic", so if y is a factor random_forest is used, and if y is numeric ridge regression
+#' @param force_train_method default is "automatic", so if y is a factor
+#' random_forest is used, and if y is numeric ridge regression
 #' is used. This can be overridden using "regression" or "random_forest".
-#' @param ... Arguments from textTrainRegression or textTrainRandomForest the textTrain function.
-#' @return A correlation between predicted and observed values; as well as a tibble of predicted values.
+#' @param ... Arguments from textTrainRegression or textTrainRandomForest
+#' the textTrain function.
+#' @return A correlation between predicted and observed values; as well as a
+#'  tibble of predicted values.
 #' @examples
 #' \dontrun{
-#' wordembeddings <- wordembeddings4
+#' word_embeddings <- word_embeddings_4
 #' ratings_data <- Language_based_assessment_data_8
 #' results <- textTrain(
-#'   wordembeddings$harmonytext,
+#'   word_embeddings$harmonytext,
 #'   ratings_data$hilstotal
 #' )
 #' }
@@ -102,7 +105,6 @@ textTrain <- function(x,
   }
 }
 
-# devtools::document()
 #' Sorts out the output from a regression model for the list format.
 #'
 #' @param output output from mapply of textTrainRegression or textTrainRandomForest
@@ -159,7 +161,7 @@ sort_regression_output_list <- function(output, method_cor, save_output, descrip
   results
 }
 
-# devtools::document()
+
 #' Sorts out the output from a classification for the list format.
 #' This is a function because it is needed in both regression for logistic and for
 #' Random forest
@@ -222,18 +224,18 @@ sort_classification_output_list <- function(output, save_output, descriptions, .
 }
 
 
-# library(tidyverse)
-# devtools::document()
-#' Individually trains word embeddings from several text variables to several numeric or categorical variables. It is possible
-#' to have  word embeddings from one text variable and several numeric/categprical variables; or vice verse, word embeddings from
-#' several text variables to one numeric/categorical variable. It is not possible to mix numeric and categorical variables.
+#' Individually trains word embeddings from several text variables to several numeric or categorical variables.
+#' It is possible to have  word embeddings from one text variable and several numeric/categprical variables;
+#' or vice verse, word embeddings from several text variables to one numeric/categorical variable.
+#' It is not possible to mix numeric and categorical variables.
 #' @param x Word embeddings from textEmbed (or textEmbedLayerAggreation).
 #' @param y Tibble with several numeric or categorical variables to predict. Please note that you cannot mix numeric and
 #' categorical variables.
-#' @param force_train_method default is automatic; see also "regression" and "random_forest".
-#' @param save_output Option not to save all output; default "all". see also "only_results" and "only_results_predictions".
-#' @param method_cor  "pearson",
-#' @param model  type of model to use in regression; default is "regression"; see also "logistic".
+#' @param force_train_method Default is automatic; see also "regression" and "random_forest".
+#' @param save_output Option not to save all output; default "all". see also "only_results"
+#' and "only_results_predictions".
+#' @param method_cor  Default "Pearson".
+#' @param model  Type of model to use in regression; default is "regression"; see also "logistic".
 #' (To set different random forest algorithms see extremely_randomised_splitrule parameter in textTrainRandomForest)
 #' @param eval_measure  Type of evaluative measure to assess models on.
 #' @param p_adjust_method Method to adjust/correct p-values for multiple comparisons
@@ -242,10 +244,10 @@ sort_classification_output_list <- function(output, save_output, descriptions, .
 #' @return Correlations between predicted and observed values.
 #' @examples
 #' \dontrun{
-#' wordembeddings <- wordembeddings4[1:2]
+#' word_embeddings <- word_embeddings_4[1:2]
 #' ratings_data <- Language_based_assessment_data_8[5:6]
 #' results <- textTrainLists(
-#'   wordembeddings,
+#'   word_embeddings,
 #'   ratings_data
 #' )
 #' results
@@ -311,7 +313,7 @@ textTrainLists <- function(x,
     y <- dplyr::select_if(y, is.factor)
     train_method <- "random_forest"
   }
-  # length(y)
+
   # Get variable names in the list of outcomes.
   variables <- names(y)
   # Duplicate variable names to as many different word embeddings there are in x.
@@ -336,12 +338,16 @@ textTrainLists <- function(x,
     ), SIMPLIFY = FALSE)
 
     if (model == "regression") {
-      results <- sort_regression_output_list(output, method_cor = method_cor, save_output = save_output, descriptions = descriptions)
+      results <- sort_regression_output_list(output,
+                                             method_cor = method_cor,
+                                             save_output = save_output,
+                                             descriptions = descriptions)
     } else if (model == "logistic") {
-      results <- sort_classification_output_list(output = output, save_output = save_output, descriptions = descriptions)
+      results <- sort_classification_output_list(output = output,
+                                                 save_output = save_output,
+                                                 descriptions = descriptions)
     }
-
-  } else if (train_method == "random_forest") { #
+  } else if (train_method == "random_forest") {
 
     # Apply textTrainRandomForest function between each list element and sort outcome.
     output <- mapply(textTrainRandomForest, x, y1, MoreArgs = list(save_output = save_output, ...), SIMPLIFY = FALSE)
@@ -368,16 +374,15 @@ textTrainLists <- function(x,
 }
 
 
-# devtools::document()
 #' Predict scores or classification from, e.g., textTrain.
 #'
 #' @param model_info Model info (e.g., saved output from textTrain, textTrainRegression or textRandomForest).
 #' @param new_data Word embeddings from new data to be predicted from.
-#' @param  type Type of prediction; e.g., "prob", "class"
-#' @param ... From predict
+#' @param  type Type of prediction; e.g., "prob", "class".
+#' @param ... Setting trom stats::predict can be called.
 #' @return Predicted scores from word embeddings.
 #' @examples
-#' wordembeddings <- wordembeddings4
+#' word_embeddings <- word_embeddings_4
 #' ratings_data <- Language_based_assessment_data_8
 #' @seealso see \code{\link{textTrain}} \code{\link{textTrainLists}}
 #' \code{\link{textTrainRandomForest}} \code{\link{textSimilarityTest}}
@@ -392,11 +397,9 @@ textPredict <- function(model_info,
   # In case the embedding is in list form get the tibble form
   if (!tibble::is_tibble(new_data) & length(new_data) == 1) {
     new_data1 <- new_data[[1]]
-    # Get original columns names, to remove these column from output
-    original_colnames <- colnames(new_data1)
 
-    new_data1$id_nr <- c(1:nrow(new_data1))
-    new_data_id_nr_col <- tibble::as_tibble_col(1:nrow(new_data1), column_name = "id_nr")
+    new_data1$id_nr <- c(seq_len(nrow(new_data1)))
+    new_data_id_nr_col <- tibble::as_tibble_col(seq_len(nrow(new_data1)), column_name = "id_nr")
 
     # In case there are several different word embeddings (from different responses)
   } else if (!tibble::is_tibble(new_data) & length(new_data) > 1) {
@@ -405,9 +408,11 @@ textPredict <- function(model_info,
     })
 
     Nword_variables <- length(new_datalist)
-    # Give each column specific names with indexes so that they can be handled separately in the PCAs
+    # Give each column specific names with indexes so that they can be
+    # handled separately in the PCAs
     for (i in 1:Nword_variables) {
-      colnames(new_datalist[[i]]) <- paste("Dim_we", i, ".", names(new_datalist[i]), colnames(new_datalist[[i]]), sep = "")
+      colnames(new_datalist[[i]]) <- paste("Dim_we", i, ".", names(new_datalist[i]),
+                                           colnames(new_datalist[[i]]), sep = "")
     }
 
     # Make vector with each index so that we can allocate them separately for the PCAs
@@ -419,33 +424,26 @@ textPredict <- function(model_info,
     # Make one df rather than list.
     new_data1 <- dplyr::bind_cols(new_datalist)
 
-    # Get original columns names, to remove these column from output
-    original_colnames <- colnames(new_data1)
 
     # Add ID
-    new_data1$id_nr <- c(1:nrow(new_data1))
-    new_data_id_nr_col <- tibble::as_tibble_col(1:nrow(new_data1), column_name = "id_nr")
-
-    # Get the name of the first variable; which is used to exclude NA (i.e., word embedding have NA in all columns)
-    V1 <- colnames(new_data1)[1]
+    new_data1$id_nr <- c(seq_len(nrow(new_data1)))
+    new_data_id_nr_col <- tibble::as_tibble_col(seq_len(nrow(new_data1)), column_name = "id_nr")
 
     # Removing NAs for the analyses (here we could potentially impute missing values; e.g., mean of each dimension)
     new_data1 <- new_data1[complete.cases(new_data1), ]
   } else {
     new_data1 <- new_data
-    # Get original columns names, to remove these column from output
-    original_colnames <- colnames(new_data1)
 
-    new_data1$id_nr <- c(1:nrow(new_data1))
-    new_data_id_nr_col <- tibble::as_tibble_col(1:nrow(new_data1), column_name = "id_nr")
+    new_data1$id_nr <- c(seq_len(nrow(new_data1)))
+    new_data_id_nr_col <- tibble::as_tibble_col(seq_len(nrow(new_data1)), column_name = "id_nr")
   }
 
   # Load prepared_with_recipe
   data_prepared_with_recipe <- recipes::bake(model_info$final_recipe, new_data1)
 
   # Get column names to be removed
-   colnames_to_b_removed <- colnames(data_prepared_with_recipe)
-   colnames_to_b_removed <- colnames_to_b_removed[!colnames_to_b_removed == "id_nr"]
+  colnames_to_b_removed <- colnames(data_prepared_with_recipe)
+  colnames_to_b_removed <- colnames_to_b_removed[!colnames_to_b_removed == "id_nr"]
 
   # Get Prediction scores help(predict)
   predicted_scores2 <- data_prepared_with_recipe %>%
@@ -457,3 +455,119 @@ textPredict <- function(model_info,
 }
 
 
+#' Significance testing correlations
+#' If only y1 is provided a t-test is computed, between the absolute error from yhat1-y1 and yhat2-y1.
+#'
+#' If y2 is provided a bootstrapped procedure is used to compare the correlations between y1 and yhat1 versus
+#' y2 and yhat2. This is achieved by creating two distributions of correlations using bootstrapping; and then
+#' finally compute the distributions overlap.
+#'
+#' @param y1 The observed scores (i.e., what was used to predict when training a model).
+#' @param y2 The second observed scores (default = NULL; i.e., for when comparing models that are predicting different
+#' outcomes. In this case a bootstrap procedure is used to create two distributions of correlations that are
+#' compared (see description above).
+#' @param yhat1 The predicted scores from model 1.
+#' @param yhat2 The predicted scores from model 2 that will be compared with model 1.
+#' @param paired Paired test or not in stats::t.test (default TRUE).
+#' @param bootstraps_times Number of bootstraps (when providing y2).
+#' @param seed Set different seed.
+#' @param ... Settings from stats::t.test or overlapping::overlap (e.g., plot = TRUE).
+#' @return Comparison of correlations either a t-test or the overlap of a bootstrapped procedure (see $OV).
+#' @examples
+#' # Example random data
+#' y1 <- runif(10)
+#' yhat1 <- runif(10)
+#' y2 <- runif(10)
+#' yhat2 <- runif(10)
+#'
+#' boot_test <- textPredictTest(y1, yhat1, y2, yhat2, bootstraps_times = 10)
+#' @seealso see \code{\link{textTrain}} \code{\link{textPredict}}
+#' @importFrom stats t.test cor
+#' @importFrom tibble is_tibble as_tibble_col
+#' @importFrom tidyr unnest
+#' @importFrom dplyr select mutate
+#' @importFrom overlapping overlap
+#' @importFrom rsample analysis bootstraps
+#' @export
+textPredictTest <- function(y1,
+                            y2 = NULL,
+                            yhat1,
+                            yhat2,
+                            paired = TRUE,
+                            bootstraps_times = 10000,
+                            seed = 6134,
+                            ...) {
+
+  ## If comparing predictions from models that predict the SAME outcome
+  if (is.null(y2)) {
+    yhat1_absolut_error <- abs(yhat1 - y1)
+    yhat1_absolut_error_mean <- mean(yhat1_absolut_error)
+    yhat1_absolut_error_sd <- sd(yhat1_absolut_error)
+
+    yhat2_absolut_error <- abs(yhat2 - y1)
+    yhat2_absolut_error_mean <- mean(yhat2_absolut_error)
+    yhat2_absolut_error_sd <- sd(yhat2_absolut_error)
+
+    # T-test
+    t_test_results <- stats::t.test(yhat1_absolut_error,
+      yhat2_absolut_error,
+      paired = paired, ...
+    ) # , ... Double check
+    # Effect size
+    cohensD <- cohens_d(
+      yhat1_absolut_error,
+      yhat2_absolut_error
+    )
+    # Descriptive
+    descriptives <- tibble::tibble(
+      yhat1_absolut_error_mean, yhat1_absolut_error_sd,
+      yhat2_absolut_error_mean, yhat2_absolut_error_sd
+    )
+    # Outputs
+    output <- list(descriptives, cohensD, t_test_results)
+    names(output) <- c("Descriptives", "Effect_size", "Test")
+  }
+
+  ## If comparing predictions from models that predict DIFFERENT outcomes
+
+  if (!is.null(y2)) {
+    set.seed(seed)
+    # Bootstrap data to create distribution of correlations; help(bootstraps)
+
+    # Correlation function
+    corr_on_bootstrap <- function(split) {
+      stats::cor(rsample::analysis(split)[[1]], rsample::analysis(split)[[2]])
+    }
+
+    # Creating correlation distribution for y1 and yhat1
+    y_yhat1_df <- tibble::tibble(y1, yhat1)
+    boots_y1 <- rsample::bootstraps(y_yhat1_df, times = bootstraps_times, apparent = FALSE)
+
+    boot_corrss_y1 <- boots_y1 %>%
+      dplyr::mutate(corr_y1 = purrr::map(splits, corr_on_bootstrap))
+
+    boot_y1_distribution <- boot_corrss_y1 %>%
+      tidyr::unnest(corr_y1) %>%
+      dplyr::select(corr_y1)
+
+    # Creating correlation distribution for y2 and yhat2
+    y_yhat2_df <- tibble::tibble(y2, yhat2)
+    boots_y2 <- rsample::bootstraps(y_yhat2_df, times = bootstraps_times, apparent = FALSE)
+
+    boot_corrss_y2 <- boots_y2 %>%
+      dplyr::mutate(corr_y2 = purrr::map(splits, corr_on_bootstrap))
+
+    boot_y2_distribution <- boot_corrss_y2 %>%
+      tidyr::unnest(corr_y2) %>%
+      dplyr::select(corr_y2)
+
+
+    ### Examining the overlap
+    x_list_dist <- list(boot_y1_distribution$corr_y1, boot_y2_distribution$corr_y2)
+
+    output <- overlapping::overlap(x_list_dist, ...)
+    output <- list(output$OV[[1]])
+    names(output) <- "overlapp_p_value"
+  }
+  output
+}

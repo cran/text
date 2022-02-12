@@ -45,8 +45,8 @@ knitr::opts_chunk$set(
 #  library(text)
 #  
 #  # Compare the meaning between individuals' harmony in life and satisfaction with life answers
-#  textSimilarityTest(wordembeddings4$harmonytexts,
-#           wordembeddings4$satisfactiontexts,
+#  textSimilarityTest(word_embeddings_4$harmonytexts,
+#           word_embeddings_4$satisfactiontexts,
 #           Npermutations = 100,
 #           output.permutations = FALSE)
 
@@ -54,12 +54,12 @@ knitr::opts_chunk$set(
 #  library(text)
 #  
 #  # Pre-process word data to be plotted with textPlotViz-function
-#  # wordembeddings4 and Language_based_assessment_data_8  contain example data provided with the package.
+#  # word_embeddings_4 and Language_based_assessment_data_8  contain example data provided with the package.
 #  
 #  # Pre-process data
 #  df_for_plotting <- textProjection(Language_based_assessment_data_8$harmonywords,
-#                                  wordembeddings4$harmonywords,
-#    wordembeddings4$singlewords_we,
+#                                  word_embeddings_4$harmonywords,
+#    word_embeddings_4$singlewords_we,
 #    Language_based_assessment_data_8$hilstotal, Language_based_assessment_data_8$swlstotal
 #  )
 #  df_for_plotting
