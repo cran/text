@@ -61,7 +61,7 @@ test_that("textProjection with QUARTILE, 0.9 PCA and
 test_that("textProjectionPlot 1-DIMENSIONS produces a plot", {
   skip_on_cran()
 
-  # Dot Product Projection Plot
+  # Dot Product Projection Plot help(textProjectionPlot)
   p <- textProjectionPlot(
     word_data = DP_projections_HILS_SWLS_100,
     k_n_words_to_test = TRUE,
@@ -81,7 +81,7 @@ test_that("textProjectionPlot 1-DIMENSIONS produces a plot", {
     scale_y_axes_lim = NULL,
     group_embeddings1 = F,
     group_embeddings2 = F,
-    projection_embedding = F,
+    projection_embedding = F
   )
 
   expect_true(ggplot2::is.ggplot(p$final_plot))
@@ -148,24 +148,26 @@ test_that("textProjectionPlot 2-DIMENSIONS produces a plot", {
 test_that("textCentrality produces a tibble with character variable and numeric variable.", {
   skip_on_cran()
 
-  word_embeddings <- word_embeddings_4
-  data <- Language_based_assessment_data_8
   df_for_plotting <- textCentrality(
-    data$harmonywords[1:2],
-    word_embeddings$harmonywords[1:2, ],
-    word_embeddings$singlewords_we
+    Language_based_assessment_data_8$harmonywords[1:2],
+    word_embeddings_4$harmonywords[1:2, ],
+    word_embeddings_4$singlewords_we,
+    method = "euclidean"
   )
-
 
   expect_is(df_for_plotting$words[1], "character")
   expect_is(df_for_plotting$n[1], "integer")
   expect_true(tibble::is_tibble(df_for_plotting))
+
+  textCentralityPlot(df_for_plotting,
+    x_axes = "central_semantic_similarity"
+  )
 })
 
 test_that("textCentralityPlot produces a plot.", {
   skip_on_cran()
 
-  # Plot
+  # Plot help(textCentralityPlot)
   centrality_plot <- textCentralityPlot(
     word_data = centrality_data_harmony,
     min_freq_words_test = 10,
@@ -173,13 +175,12 @@ test_that("textCentralityPlot produces a plot.", {
     plot_n_word_frequency = 10,
     plot_n_words_middle = 10,
     titles_color = "#61605e",
-    x_axes = "central_cosine",
+    # x_axes = "central_cosine",
 
     title_top = "Semantic Centrality Plot",
     x_axes_label = "Semantic Centrality",
-
     word_font = NULL,
-    centrality_color_codes = c("#EAEAEA", "#85DB8E", "#398CF9", "#000000"),
+    centrality_color_codes = c("#EAEAEA", "#85DB8E", "#398CF9", "#9e9d9d"),
     word_size_range = c(3, 8),
     point_size = 0.5,
     arrow_transparency = 0.1,
@@ -208,7 +209,7 @@ test_that("textCentrality produces a tibble with character variable and numeric 
   expect_true(tibble::is_tibble(df_for_plotting2d))
 })
 
-test_that("textCentralityPlot produces a plot.", {
+test_that("textPCAPlot produces a plot.", {
   skip_on_cran()
 
   # Plot

@@ -8,6 +8,7 @@
 textSimilarityTest(
   x,
   y,
+  similarity_method = "cosine",
   Npermutations = 10000,
   method = "paired",
   alternative = c("two_sided", "less", "greater"),
@@ -21,7 +22,11 @@ textSimilarityTest(
 
 \item{y}{Set of word embeddings from textEmbed.}
 
-\item{Npermutations}{Number of permutations (default 1000).}
+\item{similarity_method}{Character string describing type of measure to be computed;
+default is "cosine" (see also measures from textDistance (here computed as 1 - textDistance()) including
+"euclidean", "maximum", "manhattan", "canberra", "binary" and "minkowski").}
+
+\item{Npermutations}{Number of permutations (default 10000).}
 
 \item{method}{Compute a "paired" or an "unpaired" test.}
 
@@ -34,7 +39,7 @@ textSimilarityTest(
 \item{seed}{Set different seed.}
 }
 \value{
-A list with a p-value, cosine_estimate and permuted values if output.permutations=TRUE.
+A list with a p-value, similarity score estimate and permuted values if output.permutations=TRUE.
 }
 \description{
 Test whether there is a significant difference in meaning between two sets of texts

@@ -3,6 +3,7 @@
 
 conda_args <- reticulate:::conda_args
 
+
 #' Install text required python packages in conda or virtualenv environment
 #'
 #' @description Install text required python packages (rpp) in a self-contained environment.
@@ -25,7 +26,7 @@ conda_args <- reticulate:::conda_args
 #' package manager with conda-forge channel will be used for installing rpp.
 #' @param rpp_version character; default is "rpp_version_system_specific_defaults", because diffent systems require
 #' different combinations of python version and packages. It is also possible to
-#' specify your own, such s c('torch==0.4.1', 'transformers==3.3.1').
+#' specify your own, such as c('torch==0.4.1', 'transformers==3.3.1').
 #' @param python_version character; default is "python_version_system_specific_defaults". You can specify your
 #' Python version for the condaenv yourself.
 #'   installation.
@@ -80,7 +81,7 @@ textrpp_install <- function(conda = "auto",
   # verify 64-bit
   if (.Machine$sizeof.pointer != 8) {
     stop(
-      "Unable to install Text on this platform.",
+      "Unable to install the text-package on this platform.",
       "Binary installation is only available for 64-bit platforms."
     )
   }
@@ -95,9 +96,13 @@ textrpp_install <- function(conda = "auto",
     # validate that we have conda
     if (!have_conda) {
       cat("No conda was found in the system. ")
-      ans <- utils::menu(c("No", "Yes"), title = "Do you want Text to download miniconda in ~/miniconda?")
+      if (prompt) {
+        ans <- utils::menu(c("No", "Yes"), title = "Do you want Text to download
+                           miniconda using reticulate::install_miniconda()?")
+      } else {
+        ans <- 2 # When no prompt is set to false, default to install miniconda.
+      }
       if (ans == 2) {
-
         reticulate::install_miniconda(update = update_conda)
         conda <- tryCatch(reticulate::conda_binary("auto"), error = function(e) NULL)
       } else {
@@ -181,8 +186,8 @@ process_textrpp_installation_conda <- function(conda,
                                                pip = FALSE) {
   conda_envs <- reticulate::conda_list(conda = conda)
   if (prompt) {
-    ans <- utils::menu(c("No", "Yes"), title = "Do you want to set up a new conda environment?")
-    if (ans == 1) stop("condaenv setup is cancelled by user", call. = FALSE)
+    ans <- utils::menu(c("Confirm", "Cancel"), title = "Confirm that a new conda environment will be set up.")
+    if (ans == 2) stop("condaenv setup is cancelled by user", call. = FALSE)
   }
   conda_env <- subset(conda_envs, conda_envs$name == envname)
   if (nrow(conda_env) == 1) {
@@ -191,9 +196,7 @@ process_textrpp_installation_conda <- function(conda,
       "\ntext:",
       paste(rpp_version, collapse = ", "), "will be installed.  "
     )
-    # python <- conda_env$python
-  }
-  else {
+  } else {
     cat(
       "A new conda environment", paste0('"', envname, '"'), "will be created and \npython required packages:",
       paste(rpp_version, collapse = ", "), "will be installed.  "
@@ -414,7 +417,7 @@ conda_get_version <- function(major_version = NA, conda, envname) {
   regex <- "^(\\S+)\\s?(.*)$"
   cmd1 <- sub(regex, "\\1", cmd)
   cmd2 <- sub(regex, "\\2", cmd)
-  # oldw <- getOption("warn")
+
   result <- system2(cmd1, cmd2, stdout = TRUE, stderr = TRUE)
   result <- sub("\\S+\\s+(\\S+)\\s.+", "\\1", result)
   if (!is.na(major_version)) {

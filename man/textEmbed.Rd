@@ -21,7 +21,8 @@ textEmbed(
   decontext_tokens_select = NULL,
   decontext_tokens_deselect = NULL,
   device = "cpu",
-  print_python_warnings = FALSE
+  model_max_length = NULL,
+  logging_level = "error"
 )
 }
 \arguments{
@@ -81,7 +82,11 @@ such as [CLS] and [SEP] for the decontext embeddings.}
 
 \item{device}{Name of device to use: 'cpu', 'gpu', or 'gpu:k' where k is a specific device number}
 
-\item{print_python_warnings}{bolean; when true any warnings from python environment are printed to the console.}
+\item{model_max_length}{The maximum length (in number of tokens) for the inputs to the transformer model
+(default the value stored for the associated model).}
+
+\item{logging_level}{Set the logging level. Default: "warning".
+Options (ordered from less logging to more logging): critical, error, warning, info, debug}
 }
 \value{
 A tibble with tokens, a column for layer identifier and word embeddings.

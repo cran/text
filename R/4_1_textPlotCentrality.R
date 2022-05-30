@@ -1,29 +1,30 @@
 
 #### Semantic Centrality Plot SC ####
 
-#' Compute cosine semantic similarity score between single words' word embeddings
+#' Compute semantic similarity score between single words' word embeddings
 #' and the aggregated word embedding of all words.
 #' @param words Word or text variable to be plotted.
 #' @param word_embeddings Word embeddings from textEmbed for the words to be plotted
 #' (i.e., the aggregated word embeddings for the "words" variable).
 #' @param single_word_embeddings Word embeddings from textEmbed for individual words
 #' (i.e., the decontextualized word embeddings).
+#' @inheritParams textSimilarity
 #' @param aggregation Method to aggregate the word embeddings
 #' (default = "mean"; see also "min", "max" or "[CLS]").
 #' @param min_freq_words_test Option to  select words that have at least occurred a specified
 #' number of times (default = 0); when creating the semantic similarity
-#' scores within cosine similarity.
+#' scores.
 #' @return A dataframe with variables (e.g., including semantic similarity, frequencies)
 #' for the individual words that are used for the plotting in the textCentralityPlot function.
 #' @examples
-#' word_embeddings <- word_embeddings_4
-#' data <- Language_based_assessment_data_8
+#' \dontrun{
 #' df_for_plotting <- textCentrality(
-#'   data$harmonywords,
-#'   word_embeddings$harmonywords,
-#'   word_embeddings$singlewords_we
+#'   words = Language_based_assessment_data_8$harmonywords,
+#'   word_embeddings = word_embeddings_4$harmonywords,
+#'   single_word_embeddings = word_embeddings_4$singlewords_we
 #' )
 #' df_for_plotting
+#' }
 #' @seealso see \code{\link{textCentralityPlot}}  \code{\link{textProjection}}
 #' @importFrom dplyr bind_rows
 #' @importFrom tibble tibble
@@ -31,11 +32,13 @@
 textCentrality <- function(words,
                            word_embeddings,
                            single_word_embeddings = single_word_embeddings_df,
+                           method = "cosine",
                            aggregation = "mean",
                            min_freq_words_test = 0) {
   textCentrality_description <- paste("words =", substitute(words),
     "word_embeddings =", comment(word_embeddings),
     "single_word_embeddings =", comment(single_word_embeddings),
+    "method =", method,
     "aggregation =", aggregation,
     "min_freq_words_test =", min_freq_words_test,
     collapse = " "
@@ -53,17 +56,17 @@ textCentrality <- function(words,
   all_single_wordembedding_a <- lapply(all_unique_freq_words_min_freq$words, applysemrep, single_word_embeddings)
   all_single_wordembedding_a1 <- dplyr::bind_rows(all_single_wordembedding_a)
 
-  # Compute Cosine
-  central_cosine <- cosines(all_single_wordembedding_a1, t(replicate(nrow(all_single_wordembedding_a1), Central_Point)))
-  cenrtal_cosine_df <- tibble::tibble(all_unique_freq_words_min_freq[, 1:2], central_cosine)
-  cenrtal_cosine_df$n_percent <- cenrtal_cosine_df$n / sum(cenrtal_cosine_df$n)
-  comment(cenrtal_cosine_df) <- textCentrality_description
-  return(cenrtal_cosine_df)
+  # Compute similarity to Central Point
+  Central_Point_df <- tibble::as_tibble(t(replicate(nrow(all_single_wordembedding_a1), Central_Point)))
+  central_semantic_similarity <- textSimilarity(all_single_wordembedding_a1, Central_Point_df, method = method)
+  cenrtal_sss_df <- tibble::tibble(all_unique_freq_words_min_freq[, 1:2], central_semantic_similarity)
+  cenrtal_sss_df$n_percent <- cenrtal_sss_df$n / sum(cenrtal_sss_df$n)
+  comment(cenrtal_sss_df) <- textCentrality_description
+  return(cenrtal_sss_df)
 }
 # End Semantic Centrality Plot data
 
-
-#' Plot words according to cosine semantic similarity to the aggregated word embedding.
+#' Plot words according to semantic similarity to the aggregated word embedding.
 #' @param word_data Tibble from textPlotData.
 #' @param min_freq_words_test Select words to significance test that have occurred
 #' at least min_freq_words_test (default = 1).
@@ -76,17 +79,18 @@ textCentrality <- function(words,
 #' (i.e., even if not significant; duplicates are removed).
 #' @param title_top Title (default "  ").
 #' @param titles_color Color for all the titles (default: "#61605e").
-#' @param x_axes Variable to be plotted on the x-axes (default is "central_cosine").
+#' @param x_axes Variable to be plotted on the x-axes (default is "central_semantic_similarity",
+#' could also select "n", "n_percent").
 #' @param x_axes_label Label on the x-axes.
 #' @param scale_x_axes_lim Length of the x-axes (default: NULL, which uses
-#' c(min(word_data$central_cosine)-0.05, max(word_data$central_cosine)+0.05);
+#' c(min(word_data$central_semantic_similarity)-0.05, max(word_data$central_semantic_similarity)+0.05);
 #' change this by e.g., try c(-5, 5)).
 #' @param scale_y_axes_lim Length of the y-axes (default: NULL, which uses c(-1, 1);
 #' change e.g., by trying c(-5, 5)).
 #' @param word_font Type of font (default: NULL).
 #' @param centrality_color_codes Colors of the words selected as plot_n_word_extreme
 #' (minimum values), plot_n_words_middle, plot_n_word_extreme (maximum values) and
-#' plot_n_word_frequency; the default is c("#EAEAEA","#85DB8E", "#398CF9", "#000000"), respectively.
+#' plot_n_word_frequency; the default is c("#EAEAEA", "#85DB8E", "#398CF9", "#9e9d9d", respectively.
 #' @param word_size_range Vector with minimum and maximum font size (default: c(3, 8)).
 #' @param position_jitter_hight Jitter height (default: .0).
 #' @param position_jitter_width Jitter width (default: .03).
@@ -105,8 +109,8 @@ textCentrality <- function(words,
 #' @param legend_title_size Font size of the title (default = 7).
 #' @param legend_number_size Font size of the values in the legend (default = 2).
 #' @param seed Set different seed.
-#' @return A 1-dimensional word plot based on cosine similarity to the aggregated word embedding,
-#' as well as tibble with processed data used to plot..
+#' @return A 1-dimensional word plot based on similarity to the aggregated word embedding,
+#' as well as tibble with processed data used to plot.
 #' @seealso see \code{\link{textCentrality}} and \code{\link{textProjection}}
 #' @examples
 #' # The test-data included in the package is called: centrality_data_harmony
@@ -119,13 +123,13 @@ textCentrality <- function(words,
 #' #  plot_n_word_frequency = 10,
 #' #  plot_n_words_middle = 10,
 #' #  titles_color = "#61605e",
-#' #  x_axes = "central_cosine",
+#' #  x_axes = "central_semantic_similarity",
 #' #
 #' #  title_top = "Semantic Centrality Plot",
 #' #  x_axes_label = "Semantic Centrality",
 #' #
 #' #  word_font = NULL,
-#' #  centrality_color_codes = c("#EAEAEA","#85DB8E", "#398CF9", "#000000"),
+#' #  centrality_color_codes = c("#EAEAEA", "#85DB8E", "#398CF9", "#9e9d9d"),
 #' #  word_size_range = c(3, 8),
 #' #  point_size = 0.5,
 #' #  arrow_transparency = 0.1,
@@ -136,7 +140,7 @@ textCentrality <- function(words,
 #' @importFrom dplyr arrange slice filter between left_join transmute mutate case_when
 #' @importFrom ggplot2 position_jitter element_text element_blank coord_fixed theme
 #' theme_void theme_minimal aes labs scale_color_identity
-#' @importFrom rlang sym
+#' @importFrom rlang sym .data
 #' @export
 textCentralityPlot <- function(word_data,
                                min_freq_words_test = 1,
@@ -144,7 +148,7 @@ textCentralityPlot <- function(word_data,
                                plot_n_word_frequency = 10,
                                plot_n_words_middle = 10,
                                titles_color = "#61605e",
-                               x_axes = "central_cosine",
+                               x_axes = "central_semantic_similarity",
                                title_top = "Semantic Centrality Plot",
                                x_axes_label = "Semantic Centrality",
                                scale_x_axes_lim = NULL,
@@ -201,11 +205,11 @@ textCentralityPlot <- function(word_data,
 
   # Select plot_n_word_extreme and Select plot_n_word_frequency
   word_data1_extrem_max_x <- word_data1 %>%
-    dplyr::arrange(-central_cosine) %>%
+    dplyr::arrange(-.data[[x_axes]]) %>%
     dplyr::slice(0:plot_n_word_extreme)
 
   word_data1_extrem_min_x <- word_data1 %>%
-    dplyr::arrange(central_cosine) %>%
+    dplyr::arrange(.data[[x_axes]]) %>%
     dplyr::slice(0:plot_n_word_extreme)
 
   word_data1_frequency_x <- word_data1 %>%
@@ -213,11 +217,14 @@ textCentralityPlot <- function(word_data,
     dplyr::slice(0:plot_n_word_frequency)
 
   # Select the middle range, order according to frequency and then select the plot_n_words_middle = 5
-  mean_m_sd_x <- mean(word_data1$central_cosine, na.rm = TRUE) - (sd(word_data1$central_cosine, na.rm = TRUE) / 10)
-  mean_p_sd_x <- mean(word_data1$central_cosine, na.rm = TRUE) + (sd(word_data1$central_cosine, na.rm = TRUE) / 10)
+  mean_m_sd_x <- mean(word_data1[[eval(x_axes)]], na.rm = TRUE) - (sd(word_data1[[eval(x_axes)]], na.rm = TRUE) / 1)
+  mean_p_sd_x <- mean(word_data1[[eval(x_axes)]], na.rm = TRUE) + (sd(word_data1[[eval(x_axes)]], na.rm = TRUE) / 1)
 
   word_data1_middle_x <- word_data1 %>%
-    dplyr::filter(dplyr::between(word_data1$central_cosine, mean_m_sd_x, mean_p_sd_x)) %>%
+    dplyr::filter(dplyr::between(
+      word_data1[[eval(x_axes)]],
+      mean_m_sd_x, mean_p_sd_x
+    )) %>%
     dplyr::arrange(-n) %>%
     dplyr::slice(0:plot_n_words_middle)
 
@@ -235,7 +242,7 @@ textCentralityPlot <- function(word_data,
       check_extreme_frequency_x, check_middle_x
     ), na.rm = T))
 
-  # Categorise words to apply specific color
+  # Categorise words to apply specific color View(word_data1_all)
   word_data1_all <- word_data1_all %>%
     dplyr::mutate(colour_categories = dplyr::case_when(
       check_extreme_min_x == 1 ~ centrality_color_codes[1],
@@ -245,7 +252,8 @@ textCentralityPlot <- function(word_data,
     ))
 
   if (is.null(scale_x_axes_lim)) {
-    scale_x_axes_lim <- c(min(word_data1$central_cosine) - 0.05, max(word_data1$central_cosine) + 0.05)
+    scale_x_axes_lim <- c(min(word_data1[[eval(x_axes)]], na.rm = T) -
+      0.05, max(word_data1[[eval(x_axes)]], na.rm = T) + 0.05)
   }
   if (is.null(scale_y_axes_lim)) {
     scale_y_axes_lim <- c(-1, 1)
@@ -258,7 +266,10 @@ textCentralityPlot <- function(word_data,
   # Plot
   plot <-
     # construct ggplot; the !!sym( ) is to  turn the strings into symbols.
-    ggplot2::ggplot(data = word_data1_all, ggplot2::aes(!!rlang::sym(x_axes), !!rlang::sym(y_axes), label = words)) +
+    ggplot2::ggplot(data = word_data1_all, ggplot2::aes(!!rlang::sym(x_axes),
+      !!rlang::sym(y_axes),
+      label = words
+    )) +
     ggplot2::geom_point(
       data = word_data1_all,
       size = points_without_words_size,
@@ -268,7 +279,7 @@ textCentralityPlot <- function(word_data,
 
     # ggrepel geom, make arrows transparent, color by rank, size by n
     ggrepel::geom_text_repel(
-      data = word_data1_all[word_data1_all$extremes_all_x == 1, ],
+      data = word_data1_all[word_data1_all$extremes_all_x >= 1, ],
       segment.alpha  = arrow_transparency,
       position = ggplot2::position_jitter(h = position_jitter_hight, w = position_jitter_width),
       ggplot2::aes(color = colour_categories, size = n, family = word_font),
@@ -277,7 +288,7 @@ textCentralityPlot <- function(word_data,
 
     # Decide size and color of the points
     ggplot2::geom_point(
-      data = word_data1_all[word_data1_all$extremes_all_x == 1, ],
+      data = word_data1_all[word_data1_all$extremes_all_x >= 1, ],
       size = point_size,
       ggplot2::aes(color = colour_categories)
     ) +
@@ -315,6 +326,7 @@ textCentralityPlot <- function(word_data,
       axis.title.x = ggplot2::element_text(color = titles_color),
       axis.title.y = ggplot2::element_text(color = titles_color)
     )
+  plot
   final_plot <- plot
 
   output_plot_data <- list(final_plot, textCentralityPlot_comment, word_data1_all)

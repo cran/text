@@ -21,16 +21,17 @@
 #' @param save_profile logical; if \code{TRUE}, the current text required python packages setting will
 #'   be saved for the future use.
 #' @param textEmbed_test logical; Test whether function (textEmbed) that requires python packages works.
+#' @param prompt logical; asking whether user wants to set the environment as default.
 #' @export
-textrpp_initialize <- function(
-                               python_executable = NULL,
+textrpp_initialize <- function(python_executable = NULL,
                                virtualenv = NULL,
                                condaenv = "textrpp_condaenv",
                                ask = FALSE,
                                refresh_settings = FALSE,
                                save_profile = FALSE,
                                check_env = TRUE,
-                               textEmbed_test = FALSE) {
+                               textEmbed_test = FALSE,
+                               prompt = TRUE) {
   set_textrpp_python_option(
     python_executable,
     virtualenv,
@@ -45,11 +46,9 @@ textrpp_initialize <- function(
   if (!is.null(settings)) {
     if (settings$key == "textrpp_python_executable") {
       reticulate::use_python(settings$val, required = TRUE)
-    }
-    else if (settings$key == "textrpp_virtualenv") {
+    } else if (settings$key == "textrpp_virtualenv") {
       reticulate::use_virtualenv(settings$val, required = TRUE)
-    }
-    else if (settings$key == "textrpp_condaenv") {
+    } else if (settings$key == "textrpp_condaenv") {
       reticulate::use_condaenv(settings$val, required = TRUE)
     }
   }
@@ -80,7 +79,7 @@ textrpp_initialize <- function(
   options("textrpp_initialized" = TRUE)
 
   if (save_profile == TRUE) {
-    save_textrpp_options(settings$key, settings$val)
+    save_textrpp_options(settings$key, settings$val, prompt = prompt)
   }
 
   if (textEmbed_test == TRUE) {
@@ -124,7 +123,7 @@ find_textrpp <- function(ask) {
   }
 
   df_python_check <- tibble::tibble(py_execs, textrpp_found = 0)
-  for (i in seq_len(nrow(df_python_check))) { #
+  for (i in seq_len(nrow(df_python_check))) {
     py_exec <- df_python_check[i, ]
     sys_message <- check_textrpp_model(py_exec) #
     if (sys_message == "OK") {
@@ -236,17 +235,14 @@ set_textrpp_python_option <- function(python_executable = NULL,
       }
       clear_textrpp_options()
       options(textrpp_python_executable = python_executable)
-    }
-    else if (!is.null(virtualenv)) {
+    } else if (!is.null(virtualenv)) {
       clear_textrpp_options()
       options(textrpp_virtualenv = virtualenv)
-    }
-    else if (!is.null(condaenv)) {
+    } else if (!is.null(condaenv)) {
       clear_textrpp_options()
       options(textrpp_condaenv = condaenv)
     }
-  }
-  else if (check_env &&
+  } else if (check_env &&
     !(is.null(tryCatch(reticulate::conda_binary("auto"), error = function(e) NULL))) &&
     "textrpp_condaenv" %in% reticulate::conda_list(conda = "auto")$name) {
     message(colourise(
@@ -255,16 +251,14 @@ set_textrpp_python_option <- function(python_executable = NULL,
     ))
     clear_textrpp_options()
     options(textrpp_condaenv = "textrpp_condaenv")
-  }
-  else if (check_env && file.exists(file.path("~/.virtualenvs", virtualenv, "bin", "activate"))) {
+  } else if (check_env && file.exists(file.path("~/.virtualenvs", virtualenv, "bin", "activate"))) {
     message(colourise(
       "Found your specified virtual environment. Text will use this environment \n",
       fg = "green", bg = NULL
     )) # OK: original: Found 'textrpp_virtualenv'. Text will use this environment"
     clear_textrpp_options()
     options(textrpp_virtualenv = file.path("~/.virtualenvs/", virtualenv))
-  }
-  else {
+  } else {
     message("Finding a python executable with text required python pakages installed...")
     textrpp_python <- find_textrpp(ask = ask) # model,
     if (is.null(textrpp_python)) {

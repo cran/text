@@ -5,7 +5,6 @@
 
 <!-- badges: start -->
 
-[![codecov](https://app.codecov.io/gh/oscarkjell/text/branch/master/graph/badge.svg?)](https://app.codecov.io/gh/oscarkjell/text)
 [![CRAN
 Status](https://www.r-pkg.org/badges/version/text)](https://CRAN.R-project.org/package=text)
 [![Github build
@@ -17,6 +16,7 @@ developed](https://www.repostatus.org/badges/latest/active.svg)](https://www.rep
 maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html#maturing-1)
 [![CRAN
 Downloads](https://cranlogs.r-pkg.org/badges/grand-total/text)](https://CRAN.R-project.org/package=text)
+[![codecov](https://codecov.io/gh/oscarkjell/text/branch/master/graph/badge.svg?)](https://app.codecov.io/gh/oscarkjell/text)
 
 <!-- badges: end -->
 
@@ -33,7 +33,7 @@ objectives:
     scientists.
 
 <figure>
-<img src="man/figures/modular_end_solution.png" style="width:75.0%" alt="Modular and End-to-End Solution" /><figcaption aria-hidden="true">Modular and End-to-End Solution</figcaption>
+<img src="man/figures/modular_end_solution.png" style="width:85.0%" alt="Modular and End-to-End Solution" /><figcaption aria-hidden="true">Modular and End-to-End Solution</figcaption>
 </figure>
 
 *Text* is created through a collaboration between psychology and
@@ -107,8 +107,6 @@ multilingual BERT comprises *104 different languages*.
 
 *Table 1. Some of the available language models*
 
-    #> Warning: package 'magrittr' was built under R version 4.0.5
-
 | Models                         | References                                               | Layers | Dimensions | Language                                                                             |
 |:-------------------------------|:---------------------------------------------------------|:-------|:-----------|:-------------------------------------------------------------------------------------|
 | ‘bert-base-uncased’            | [Devlin et al. 2019](https://aclanthology.org/N19-1423/) | 12     | 768        | English                                                                              |
@@ -171,6 +169,3 @@ plot_projection
     #> #   check_extreme_min_x <dbl>, check_extreme_frequency_x <dbl>,
     #> #   check_middle_x <dbl>, extremes_all_x <dbl>, check_p_y_pos <dbl>,
     #> #   check_p_y_neg <dbl>, check_extreme_max_y <dbl>, …
-    #> 
-    #> $warning
-    #> [1] "This function will be depracted: instead use textPlot()"

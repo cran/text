@@ -7,13 +7,11 @@
   }
 
   packageStartupMessage(colourise(
-    "This is text (version 0.9.50). \n",
+    "This is text (version 0.9.90). \n",
     fg = "blue", bg = NULL
   ), colourise("Text is new and still rapidly improving.
-               \nNewer versions may have improved functions
-               and updated defaults to reflect current
-               understandings of the state-of-the-art. \nPlease
-               send us feedback based on your experience.",
+               \nNewer versions may have improved functions and updated defaults to reflect current understandings of the state-of-the-art.
+               \nPlease send us feedback based on your experience.",
     fg = "green", bg = NULL
   ))
 
@@ -37,9 +35,6 @@
 #' @param fg foreground colour, defaults to white
 #' @param bg background colour, defaults to transparent
 # @examples
-# print(colourise("Red", "red"))
-# cat(colourise("Red", "red"), "\n")
-# cat(colourise("White on red", "white", "red"), "\n")
 #' @noRd
 colourise <- function(text, fg = "black", bg = NULL) {
   term <- Sys.getenv()["TERM"]

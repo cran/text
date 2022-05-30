@@ -12,8 +12,9 @@ textEmbedLayersOutput(
   layers = 11,
   return_tokens = TRUE,
   device = "cpu",
-  print_python_warnings = FALSE,
-  tokenizer_parallelism = FALSE
+  tokenizer_parallelism = FALSE,
+  model_max_length = NULL,
+  logging_level = "error"
 )
 }
 \arguments{
@@ -42,10 +43,13 @@ or all by setting this parameter to "all". Layer 0 is the decontextualized input
 
 \item{device}{Name of device to use: 'cpu', 'gpu', or 'gpu:k' where k is a specific device number}
 
-\item{print_python_warnings}{bolean; when TRUE any warnings from python environment are printed
-to the console. (Either way warnings are saved in the comment of the embedding)}
-
 \item{tokenizer_parallelism}{If TRUE this will turn on tokenizer parallelism. Default FALSE.}
+
+\item{model_max_length}{The maximum length (in number of tokens) for the inputs to the transformer model
+(default the value stored for the associated model).}
+
+\item{logging_level}{Set the logging level. Default: "warning".
+Options (ordered from less logging to more logging): critical, error, warning, info, debug}
 }
 \value{
 A tibble with tokens, column specifying layer and word embeddings. Note that layer 0 is the

@@ -15,6 +15,8 @@ textProjection(
   split = "quartile",
   word_weight_power = 1,
   min_freq_words_test = 0,
+  mean_centering = FALSE,
+  mean_centering2 = FALSE,
   Npermutations = 10000,
   n_per_split = 50000,
   seed = 1003
@@ -52,6 +54,11 @@ group low (1) and group high (2). This increases the weight of more frequent wor
 times (default = 0); when creating the Supervised Dimension Projection line
 (i.e., single words receive Supervised Dimension Projection and p-value).}
 
+\item{mean_centering}{Boolean; separately mean centering the Group 1 split aggregation embedding,
+and the Group 2 split aggregation embedding}
+
+\item{mean_centering2}{Boolean; separately mean centering the G1 and G2 split aggregation embeddings}
+
 \item{Npermutations}{Number of permutations in the creation of the null distribution.}
 
 \item{n_per_split}{A setting to split Npermutations to avoid reaching computer memory limits;
@@ -68,18 +75,18 @@ Compute Supervised Dimension Projection and related variables for plotting words
 }
 \examples{
 # Data
-word_embeddings <- word_embeddings_4
-raw_data <- Language_based_assessment_data_8
 # Pre-processing data for plotting
+\dontrun{
 df_for_plotting <- textProjection(
-  words = raw_data$harmonywords,
-  word_embeddings = word_embeddings$harmonywords,
-  single_word_embeddings = word_embeddings$singlewords_we,
-  x = raw_data$hilstotal,
+  words = Language_based_assessment_data_8$harmonywords,
+  word_embeddings = word_embeddings_4$harmonywords,
+  single_word_embeddings = word_embeddings_4$singlewords_we,
+  x = Language_based_assessment_data_8$hilstotal,
   split = "mean",
   Npermutations = 10,
   n_per_split = 1
 )
 df_for_plotting
+}
 #' @seealso see \code{\link{textProjectionPlot}}
 }

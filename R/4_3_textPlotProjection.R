@@ -23,6 +23,9 @@
 #' @param min_freq_words_test Option to select words that have occurred a specified number of
 #' times (default = 0); when creating the Supervised Dimension Projection line
 #' (i.e., single words receive Supervised Dimension Projection and p-value).
+#' @param mean_centering Boolean; separately mean centering the Group 1 split aggregation embedding,
+#' and the Group 2 split aggregation embedding
+#' @param mean_centering2 Boolean; separately mean centering the G1 and G2 split aggregation embeddings
 #' @param Npermutations Number of permutations in the creation of the null distribution.
 #' @param n_per_split A setting to split Npermutations to avoid reaching computer memory limits;
 #' the higher the faster, but too high may lead to abortion.
@@ -31,19 +34,19 @@
 #' for the individual words that is used for the plotting in the textProjectionPlot function.
 #' @examples
 #' # Data
-#' word_embeddings <- word_embeddings_4
-#' raw_data <- Language_based_assessment_data_8
 #' # Pre-processing data for plotting
+#' \dontrun{
 #' df_for_plotting <- textProjection(
-#'   words = raw_data$harmonywords,
-#'   word_embeddings = word_embeddings$harmonywords,
-#'   single_word_embeddings = word_embeddings$singlewords_we,
-#'   x = raw_data$hilstotal,
+#'   words = Language_based_assessment_data_8$harmonywords,
+#'   word_embeddings = word_embeddings_4$harmonywords,
+#'   single_word_embeddings = word_embeddings_4$singlewords_we,
+#'   x = Language_based_assessment_data_8$hilstotal,
 #'   split = "mean",
 #'   Npermutations = 10,
 #'   n_per_split = 1
 #' )
 #' df_for_plotting
+#' }
 #' #' @seealso see \code{\link{textProjectionPlot}}
 #' @importFrom tibble as_tibble
 #' @importFrom recipes recipe step_center step_scale step_naomit all_numeric prep bake
@@ -62,6 +65,8 @@ textProjection <- function(words,
                            split = "quartile",
                            word_weight_power = 1,
                            min_freq_words_test = 0,
+                           mean_centering = FALSE,
+                           mean_centering2 = FALSE,
                            Npermutations = 10000,
                            n_per_split = 50000,
                            seed = 1003) {
@@ -106,7 +111,8 @@ textProjection <- function(words,
 
     pca_estimates <- recipes::prep(pca_trans, training = uniques_words_all_wordembedding)
     pca_data <- recipes::bake(pca_estimates, uniques_words_all_wordembedding)
-    pca_data <- pca_data %>% stats::setNames(paste0("Dim_", names(.)))
+
+    pca_data <- pca_data %>% stats::setNames(paste0("Dim", 1:length(pca_data)))
     single_word_embeddings <- dplyr::bind_cols(uniques_words_all, pca_data)
     single_word_embeddings
   }
@@ -134,11 +140,10 @@ textProjection <- function(words,
     colnames(x1) <- c("words", "value")
     x2 <- tibble::as_tibble(cbind(x1, word_embeddings))
 
-    ############
-    ######         1 Create COMPARISON/Projection embedding: all Group 1 & Group 2 word embeddings.
-    ############
 
-    ### Sum all word embeddings in one column
+    # Pre-processing: Create Projection embedding ####
+
+    # 1. Responses are divided into two groups (G1 and G2 ####
     if (split == "mean" | split == "quartile") {
 
       # split="median" split = "quartile" or create interval sensitive
@@ -179,7 +184,7 @@ textProjection <- function(words,
           dplyr::filter(x2$value >= q3, )
       }
 
-      ## ##       Get word embeddings ####
+      #### Get word embeddings for words
       # Group 1: getting unique words and their frequency
       words_group1b_freq <- unique_freq_words(group1$words)
       words_group1b_freq <- words_group1b_freq[words_group1b_freq$n >= min_freq_words_test, ]
@@ -193,6 +198,7 @@ textProjection <- function(words,
       words_group2b_freq <- unique_freq_words(group2$words)
       words_group2b_freq <- words_group2b_freq[words_group2b_freq$n >= min_freq_words_test, ]
       words_group2b_freq$n_g1_g2 <- words_group2b_freq$n * 1
+
       words_group2_single_wordembedding <- lapply(words_group2b_freq$words, applysemrep, single_word_embeddings)
       words_group2_single_wordembedding_b <- dplyr::bind_rows(words_group2_single_wordembedding)
 
@@ -224,10 +230,14 @@ textProjection <- function(words,
         dplyr::mutate(., n1_e = n) %>%
         tidyr::uncount(n1_e)
 
-      words_group1_2_agg_single_wordembedding_e <- rbind(words_group1_agg_single_wordembedding_f,
-                                                         words_group2_agg_single_wordembedding_f)
-      words_group1_2_agg_single_wordembedding_e1 <- dplyr::select(words_group1_2_agg_single_wordembedding_e,
-                                                                  dplyr::starts_with("Dim"))
+      words_group1_2_agg_single_wordembedding_e <- rbind(
+        words_group1_agg_single_wordembedding_f,
+        words_group2_agg_single_wordembedding_f
+      )
+      words_group1_2_agg_single_wordembedding_e1 <- dplyr::select(
+        words_group1_2_agg_single_wordembedding_e,
+        dplyr::starts_with("Dim")
+      )
 
       # Interval: No split. Weighting embeddings according to interval scale.
     } else if (split == "no") {
@@ -269,18 +279,53 @@ textProjection <- function(words,
       # Shuffle weights/values
       weights_shuffled <- sample(words_single_wordembedding_c$value, replace = FALSE)
       words_single_wordembedding_d_weights_shuffled <- tibble::as_tibble((words_single_wordembedding_d_scaled * weights_shuffled) /
-                                                                           mean(weights_shuffled))
+        mean(weights_shuffled))
 
       words_group1_2_agg_single_wordembedding_e1 <- words_single_wordembedding_d_weights_shuffled
+    } # end of split == "no"
+
+
+    # 2 word embeddings are separately mean-centered ####
+    Aggregated_word_embedding_group1a <- dplyr::select(
+      words_group1_agg_single_wordembedding_d,
+      dplyr::starts_with("Dim")
+    )
+    Aggregated_word_embedding_group2a <- dplyr::select(
+      words_group2_agg_single_wordembedding_d,
+      dplyr::starts_with("Dim")
+    )
+
+    # Mean-centering the split group aggregated word embeddings
+    if (mean_centering == TRUE) {
+      Aggregated_word_embedding_group1a <- scale(Aggregated_word_embedding_group1a, center = TRUE, scale = FALSE)
+      Aggregated_word_embedding_group2a <- scale(Aggregated_word_embedding_group2a, center = TRUE, scale = FALSE)
     }
 
-    Aggregated_word_embedding_group1 <- textEmbeddingAggregation(dplyr::select(words_group1_agg_single_wordembedding_d,
-                                                                               dplyr::starts_with("Dim")), aggregation = aggregation)
-    Aggregated_word_embedding_group2 <- textEmbeddingAggregation(dplyr::select(words_group2_agg_single_wordembedding_d,
-                                                                               dplyr::starts_with("Dim")), aggregation = aggregation)
+    # 3. The aggregated word embeddings of the two groups are computed:
+    Aggregated_word_embedding_group1 <- textEmbeddingAggregation(Aggregated_word_embedding_group1a,
+                                                                 aggregation = aggregation)
+    Aggregated_word_embedding_group2 <- textEmbeddingAggregation(Aggregated_word_embedding_group2a,
+                                                                 aggregation = aggregation)
 
-    ######  Project embedding ####
+    if (mean_centering2 == TRUE) {
+      Aggregated_word_embedding_group1_and2 <- dplyr::bind_rows(
+        Aggregated_word_embedding_group1,
+        Aggregated_word_embedding_group2
+      )
+      Aggregated_word_embedding_group1_and2_scale <- scale(Aggregated_word_embedding_group1_and2,
+                                                           center = TRUE,
+                                                           scale = FALSE)
+
+      Aggregated_word_embedding_group1 <- Aggregated_word_embedding_group1_and2_scale[1, ]
+      Aggregated_word_embedding_group2 <- Aggregated_word_embedding_group1_and2_scale[2, ]
+    }
+
+    ######  Project embedding: Supervised Dimension Projection Statistics ####
+
+    # 4. An Aggregated direction embeddings is computed: ####
     projected_embedding <- Aggregated_word_embedding_group2 - Aggregated_word_embedding_group1
+
+    # 5. Individual word embeddings are positioned/anchored to the same point ####
 
     # Position words in relation to Group 2 (High)
     all_unique_words_freq <- unique_freq_words(x2$words)
@@ -301,13 +346,14 @@ textProjection <- function(words,
 
     # Position the embedding; i.e., taking the word embedding subtracted with aggregated word embedding
     embedding_to_anchour_with <- tibble::as_tibble_row((Aggregated_word_embedding_group2 +
-                                                          Aggregated_word_embedding_group1) / 2)
+      Aggregated_word_embedding_group1) / 2)
 
     embedding_to_anchour_with <- embedding_to_anchour_with %>%
       dplyr::slice(rep(1:dplyr::n(), each = nrow(all_unique_words_we_b)))
 
     words_positioned_embeddings <- all_unique_words_we_b - embedding_to_anchour_with
 
+    # 6. Project onto the Aggregated direction embeddings
     # Project the embeddings using dot product.
     projected_embedding_nrow <- tibble::as_tibble_row(projected_embedding) %>%
       dplyr::slice(rep(1:dplyr::n(), each = nrow(all_unique_words_we_b)))
@@ -318,8 +364,10 @@ textProjection <- function(words,
 
 
     # Computing the dot product projection for the aggregated and projected embeddings
-    all_aggregated <- dplyr::bind_rows(Aggregated_word_embedding_group1,
-                                       Aggregated_word_embedding_group2, projected_embedding)
+    all_aggregated <- dplyr::bind_rows(
+      Aggregated_word_embedding_group1,
+      Aggregated_word_embedding_group2, projected_embedding
+    )
 
     projected_embedding_a <- tibble::as_tibble_row(projected_embedding) %>%
       dplyr::slice(rep(1:dplyr::n(), each = nrow(all_aggregated)))
@@ -333,24 +381,25 @@ textProjection <- function(words,
     # Add DP_aggregate to the words data
     all_unique_words_freq <- rbind(DP_aggregate, all_unique_words_freq)
 
-
-    ###### Comparison distributions for Project embedding ####
+    # Computing p-values with a permutation procedure
+    # 7. A permuted null distribution of Supervised Dimension Projections is created ####
 
     # Splitting up the permutations in different loops to avoid memory issues
     forloops <- ceiling(Npermutations / n_per_split)
     dot_null_distribution <- list()
 
-    #  i = 1
     for (i in 1:forloops) {
       ### Create new Projected embedding
       # Randomly split word embeddings into two groups: words_group1_2_agg_single_wordembedding_e1
       ind <- sample(c(TRUE, FALSE), nrow(words_group1_2_agg_single_wordembedding_e1), replace = TRUE)
       Aggregated_word_embedding_group1_random <- words_group1_2_agg_single_wordembedding_e1[ind, ]
       Aggregated_word_embedding_group1_random <- textEmbeddingAggregation(Aggregated_word_embedding_group1_random,
-                                                                          aggregation = "mean")
+        aggregation = "mean"
+      )
       Aggregated_word_embedding_group2_random <- words_group1_2_agg_single_wordembedding_e1[!ind, ]
       Aggregated_word_embedding_group2_random <- textEmbeddingAggregation(Aggregated_word_embedding_group2_random,
-                                                                          aggregation = "mean")
+        aggregation = "mean"
+      )
       projected_embedding_random <- Aggregated_word_embedding_group2_random - Aggregated_word_embedding_group1_random
 
       # Select random word embeddings according to setting
@@ -358,7 +407,7 @@ textProjection <- function(words,
       random_group2_embedding <- words_group1_2_agg_single_wordembedding_e1[indice, ]
 
       # Position the embedding; i.e., taking the word embedding subtracted with aggregated word embedding
-      # version 1: word_new = word_old - ((group(high harmony) + group(low harmony)) / 2)
+      # word_new = word_old - ((group(high harmony) + group(low harmony)) / 2)
 
       Aggregated_word_embedding_group1_long <- tibble::as_tibble_row(Aggregated_word_embedding_group1) %>%
         dplyr::slice(rep(1:dplyr::n(), each = nrow(random_group2_embedding)))
@@ -366,7 +415,7 @@ textProjection <- function(words,
         dplyr::slice(rep(1:dplyr::n(), each = nrow(random_group2_embedding)))
 
       words_positioned_embeddings_random <- random_group2_embedding - (Aggregated_word_embedding_group2_long +
-                                                                         Aggregated_word_embedding_group1) / 2
+        Aggregated_word_embedding_group1) / 2
 
       # project the embeddings using dot products
 
@@ -380,7 +429,7 @@ textProjection <- function(words,
     }
     dot_null_distribution <- tibble::as_tibble(unlist(dot_null_distribution))
 
-    ### Compare observed dot-product with null
+    # 8. P-values for each word are computed: Compare observed dot-product with null distribution ####
     dot_null_distribution <- dot_null_distribution[stats::complete.cases(dot_null_distribution), ]
     p_values_dot_prod <- purrr::map(as.list(purrr::as_vector(dot_products_observed)), p_value_comparing_with_Null,
       dot_null_distribution$value,
@@ -401,7 +450,6 @@ textProjection <- function(words,
     dot_result$n_g1_g2.y[is.na(dot_result$n_g1_g2.y)] <- 0
     dot_result$n_g1_g2.x[is.na(dot_result$n_g1_g2.x)] <- 0
     colnames(dot_result) <- c("words", "n", "dot", "p_values_dot", "n_g1", "n_g2")
-
 
     to_be_saved_below <- list(
       tibble::as_tibble_row(Aggregated_word_embedding_group1),
@@ -739,6 +787,5 @@ textProjectionPlot <- function(word_data,
     scaling = scaling
   )
 
-  plot$warning <- "This function will be depracted: instead use textPlot()"
   return(plot)
 }

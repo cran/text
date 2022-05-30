@@ -600,71 +600,88 @@ body {
 
 <body>
 
-<h1 id="how-to-best-manage-computationally-heavy-analyses">How to best
-manage computationally heavy analyses</h1>
-<p>Many NLP analyses require a lot of computational resources; but
-standard sized datasets in psychology can be analysed with <em>text</em>
-on a standard laptop. It is rather the computation of the pre-trained
-language models that require a huge amount of computational resources.
-Wolf et al., (2020) exemplify this by pointing out that the RoBERTa
-language model:</p>
-<blockquote>
-<p>“was trained on 160 GB of text using 1024 32GB V100. On
-Amazon-Web-Services cloud computing (AWS), such a pretraining would cost
-approximately 100K USD.” (p. 2)</p>
-</blockquote>
-<p>Hence, there are a lot of computations behind the word embeddings. In
-<em>text</em>, the most computationally heavy and time consuming
-elements are the process of retrieving word embeddings using
-<code>textEmbedLayersOutput</code> (which is also used in
-<code>textEmbed</code>). Retrieving word embeddings for a standard
-dataset with a few hundred participants may take between 15 minutes to
-an hour. Hence, it is worth planning analyses. A few time and resource
-management advice include:</p>
-<ol style="list-style-type: decimal">
-<li><em>Testing:</em> Before you run the analyses on your entire
-dataset, ensure that everything first runs smoothly on a small part of
-the data set (e.g., 20 rows of your data). Note that this should not be
-a process of testing different setting, but only to see that everything
-works.</li>
-<li><em>Timekeeping:</em> When running different analyses have the
-computer take time (see code example below), so that you get a better
-understanding of how long time different analyses take.</li>
-<li><em>Scheduling:</em> Run those analyses that take longer time over a
-coffee break or over night. So for example, it might be worth retrieving
-all word embeddings at a separate time.</li>
-</ol>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Save starting time</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>T1 <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">textEmbed</span>(Language_based_assessment_data_8_10[<span class="dv">1</span>,<span class="dv">1</span>], </span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">layers =</span> <span class="dv">12</span>, </span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">decontexts =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Save stoping time</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>T2 <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute time taken to run above function</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>T2<span class="sc">-</span>T1</span></code></pre></div>
-<h3 id="your-systems-capacity">Your system’s capacity</h3>
-<p>Thinking about your computer’s memory capacity may become important
-if you have a lot of data and use multiple layers with many dimensions.
-For example consider that one sentence of 10 words/tokens, which are
-each represented by 12 layers a 768 dimensions results in 92 160 values
-(i.e., 10 x 12 x 768). To avoid running out of memory and get analyses
-to run faster, consider to:</p>
-<ol style="list-style-type: decimal">
-<li>Only retrieve the layers that you plan to use (e.g.,
-<code>layers = 11:12</code>) rather than retrieving all layers (i.e.,
-<code>layers = &#39;all&#39;</code>).</li>
-<li>Only retrieve tokens if you are planing to use them; otherwise set
-<code>return_tokens = FALSE</code>.</li>
-<li>Do not ask for decontextualized word embeddings if you are not going
-to us them (e.g., in plotting).</li>
-</ol>
-<h3 id="references">References</h3>
-<p>Wolf, T., Debut, L., Sanh, V., Chaumond, J., Delangue, C., Moi, A.,
-Cistac, P., Rault, T., Louf, R., &amp; Funtowicz, M. (2019). <a href="https://arxiv.org/abs/1910.03771">Huggingface’s transformers:
-State-of-the-art natural language processing.</a></p>
+<h1 id="creating-a-singularity-container">Creating a Singularity
+Container</h1>
+<p><a href="https://apptainer.org/">Singularity</a> is a container
+engine alternative to Docker. Singularity containers are well suited for
+the requirements of High Performance Computing (HPC) workloads.</p>
+<p>A container contains all code as well as <em>all</em> its
+dependencies so that the an application runs reliably on different
+computers (or different computing environments). It can be used to run
+on servers or as a way to ensure computational reproducibility (that the
+code run on other systems, and in the future). For an introduction to
+the concept of containers see <a href="https://open.lnu.se/index.php/metapsychology/article/view/892/">Computational
+Reproducibility via Containers in Psychology</a>. Below is code to build
+a Singularity container for running the <code>text</code>-package.</p>
+<h2 id="code-to-build-a-singularity-container">Code to build a
+singularity container</h2>
+<pre><code>Bootstrap: docker
+From: ubuntu:20.04
+
+%environment
+  export LANG=C.UTF-8 LC_ALL=C.UTF-8
+  export XDG_RUNTIME_DIR=/tmp/.run_$(uuidgen)
+
+%post
+    # Install
+    apt-get -y update
+
+    export R_VERSION=4.1.3
+    echo &quot;export R_VERSION=${R_VERSION}&quot; &gt;&gt; $SINGULARITY_ENVIRONMENT
+
+     # Install R
+     apt-get update
+     apt-get install -y --no-install-recommends software-properties-common dirmngr  wget uuid-runtime
+     wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | \
+       tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+     add-apt-repository \
+       &quot;deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/&quot;
+     apt-get install -y --no-install-recommends \
+     r-base=${R_VERSION}* \
+     r-base-core=${R_VERSION}* \
+     r-base-dev=${R_VERSION}* \
+     r-recommended=${R_VERSION}* \
+     r-base-html=${R_VERSION}* \
+     r-doc-html=${R_VERSION}* \
+     libcurl4-openssl-dev \
+     libssl-dev \
+     libxml2-dev \
+     libcairo2-dev \
+     libxt-dev \
+     libopenblas-dev
+
+    # Add a default CRAN mirror
+    echo &quot;options(repos = c(CRAN = &#39;https://cran.rstudio.com/&#39;), download.file.method = &#39;libcurl&#39;)&quot; &gt;&gt; /usr/lib/R/etc/Rprofile.site
+
+    # Fix R package libpaths (helps RStudio Server find the right directories)
+    mkdir -p /usr/lib64/R/etc
+    echo &quot;R_LIBS_USER=&#39;/usr/lib64/R/library&#39;&quot; &gt;&gt; /usr/lib64/R/etc/Renviron
+    echo &quot;R_LIBS_SITE=&#39;${R_PACKAGE_DIR}&#39;&quot; &gt;&gt; /usr/lib64/R/etc/Renviron
+    # Clean up
+    rm -rf /var/lib/apt/lists/*
+
+    # Install python3
+    apt-get -y install python3 wget
+    apt-get -y clean
+
+    # Install Miniconda
+    cd /
+    wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    bash Miniconda3-latest-Linux-x86_64.sh -b -p /miniconda
+
+/bin/bash &lt;&lt;EOF
+    rm Miniconda3-latest-Linux-x86_64.sh
+    source /miniconda/etc/profile.d/conda.sh
+    conda update -y conda
+    # Install reticulate and text
+    Rscript -e &#39;install.packages(&quot;reticulate&quot;)&#39;
+    Rscript -e &#39;install.packages(&quot;devtools&quot;)&#39;
+    Rscript -e &#39;install.packages(&quot;glmnet&quot;)&#39;
+    Rscript -e &#39;devtools::install_github(&quot;oscarkjell/text&quot;)&#39;
+    # Create the Conda environment at a system folder
+    Rscript -e &#39;text::textrpp_install(prompt = FALSE)&#39;
+    Rscript -e &#39;text::textrpp_initialize(save_profile = TRUE, prompt = FALSE, textEmbed_test = TRUE)&#39;
+EOF</code></pre>
 
 </body>
 </html>
