@@ -600,31 +600,31 @@ body {
 
 <body>
 
-<h1 id="word-embeddings-defaults-and-specifications">Word Embeddings:
-Defaults and Specifications</h1>
+<h1 id="huggingface-transformers-in-r-word-embeddings-defaults-and-specifications">HuggingFace
+Transformers in R: Word Embeddings Defaults and Specifications</h1>
 <p>A word embedding comprises values that represent the latent meaning
 of a word. The numbers may be seen as coordinates in a space that
 comprises several hundred dimensions. The more similar two words’
 embeddings are, the closer positioned they are in this embedding space,
 and thus, the more similar the words are in meaning. Hence, embeddings
 reflect the relationships among words, where proximity in the embedding
-space represents similarity in latent meaning. <code>Text</code> uses
-already existing language models to map text data to high quality word
-embeddings.</p>
+space represents similarity in latent meaning. The
+<code>text</code>-package enables you to use already existing
+Transformers (language models (from Hugging Face) to map text data to
+high quality word embeddings.</p>
 <p>To represent several words, sentences and paragraphs, word embeddings
 of single words may be combined or aggregated into one word embedding.
 This can be achieved by taking the mean, minimum or maximum value of
 each dimension of the embeddings.</p>
 <p>This tutorial focuses on how to <em>retrieve</em> layers and how to
 <em>aggregate</em> them to receive word embeddings in <code>text</code>.
-The focus will be on the actual functions.</p>
-<p>For more detailed information about word embeddings and the language
-models in regard to <code>text</code> please see <em>text: An R-package
-for Analyzing and Visualizing Human Language Using Natural Language
-Processing and Deep Learning</em>; and for more comprehensive
-information about the inner workings of the language models, for example
-see <a href="https://jalammar.github.io/illustrated-bert/">Illustrated
-BERT</a> or the references given in Table 1.</p>
+The focus will be on the actual functions.<br />
+For more detailed information about word embeddings and the language
+models in regard to <code>text</code> please see <a href="https://psyarxiv.com/293kt/">text: An R-package for Analyzing and
+Visualizing Human Language Using Natural Language Processing and Deep
+Learning</a>; and for more comprehensive information about the inner
+workings of the language models, for example see <a href="https://jalammar.github.io/illustrated-bert/">Illustrated BERT</a>
+or the references given in Table 1.</p>
 <p>Table 1 show some of the more common language models; for more
 detailed information see <a href="https://huggingface.co/">HuggingFace</a></p>
 <table>
@@ -684,104 +684,118 @@ language</a></td>
 </table>
 <h2 id="textembed-reflecting-standards-and-state-of-the-arts">textEmbed:
 Reflecting standards and state-of-the-arts</h2>
-<p>The main function to transform text to word embeddings is
-<code>textEmbed()</code>. First, provide a tibble containing the
-text-variable(s) that you want to transform (note that it is OK to
-submit other variables too; the function will only grab the character
-variables). Second, set the language <code>model</code>; using a setting
-among the options for <code>model</code> ensures that you use a model
-that have been tested with <em>text</em>.</p>
-<p>Setting the advanced options <code>pretrained_weights</code> (e.g.,
-to <code>pretrained_weights = &#39;bert-base-uncased&#39;</code>),
-<code>tokenizer_class</code> (e.g., to
-<code>tokenizer_class = BertTokenizer</code>) and
-<code>model_class</code> (e.g., to <code>model_class = BertModel</code>;
-and <code>model = NULL</code>); allows you to set a model directly with
-the HuggingFace interface. Make sure that the pretrained_weights,
-tokenizer_class, and model_class fit together (otherwise you will get an
-error).</p>
-<p>Third, decide whether you want contextualized and/or decontextualized
-word embeddings; by setting the <code>contexts</code> ans
-<code>deconext</code> parameters to TRUE/FALSE. Contextualized word
-embeddings are standard and return word embeddings that have taken into
-account the context in which the word was used; the decontextualized
-word embeddings do not take into account the context of how the word was
-used (and are used in the plot functions).</p>
-<p>Last, select the number of layers you want to use and the way you
-want to aggregate them.</p>
+<p>The <code>text</code>-package has 3 functions for mapping text to
+word embeddings. The <code>textEmbed()</code> is the high-level
+function, which encompasses <code>textEmbedRawLayers()</code> and
+<code>textEmbedLayerAggregation()</code>.
+<code>textEmbedRawLayers()</code> retrieves layers and hidden states
+from a given language model; and
+<code>textEmbedLayerAggregation()</code> aggregates these layers in
+order to form word embeddings.</p>
+<h3 id="textembed"><code>textEmbed()</code></h3>
+<p><code>textEmbed()</code> selects character variables in a given
+dataset (a dataframe/tibble) and transforms these to word embeddings. It
+can output contextualized (and decontextualized) embeddings for both
+tokens and texts.</p>
+<h1 id="the-language-model">The Language model</h1>
+<p>Set the language language model that you want using the
+<code>model</code> parameter. The text-package automatically downloads
+the model from HuggingFace, the first time it is being called.</p>
+<h1 id="the-layers">The Layers</h1>
+<p>The <code>layers</code> parameter controls the layer(s) to extract
+(default is the second to last layer). The <code>textEmbed()</code>
+function also provides parameters to aggregate the layers in various
+ways. The <code>aggregation_from_layers_to_tokens</code> parameter
+controls how to aggregate layers representing the same token (default is
+“concatenate”). The <code>aggregation_from_tokens_to_texts</code>
+parameter controls how embeddings from different tokens should be
+aggregated to represent a text (default = “mean”). There is also an
+optional setting <code>aggregation_from_tokens_to_word_types</code> that
+controls how the word types embeddings are aggregated.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Transform the text data to BERT word embeddings</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>wordembeddings <span class="ot">&lt;-</span> <span class="fu">textEmbed</span>(<span class="at">x =</span> Language_based_assessment_data_8,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                            <span class="at">model =</span> <span class="st">&#39;bert-base-uncased&#39;</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                            <span class="at">contexts =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                            <span class="at">layers =</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">12</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                            <span class="at">context_aggregation =</span> <span class="st">&quot;mean&quot;</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                            <span class="at">decontexts =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>                            <span class="at">decontext_layers =</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">12</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>                            <span class="at">decontext_aggregation =</span> <span class="st">&quot;mean&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Example text </span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>texts <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;I feel great&quot;</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Transform the text to BERT word embeddings</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>wordembeddings <span class="ot">&lt;-</span> <span class="fu">textEmbed</span>(<span class="at">texts =</span> texts,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                            <span class="at">model =</span> <span class="st">&#39;bert-base-uncased&#39;</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                            <span class="at">layers =</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">12</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                            <span class="at">aggregation_from_layers_to_tokens =</span> <span class="st">&quot;concatenate&quot;</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>                            <span class="at">aggregation_from_tokens_to_texts =</span> <span class="st">&quot;mean&quot;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>                            )</span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the word embeddings to avoid having to import the text every time</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># saveRDS(wordembeddings, &quot;_YOURPATH_/wordembeddings.rds&quot;)</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the word embeddings again</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># wordembeddings &lt;- readRDS(&quot;_YOURPATH_/wordembeddings.rds&quot;)</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># See how word embeddings are structured</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>wordembeddings</span></code></pre></div>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>wordembeddings</span></code></pre></div>
+<p>Note that it is also possible to submit an entire dataset to
+<code>textEmbed()</code> – as well as only retrieving text-level and
+word-type level embeddings. This is achieved by setting
+<code>keep_token_embeddings</code> to <code>FALSE</code>, and
+<code>aggregation_from_tokens_to_word_types</code> to, for example,
+“mean”. Word type-level embeddings can be used for plotting words in the
+embedding space.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Transform the text data to BERT word embeddings</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>wordembeddings <span class="ot">&lt;-</span> <span class="fu">textEmbed</span>(<span class="at">texts =</span> Language_based_assessment_data_8[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>],</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                            <span class="at">aggregation_from_tokens_to_word_types =</span> <span class="st">&quot;mean&quot;</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                            <span class="at">keep_token_embeddings =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># See how word embeddings are structured</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>wordembeddings</span></code></pre></div>
 <p>The <code>textEmbed()</code> function is suitable when you are just
 interested in getting good word embeddings to test some research
 hypothesis with. That is, the defaults are based on general experience
 of what works. Under the hood <code>textEmbed</code> uses one function
-for retrieving the layers (<code>textEmbedLayersOutput</code>) and
-another function for aggregating them
-(<code>textEmbedLayerAggreation</code>). So, if you are interested in
-examining different layers and different aggregation methods it is
-better to split up the work flow so that you first retrieve all layers
-(which takes most time) and then test different aggregation methods.</p>
-<h2 id="textembedlayersoutput-get-tokens-and-all-the-layers">textEmbedLayersOutput:
+for retrieving the layers (<code>textEmbedRawLayers</code>) and another
+function for aggregating them (<code>textEmbedLayerAggreation</code>).
+So, if you are interested in examining different layers and different
+aggregation methods it is better to split up the work flow so that you
+first retrieve all layers (which takes most time) and then test
+different aggregation methods.</p>
+<h2 id="textembedrawlayers-get-tokens-and-all-the-layers">textEmbedRawLayers:
 Get tokens and all the layers</h2>
-<p>The <code>textEmbedLayersOutput</code> function is used to retrieve
-the layers of hidden states.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Transform the text data to BERT word embeddings</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> Language_based_assessment_data_8[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>]</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>wordembeddings_tokens_layers <span class="ot">&lt;-</span> <span class="fu">textEmbedLayersOutput</span>(x,</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">contexts =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">decontexts =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">model =</span> <span class="st">&#39;bert-base-uncased&#39;</span>,</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">layers =</span> <span class="st">&#39;all&#39;</span>,</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">return_tokens =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>wordembeddings_tokens_layers</span></code></pre></div>
-<h2 id="textembedlayeraggreation-testing-different-layers">textEmbedLayerAggreation:
-Testing different layers</h2>
-<p>The output from the <code>textEmbedLayerAggreation()</code> function
-is the same as that of <code>textEmbed()</code>; but, now you have the
-possibility to test different ways to aggregate the layers without
-having to retrieve them from the language model. In
-<code>textEmbedLayerAggreation()</code>, you can select any combination
-of the layers that you want to aggregate; and then you can select to
-aggregate them using the mean of the dimensions, the minimum or maximum
-value.</p>
+<p>The <code>textEmbedRawLayers</code> function is used to retrieve the
+layers of hidden states.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Aggregating layer 11 and 12 by taking the mean of each dimension. </span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>we_11_12_mean <span class="ot">&lt;-</span> <span class="fu">textEmbedLayerAggreation</span>(<span class="at">word_embeddings_layers =</span> wordembeddings_tokens_layers,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">layers =</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">12</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">aggregation =</span> <span class="st">&quot;mean&quot;</span>)</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Aggregating layer 11 and 12 by taking the minimum of each dimension accross the two layers.</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>we_11_12_min <span class="ot">&lt;-</span> <span class="fu">textEmbedLayerAggreation</span>(<span class="at">word_embeddings_layers =</span> wordembeddings_tokens_layers,</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">layers =</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">12</span>,</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">aggregation =</span> <span class="st">&quot;min&quot;</span>)</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Aggregating layer 1 to 12 by taking the max value of each dimension accross the 12 layers.</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>we_1_12_min <span class="ot">&lt;-</span> <span class="fu">textEmbedLayerAggreation</span>(<span class="at">word_embeddings_layers =</span> wordembeddings_tokens_layers,</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">layers =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>,</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">aggregation =</span> <span class="st">&quot;max&quot;</span>)</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>we_1_12_min</span></code></pre></div>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Transform the text data to BERT word embeddings</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Example test </span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>texts <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;I feel great&quot;</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>wordembeddings_tokens_layers <span class="ot">&lt;-</span> <span class="fu">textEmbedRawLayers</span>(</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">texts =</span> texts,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">layers =</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">12</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>wordembeddings_tokens_layers</span></code></pre></div>
+<h2 id="textembedlayeraggreation-testing-different-layers">textEmbedLayerAggreation:
+Testing different layers</h2>
+<p>The <code>textEmbedLayerAggreation()</code> function gives you the
+possibility to aggregate the layers in different ways (without having to
+retrieve them from the language model several times). In
+<code>textEmbedLayerAggreation()</code>, you can select any combination
+of the layers that you want to aggregate; and then you can aggregate
+them using the mean of the dimensions, the minimum or maximum value.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Aggregating layer 11 and 12 by taking the mean of each dimension. </span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>we_11_12_mean <span class="ot">&lt;-</span> <span class="fu">textEmbedLayerAggregation</span>(</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_embeddings_layers =</span> wordembeddings_tokens_layers<span class="sc">$</span>context_tokens<span class="sc">$</span>texts,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">layers =</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">12</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">aggregation_from_layers_to_tokens =</span> <span class="st">&quot;concatenate&quot;</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">aggregation_from_tokens_to_texts =</span> <span class="st">&quot;mean&quot;</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>we_11_12_mean</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Aggregating layer 11 and 12 by taking the minimum of each dimension accross the two layers.</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>we_10_11_min <span class="ot">&lt;-</span> <span class="fu">textEmbedLayerAggregation</span>(</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_embeddings_layers =</span> wordembeddings_tokens_layers<span class="sc">$</span>context_tokens<span class="sc">$</span>texts,</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">layers =</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">11</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">aggregation_from_layers_to_tokens =</span> <span class="st">&quot;concatenate&quot;</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">aggregation_from_tokens_to_texts =</span> <span class="st">&quot;min&quot;</span>)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>we_10_11_min</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Aggregating layer 1 to 12 by taking the max value of each dimension across the 12 layers.</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>we_11_max <span class="ot">&lt;-</span> <span class="fu">textEmbedLayerAggregation</span>(</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_embeddings_layers =</span> wordembeddings_tokens_layers<span class="sc">$</span>context_tokens<span class="sc">$</span>texts,</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">layers =</span> <span class="dv">11</span>,</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">aggregation_from_tokens_to_texts =</span> <span class="st">&quot;max&quot;</span>)</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>we_11_max</span></code></pre></div>
 <p>Now the word embeddings are ready to be used in down stream tasks
 such as predicting numeric variables or be plotted according to
 different dimensions.</p>

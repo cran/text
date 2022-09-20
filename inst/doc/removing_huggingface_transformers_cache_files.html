@@ -600,88 +600,33 @@ body {
 
 <body>
 
-<h1 id="creating-a-singularity-container">Creating a Singularity
-Container</h1>
-<p><a href="https://apptainer.org/">Singularity</a> is a container
-engine alternative to Docker. Singularity containers are well suited for
-the requirements of High Performance Computing (HPC) workloads.</p>
-<p>A container contains all code as well as <em>all</em> its
-dependencies so that the an application runs reliably on different
-computers (or different computing environments). It can be used to run
-on servers or as a way to ensure computational reproducibility (that the
-code run on other systems, and in the future). For an introduction to
-the concept of containers see <a href="https://open.lnu.se/index.php/metapsychology/article/view/892/">Computational
-Reproducibility via Containers in Psychology</a>. Below is code to build
-a Singularity container for running the <code>text</code>-package.</p>
-<h2 id="code-to-build-a-singularity-container">Code to build a
-singularity container</h2>
-<pre><code>Bootstrap: docker
-From: ubuntu:20.04
-
-%environment
-  export LANG=C.UTF-8 LC_ALL=C.UTF-8
-  export XDG_RUNTIME_DIR=/tmp/.run_$(uuidgen)
-
-%post
-    # Install
-    apt-get -y update
-
-    export R_VERSION=4.1.3
-    echo &quot;export R_VERSION=${R_VERSION}&quot; &gt;&gt; $SINGULARITY_ENVIRONMENT
-
-     # Install R
-     apt-get update
-     apt-get install -y --no-install-recommends software-properties-common dirmngr  wget uuid-runtime
-     wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | \
-       tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
-     add-apt-repository \
-       &quot;deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/&quot;
-     apt-get install -y --no-install-recommends \
-     r-base=${R_VERSION}* \
-     r-base-core=${R_VERSION}* \
-     r-base-dev=${R_VERSION}* \
-     r-recommended=${R_VERSION}* \
-     r-base-html=${R_VERSION}* \
-     r-doc-html=${R_VERSION}* \
-     libcurl4-openssl-dev \
-     libssl-dev \
-     libxml2-dev \
-     libcairo2-dev \
-     libxt-dev \
-     libopenblas-dev
-
-    # Add a default CRAN mirror
-    echo &quot;options(repos = c(CRAN = &#39;https://cran.rstudio.com/&#39;), download.file.method = &#39;libcurl&#39;)&quot; &gt;&gt; /usr/lib/R/etc/Rprofile.site
-
-    # Fix R package libpaths (helps RStudio Server find the right directories)
-    mkdir -p /usr/lib64/R/etc
-    echo &quot;R_LIBS_USER=&#39;/usr/lib64/R/library&#39;&quot; &gt;&gt; /usr/lib64/R/etc/Renviron
-    echo &quot;R_LIBS_SITE=&#39;${R_PACKAGE_DIR}&#39;&quot; &gt;&gt; /usr/lib64/R/etc/Renviron
-    # Clean up
-    rm -rf /var/lib/apt/lists/*
-
-    # Install python3
-    apt-get -y install python3 wget
-    apt-get -y clean
-
-    # Install Miniconda
-    cd /
-    wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    bash Miniconda3-latest-Linux-x86_64.sh -b -p /miniconda
-
-/bin/bash &lt;&lt;EOF
-    rm Miniconda3-latest-Linux-x86_64.sh
-    source /miniconda/etc/profile.d/conda.sh
-    conda update -y conda
-    # Install reticulate and text
-    Rscript -e &#39;install.packages(&quot;reticulate&quot;)&#39;
-    Rscript -e &#39;install.packages(&quot;devtools&quot;)&#39;
-    Rscript -e &#39;install.packages(&quot;glmnet&quot;)&#39;
-    Rscript -e &#39;devtools::install_github(&quot;oscarkjell/text&quot;)&#39;
-    # Create the Conda environment at a system folder
-    Rscript -e &#39;text::textrpp_install(prompt = FALSE)&#39;
-    Rscript -e &#39;text::textrpp_initialize(save_profile = TRUE, prompt = FALSE, textEmbed_test = TRUE)&#39;
-EOF</code></pre>
+<h1 id="huggingface-language-models-are-downloaded-in-cache">HuggingFace
+language models are downloaded in .cache</h1>
+<p><em>Transformers Models from HuggingFace</em> When specifying and
+running a language model for the first time in <code>textEmbed()</code>,
+the python package transformers will automatically download it from
+HuggingFace. These models can be rather large (a few GB), so you might
+want to remove models that you have no use for anymore.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Check downloaded, available models.</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">textModels</span>()</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Delete a specified model and model associated files.</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">textModelsRemove</span>(<span class="st">&quot;name_of_model_to_be_removed&quot;</span>)</span></code></pre></div>
+<p><em>Advanced</em> By default the files necessary to run the model are
+downloaded to the .cache folder. To see the hidden .cache folder on a
+Mac go to <code>/Users/USER_NAME/</code> in Finder and press:
+<code>CMD + SHIFT + .</code> This reveals the .cache folder and its
+enclosed folders and files. Go to:
+<code>/Users/USER_NAME/.cache/torch/transformers/</code> to find those
+files that have been downloaded by transformers.<br />
+Note that these files are awkwardly named (e.g.,
+<code>c146cc96724f27295a0c3ada1fbb3632074adf87…</code>); but you might
+want to remove the larger files and then just re-run the
+<code>textEmbed()</code> again to download the models you want to use
+again.</p>
 
 </body>
 </html>

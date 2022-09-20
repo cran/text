@@ -2,7 +2,7 @@
 % Please edit documentation in R/3_2_textSimilarityTest.R
 \name{textSimilarityTest}
 \alias{textSimilarityTest}
-\title{Test whether there is a significant difference in meaning between two sets of texts
+\title{EXPERIMENTAL: Test whether there is a significant difference in meaning between two sets of texts
 (i.e., between their word embeddings).}
 \usage{
 textSimilarityTest(
@@ -11,7 +11,9 @@ textSimilarityTest(
   similarity_method = "cosine",
   Npermutations = 10000,
   method = "paired",
-  alternative = c("two_sided", "less", "greater"),
+  center = FALSE,
+  scale = FALSE,
+  alternative = "greater",
   output.permutations = TRUE,
   N_cluster_nodes = 1,
   seed = 1001
@@ -30,6 +32,12 @@ default is "cosine" (see also measures from textDistance (here computed as 1 - t
 
 \item{method}{Compute a "paired" or an "unpaired" test.}
 
+\item{center}{(boolean; from base::scale) If center is TRUE then centering is done by subtracting the column means
+(omitting NAs) of x from their corresponding columns, and if center is FALSE, no centering is done.}
+
+\item{scale}{(boolean; from base::scale) If scale is TRUE then scaling is done by dividing the
+(centered) columns of x by their standard deviations if center is TRUE, and the root mean square otherwise.}
+
 \item{alternative}{Use a two or one-sided test (select one of: "two_sided", "less", "greater").}
 
 \item{output.permutations}{If TRUE, returns permuted values in output.}
@@ -42,12 +50,12 @@ default is "cosine" (see also measures from textDistance (here computed as 1 - t
 A list with a p-value, similarity score estimate and permuted values if output.permutations=TRUE.
 }
 \description{
-Test whether there is a significant difference in meaning between two sets of texts
+EXPERIMENTAL: Test whether there is a significant difference in meaning between two sets of texts
 (i.e., between their word embeddings).
 }
 \examples{
-x <- word_embeddings_4$harmonywords
-y <- word_embeddings_4$satisfactionwords
+x <- word_embeddings_4$texts$harmonywords
+y <- word_embeddings_4$texts$satisfactionwords
 textSimilarityTest(x,
   y,
   method = "paired",

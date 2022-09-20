@@ -334,7 +334,8 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<p><em>Text</em> uses the R-package <a href="https://rstudio.github.io/reticulate/">reticulate</a> as an
+<p><em>Text</em> enables users access to HuggingFace Transformers in R
+through the R-package <a href="https://rstudio.github.io/reticulate/">reticulate</a> as an
 interface to <a href="https://www.python.org/">Python</a>, and the
 python packages <a href="https://pytorch.org/">torch</a> and <a href="https://huggingface.co/docs/transformers/index">transformers</a>.
 So it’s important to install both the text-package and a python
@@ -370,20 +371,20 @@ details can be seen at <a href="https://github.com/OscarKjell/text/actions">gith
 (look at workflow runs called System specific installation NoPy).</p>
 <p>The table below show various combination of python and package
 versions that have worked (it is not an exhaustive list).</p>
-<table style="width:100%;">
+<table>
 <colgroup>
-<col width="13%" />
+<col width="12%" />
 <col width="14%" />
 <col width="11%" />
-<col width="19%" />
-<col width="30%" />
+<col width="20%" />
+<col width="29%" />
 <col width="10%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th align="left">os</th>
 <th align="left">mini_conda</th>
-<th align="left">pyhon</th>
+<th align="left">python</th>
 <th align="left">torch</th>
 <th align="left">transformers</th>
 <th align="left">success</th>
@@ -391,6 +392,30 @@ versions that have worked (it is not an exhaustive list).</p>
 </thead>
 <tbody>
 <tr class="odd">
+<td align="left">‘Mac OS’</td>
+<td align="left">‘-’</td>
+<td align="left">‘3.9.0’</td>
+<td align="left">‘torch==1.11.0’</td>
+<td align="left">‘transformers==4.19.2’</td>
+<td align="left">Pass</td>
+</tr>
+<tr class="even">
+<td align="left">‘Linux’</td>
+<td align="left">‘-’</td>
+<td align="left">‘3.9.0’</td>
+<td align="left">‘torch==1.11.0’</td>
+<td align="left">‘transformers==4.19.2’</td>
+<td align="left">Pass</td>
+</tr>
+<tr class="odd">
+<td align="left">‘Windows’</td>
+<td align="left">‘-’</td>
+<td align="left">‘3.9.0’</td>
+<td align="left">‘torch==1.11.0’</td>
+<td align="left">‘transformers==4.19.2’</td>
+<td align="left">Pass</td>
+</tr>
+<tr class="even">
 <td align="left">‘Windows’</td>
 <td align="left">‘4.10.1’</td>
 <td align="left">‘3.9.0’</td>
@@ -398,7 +423,7 @@ versions that have worked (it is not an exhaustive list).</p>
 <td align="left">‘transformers==4.12.5’</td>
 <td align="left">FAIL</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">‘Mac OS’</td>
 <td align="left">‘4.10.3’</td>
 <td align="left">‘3.9.0’</td>
@@ -406,7 +431,7 @@ versions that have worked (it is not an exhaustive list).</p>
 <td align="left">‘transformers==4.12.5’</td>
 <td align="left">Pass</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">‘Linux’</td>
 <td align="left">‘4.10.3’</td>
 <td align="left">‘3.9.0’</td>
@@ -414,7 +439,7 @@ versions that have worked (it is not an exhaustive list).</p>
 <td align="left">‘transformers==4.12.5’</td>
 <td align="left">Pass</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">‘Windows’</td>
 <td align="left">‘4.10.3’</td>
 <td align="left">‘3.9.0’</td>
@@ -422,7 +447,7 @@ versions that have worked (it is not an exhaustive list).</p>
 <td align="left">‘transformers==4.12.5’</td>
 <td align="left">Pass</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">‘Mac OS’</td>
 <td align="left">‘4.10.3’</td>
 <td align="left">‘3.8.10’</td>
@@ -430,7 +455,7 @@ versions that have worked (it is not an exhaustive list).</p>
 <td align="left">‘transformers==4.12.5’</td>
 <td align="left">Pass</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">‘Linux’</td>
 <td align="left">‘4.10.3’</td>
 <td align="left">‘3.8.10’</td>
@@ -438,7 +463,7 @@ versions that have worked (it is not an exhaustive list).</p>
 <td align="left">‘transformers==4.12.5’</td>
 <td align="left">Pass</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">‘Windows’</td>
 <td align="left">‘4.10.3’</td>
 <td align="left">‘3.8.10’</td>
@@ -446,7 +471,7 @@ versions that have worked (it is not an exhaustive list).</p>
 <td align="left">‘transformers==4.12.5’</td>
 <td align="left">Pass</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">‘Mac OS’</td>
 <td align="left">‘4.10.3’</td>
 <td align="left">‘3.7.0’</td>
@@ -454,7 +479,7 @@ versions that have worked (it is not an exhaustive list).</p>
 <td align="left">‘transformers==3.3.1’</td>
 <td align="left">Pass</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">‘Linux’</td>
 <td align="left">‘4.10.3’</td>
 <td align="left">‘3.7.0’</td>
@@ -462,7 +487,7 @@ versions that have worked (it is not an exhaustive list).</p>
 <td align="left">‘transformers==3.3.1’</td>
 <td align="left">Pass</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">‘Windows’</td>
 <td align="left">‘4.10.3’</td>
 <td align="left">‘3.6.13’</td>
@@ -496,22 +521,36 @@ currently work for Linux and Windows. At <a href="https://github.com/OscarKjell/
 for a workflow run called: Virtual environment for more information.</p>
 <table>
 <colgroup>
-<col width="14%" />
+<col width="13%" />
 <col width="20%" />
-<col width="21%" />
-<col width="32%" />
+<col width="22%" />
+<col width="31%" />
 <col width="11%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th align="left">OS</th>
-<th align="left">Pyhon_version</th>
+<th align="left">Python_version</th>
 <th align="left">torch</th>
 <th align="left">transformers</th>
 <th align="left">Success</th>
 </tr>
 </thead>
 <tbody>
+<tr class="odd">
+<td align="left">‘Mac OS’</td>
+<td align="left">‘3.9.8’</td>
+<td align="left">‘torch==1.11.0’</td>
+<td align="left">‘transformers==4.19.2’</td>
+<td align="left">Pass</td>
+</tr>
+<tr class="even">
+<td align="left">‘Linux’</td>
+<td align="left">‘3.9.8’</td>
+<td align="left">‘torch==1.11.0’</td>
+<td align="left">‘transformers==4.19.2’</td>
+<td align="left">Pass</td>
+</tr>
 <tr class="odd">
 <td align="left">‘Mac OS’</td>
 <td align="left">‘3.9.8’</td>

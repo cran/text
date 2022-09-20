@@ -56,10 +56,10 @@ textrpp_install <- function(conda = "auto",
   # Set system specific default versions
   if (rpp_version[[1]] == "rpp_version_system_specific_defaults") {
     if (is_osx() | is_linux()) {
-      rpp_version <- c("torch==1.8.0", "transformers==4.12.5", "numpy", "nltk")
+      rpp_version <- c("torch==1.11.0", "transformers==4.19.2", "numpy", "nltk")
     }
     if (is_windows()) {
-      rpp_version <- c("torch==1.8.0", "transformers==4.12.5", "numpy", "nltk")
+      rpp_version <- c("torch==1.11.0", "transformers==4.19.2", "numpy", "nltk")
     }
   }
 
@@ -226,7 +226,7 @@ process_textrpp_installation_conda <- function(conda,
 #' textrpp_install_virtualenv()
 #' }
 #' @export
-textrpp_install_virtualenv <- function(rpp_version = c("torch==1.7.1", "transformers==4.12.5", "numpy", "nltk"),
+textrpp_install_virtualenv <- function(rpp_version = c("torch==1.11.0", "transformers==4.19.2", "numpy", "nltk"),
                                        python_path = "/usr/local/bin/python3.9",
                                        pip_version = NULL,
                                        envname = "textrpp_virtualenv",

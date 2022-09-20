@@ -25,36 +25,38 @@ knitr::opts_chunk$set(
 ## ----conda_tabble_short, echo=FALSE, results='asis'---------------------------
 library(magrittr)
 
-os <- c("'Windows'", 
+os <- c("'Mac OS'", "'Linux'", "'Windows'",
+  "'Windows'", 
         "'Mac OS'", "'Linux'", "'Windows'",
         "'Mac OS'", "'Linux'",  "'Windows'",
         "'Mac OS'", "'Linux'", "'Windows'")
-mini_conda <- c("'4.10.1'", 
+mini_conda <- c("'-'", "'-'", "'-'","'4.10.1'", 
                 "'4.10.3'", "'4.10.3'", "'4.10.3'",
                 "'4.10.3'", "'4.10.3'", "'4.10.3'",
                 "'4.10.3'", "'4.10.3'", "'4.10.3'")
-pyhon <- c("'3.9.0'",
+python <- c("'3.9.0'", "'3.9.0'", "'3.9.0'", "'3.9.0'",
                    "'3.9.0'", "'3.9.0'", "'3.9.0'",
                    "'3.8.10'", "'3.8.10'", "'3.8.10'",
                    "'3.7.0'", "'3.7.0'", "'3.6.13'"
                 )
 
-torch <- c("'torch==1.7.1'", 
+torch <- c("'torch==1.11.0'", "'torch==1.11.0'", "'torch==1.11.0'","'torch==1.7.1'", 
            "'torch==1.7.1'", "'torch==1.7.1'", "'torch==1.7.1'", 
            "'torch==1.7.1'", "'torch==1.7.1'", "'torch==1.7.1'", 
            "'torch==0.4.1'", "'torch==0.4.1'", "'torch==1.10'")
 
-transformers <- c("'transformers==4.12.5'", 
+transformers <- c("'transformers==4.19.2'", "'transformers==4.19.2'", "'transformers==4.19.2'", "'transformers==4.12.5'", 
                   "'transformers==4.12.5'", "'transformers==4.12.5'", "'transformers==4.12.5'",
                   "'transformers==4.12.5'", "'transformers==4.12.5'", "'transformers==4.12.5'", 
                   "'transformers==3.3.1'", "'transformers==3.3.1'", "'transformers==3.3.1'")
 
-success <- c("FAIL", 
+success <- c("Pass", "Pass","Pass", 
+             "FAIL", 
              "Pass", "Pass","Pass",
              "Pass","Pass","Pass",
              "Pass","Pass","Pass")
 
-mini_conda_table <- tibble::tibble(os, mini_conda, pyhon, torch, transformers, success)
+mini_conda_table <- tibble::tibble(os, mini_conda, python, torch, transformers, success)
 
 knitr::kable(mini_conda_table, caption="", bootstrap_options = c("hover"), full_width = T)
 
@@ -74,17 +76,17 @@ knitr::kable(mini_conda_table, caption="", bootstrap_options = c("hover"), full_
 ## ----venv_tabble_short, echo=FALSE, results='asis'----------------------------
 library(magrittr)
 
-OS <- c("'Mac OS'", "'Linux'", "'Windows'")
+OS <- c("'Mac OS'", "'Linux'", "'Mac OS'", "'Linux'", "'Windows'")
 
-Pyhon_version <- c("'3.9.8'", "-", "-")
+Python_version <- c("'3.9.8'", "'3.9.8'", "'3.9.8'", "-", "-")
 
-torch <- c("'torch==1.7.1'", "-", "-")
+torch <- c("'torch==1.11.0'", "'torch==1.11.0'", "'torch==1.7.1'", "-", "-")
 
-transformers <- c("'transformers==4.12.5'", "-", "-")
+transformers <- c("'transformers==4.19.2'", "'transformers==4.19.2'", "'transformers==4.12.5'", "-", "-")
 
-Success <- c("Pass", "-", "-")
+Success <- c("Pass", "Pass", "Pass", "-", "-")
 
-venv_conda_table <- tibble::tibble(OS, Pyhon_version, torch, transformers, Success)
+venv_conda_table <- tibble::tibble(OS, Python_version, torch, transformers, Success)
 
 knitr::kable(venv_conda_table, caption="", bootstrap_options = c("hover"), full_width = T)
 
