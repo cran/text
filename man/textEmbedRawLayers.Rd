@@ -16,7 +16,8 @@ textEmbedRawLayers(
   tokenizer_parallelism = FALSE,
   model_max_length = NULL,
   max_token_to_sentence = 4,
-  logging_level = "error"
+  logging_level = "error",
+  sort = TRUE
 )
 }
 \arguments{
@@ -27,7 +28,8 @@ textEmbedRawLayers(
  \href{https://huggingface.co/transformers/pretrained_models.html}{HuggingFace}.
  For example use "bert-base-multilingual-cased", "openai-gpt",
 "gpt2", "ctrl", "transfo-xl-wt103", "xlnet-base-cased", "xlm-mlm-enfr-1024", "distilbert-base-cased",
-"roberta-base", or "xlm-roberta-base".}
+"roberta-base", or "xlm-roberta-base". Only load models that you trust from HuggingFace; loading a
+ malicious model can execute arbitrary code on your computer).}
 
 \item{layers}{(string or numeric) Specify the layers that should be extracted
 (default -2, which give the second to last layer). It is more efficient to only extract the
@@ -45,7 +47,8 @@ or all by setting this parameter to "all". Layer 0 is the decontextualized input
 \item{keep_token_embeddings}{(boolean) Whether to keep token level embeddings in the output
 (when using word_types aggregation)}
 
-\item{device}{Name of device to use: 'cpu', 'gpu', or 'gpu:k' where k is a specific device number}
+\item{device}{Name of device to use: 'cpu', 'gpu', 'gpu:k' or 'mps'/'mps:k' for MacOS, where k is a
+specific device number.}
 
 \item{tokenizer_parallelism}{If TRUE this will turn on tokenizer parallelism. Default FALSE.}
 
@@ -57,6 +60,8 @@ text sentence by sentence.}
 
 \item{logging_level}{Set the logging level. Default: "warning".
 Options (ordered from less logging to more logging): critical, error, warning, info, debug}
+
+\item{sort}{(boolean) If TRUE sort the output to tidy format.}
 }
 \value{
 Returns hiddenstates/layers that can be 1. Can return three different outputA tibble with tokens,

@@ -1,6 +1,6 @@
 
-#' Find encoding type of variable and the set it to UTF-8.
-#' @param tibble including both text and numeric variables.
+#' Find encoding type of variable and then set it to UTF-8.
+#' @param x Tibble including both text and numeric variables.
 #' @return all character variables in UTF-8 format.
 #' @noRd
 get_encoding_change <- function(x) {
@@ -140,10 +140,12 @@ getUniqueWordsAndFreq <- function(x_characters, hg_tokenizer = NULL, ...) {
 #' This is a function that sorts out (i.e., tidy) the embeddings from the huggingface interface.
 #' @param x list of layers.
 #' @param layers the number of layers to get (setting comes from textEmbedRawLayers).
-#' @param return_tokens bolean whether tokens have been returned (setting comes from textEmbedRawLayers).
+#' @param return_tokens boolean whether tokens have been returned (setting comes from textEmbedRawLayers).
 #' @return Layers in tidy tibble format with each dimension column called Dim1, Dim2 etc.
 #' @noRd
-sortingLayers <- function(x, layers = layers, return_tokens = return_tokens) {
+sortingLayers <- function(x,
+                           layers = layers,
+                           return_tokens = return_tokens) {
   # If selecting "all" layers, find out number of layers to help indicate layer index later in code
   if (is.character(layers)) {
     layers <- 0:(length(x[[1]][[1]]) - 1)
@@ -159,9 +161,8 @@ sortingLayers <- function(x, layers = layers, return_tokens = return_tokens) {
   }
 
   # Tidy-structure tokens and embeddings
-  # Loop over the cases in the variable; i_in_variable = 1
-  variable_x <- list()
-  for (i_in_variable in 1:participants) {
+  # Replace outer loop over i_in_variable with map();
+  variable_x <- purrr::map(1:participants, function(i_in_variable) {
     if (return_tokens) {
       tokens <- x[[2]][[i_in_variable]]
       token_id <- seq_len(length(tokens))
@@ -173,36 +174,41 @@ sortingLayers <- function(x, layers = layers, return_tokens = return_tokens) {
       token_id <- seq_len(length(all_layers[[1]][[1]]))
     }
 
-    # Loop of the number of layers; i_layers=1
-    layers_list <- list()
-    for (i_layers in seq_len(length(all_layers))) {
-      i_layers_for_tokens <- all_layers[i_layers]
+    # Replace inner loop over i_layers with updated code
+    totalTokensNum <- length(tokens)
 
-      # Transpose layers and give each column a DimX names
-      layers_4_token <- suppressMessages(t(dplyr::bind_cols(i_layers_for_tokens))) %>%
-        magrittr::set_colnames(c(paste0("Dim", 1:dimensions))) # %>%
-      layers_4_token <- tibble::as_tibble(layers_4_token)
+    tarTb <- numeric(length=totalTokensNum*length(layers)*dimensions)
 
-      if (return_tokens) {
-        tokens_layer_number <- tibble::tibble(tokens, token_id, rep(layers[i_layers], length(tokens)))
-        colnames(tokens_layer_number) <- c("tokens", "token_id", "layer_number")
-        tokens_lnumber_layers <- dplyr::bind_cols(tokens_layer_number, layers_4_token)
-      } else {
-        layer_number <- tibble::tibble(token_id, rep(layers[i_layers], nrow(layers_4_token)))
-        colnames(layer_number) <- c("token_id", "layer_number")
-        tokens_lnumber_layers <- dplyr::bind_cols(layer_number, layers_4_token)
-      }
+    tarTb <- reticulate::np_array(tarTb)
 
-      layers_list[[i_layers]] <- tokens_lnumber_layers
-      layers_list
+    tarTb <- tibble::as_tibble(
+      reticulate::py_to_r(
+        reticulate::array_reshape(tarTb, c(totalTokensNum*length(layers), dimensions))),
+      .name_repair = "minimal")
+
+    colnames(tarTb) <- paste0("Dim", seq_len(dimensions))
+
+    purrr::map(seq_len(totalTokensNum), function(i) {
+      purrr::map(seq_len(length(layers)), function(j) {
+        k <- j - 1
+        tarTb[i + totalTokensNum * k,] <<- as.list(all_layers[[j]][[1]][[i]])
+      })
+    })
+
+    # Add tokens, token IDs, and layer numbers to output tibble
+    if (return_tokens) {
+      tarTb <- cbind(tokens, token_id, layer_number = rep(layers, each = totalTokensNum), tarTb) %>%
+        tibble::as_tibble()
+    } else {
+      tarTb <- cbind(token_id, layer_number = rep(layers, each = totalTokensNum), tarTb) %>%
+        tibble::as_tibble()
     }
-    layers_tibble <- dplyr::bind_rows(layers_list)
 
-    variable_x[[i_in_variable]] <- layers_tibble
-  }
+    tarTb
+  })
+
   variable_x
 }
-
 
 #' This is a function that uses the textAggregation to aggregate the layers
 #' @param x list of layers.
@@ -266,7 +272,8 @@ grep_col_by_name_in_list <- function(l, pattern) {
 #' "roberta-base", or "xlm-roberta-base".
 #' @param max_token_to_sentence (numeric) Maximum number of tokens in a string to handle before
 #' switching to embedding text sentence by sentence.
-#' @param device Name of device to use: 'cpu', 'gpu', or 'gpu:k' where k is a specific device number
+#' @param device Name of device to use: 'cpu', 'gpu', 'gpu:k' or 'mps'/'mps:k' for MacOS, where k is a
+#' specific device number.
 #' @param tokenizer_parallelism If TRUE this will turn on tokenizer parallelism. Default FALSE.
 #' @param model_max_length The maximum length (in number of tokens) for the inputs to the transformer model
 #' (default the value stored for the associated model).
@@ -319,7 +326,8 @@ textTokenize <- function(texts,
 #'  \href{https://huggingface.co/transformers/pretrained_models.html}{HuggingFace}.
 #'  For example use "bert-base-multilingual-cased", "openai-gpt",
 #' "gpt2", "ctrl", "transfo-xl-wt103", "xlnet-base-cased", "xlm-mlm-enfr-1024", "distilbert-base-cased",
-#' "roberta-base", or "xlm-roberta-base".
+#' "roberta-base", or "xlm-roberta-base". Only load models that you trust from HuggingFace; loading a
+#'  malicious model can execute arbitrary code on your computer).
 #' @param layers (string or numeric) Specify the layers that should be extracted
 #' (default -2, which give the second to last layer). It is more efficient to only extract the
 #' layers that you need (e.g., 11). You can also extract several (e.g., 11:12),
@@ -331,7 +339,8 @@ textTokenize <- function(texts,
 #' @param decontextualize (boolean) Wether to dectonextualise embeddings (i.e., embedding one word at a time).
 #' @param keep_token_embeddings (boolean) Whether to keep token level embeddings in the output
 #' (when using word_types aggregation)
-#' @param device Name of device to use: 'cpu', 'gpu', or 'gpu:k' where k is a specific device number
+#' @param device Name of device to use: 'cpu', 'gpu', 'gpu:k' or 'mps'/'mps:k' for MacOS, where k is a
+#' specific device number.
 #' @param tokenizer_parallelism If TRUE this will turn on tokenizer parallelism. Default FALSE.
 #' @param model_max_length The maximum length (in number of tokens) for the inputs to the transformer model
 #' (default the value stored for the associated model).
@@ -339,6 +348,7 @@ textTokenize <- function(texts,
 #' text sentence by sentence.
 #' @param logging_level Set the logging level. Default: "warning".
 #' Options (ordered from less logging to more logging): critical, error, warning, info, debug
+#' @param sort (boolean) If TRUE sort the output to tidy format.
 #' @return Returns hiddenstates/layers that can be 1. Can return three different outputA tibble with tokens,
 #' column specifying layer and word embeddings. Note that layer 0 is the input embedding to the transformer,
 #' and should normally not be used.
@@ -364,7 +374,8 @@ textEmbedRawLayers <- function(texts,
                                tokenizer_parallelism = FALSE,
                                model_max_length = NULL,
                                max_token_to_sentence = 4,
-                               logging_level = "error") {
+                               logging_level = "error",
+                               sort = TRUE) {
 
   if (decontextualize == TRUE & word_type_embeddings == FALSE) {
     stop(cat(
@@ -410,6 +421,7 @@ textEmbedRawLayers <- function(texts,
     sorted_layers_ALL_variables <- list()
     sorted_layers_ALL_variables$context_tokens <- list()
     # Loop over all character variables; i_variables = 1
+    T_test1 <- Sys.time()
     for (i_variables in seq_len(length(data_character_variables))) {
       T1_variable <- Sys.time()
       # Python file function to HuggingFace
@@ -424,8 +436,16 @@ textEmbedRawLayers <- function(texts,
         max_token_to_sentence = max_token_to_sentence,
         logging_level = logging_level
       )
+      T_test2 <- Sys.time()
 
-      variable_x <- sortingLayers(x = hg_embeddings, layers = layers, return_tokens = return_tokens)
+
+      if(sort){
+      variable_x <- sortingLayers(x = hg_embeddings,
+                                  layers = layers,
+                                  return_tokens = return_tokens)
+      } else {
+        variable_x <- hg_embeddings
+      }
 
       sorted_layers_ALL_variables$context_tokens[[i_variables]] <- variable_x
       names(sorted_layers_ALL_variables$context_tokens)[[i_variables]] <- names(x)[[i_variables]]
@@ -540,11 +560,15 @@ textEmbedRawLayers <- function(texts,
     )
 
     # Sort out layers as above
-    individual_tokens$decontext$word_type <- sortingLayers(
-      x = hg_decontexts_embeddings,
-      layers = layers,
-      return_tokens = return_tokens
-    )
+    if(sort){
+      individual_tokens$decontext$word_type <- sortingLayers(
+        x = hg_decontexts_embeddings,
+        layers = layers,
+        return_tokens = return_tokens)
+    } else {
+      individual_tokens$decontext$word_type <- hg_decontexts_embeddings
+    }
+
     names(individual_tokens$decontext$word_type) <- NULL
     individual_tokens$decontext$single_words <- singlewords
 
@@ -777,6 +801,9 @@ textEmbedLayerAggregation <- function(word_embeddings_layers,
   selected_layers_aggregated_tibble
 }
 
+
+
+
 #' Extract layers and aggregate them to word embeddings, for all character variables in a given dataframe.
 #' @param texts A character variable or a tibble/dataframe with at least one character variable.
 #' @param model Character string specifying pre-trained language model (default 'bert-base-uncased').
@@ -784,7 +811,8 @@ textEmbedLayerAggregation <- function(word_embeddings_layers,
 #'  \href{https://huggingface.co/transformers/pretrained_models.html}{HuggingFace}.
 #'  For example use "bert-base-multilingual-cased", "openai-gpt",
 #' "gpt2", "ctrl", "transfo-xl-wt103", "xlnet-base-cased", "xlm-mlm-enfr-1024", "distilbert-base-cased",
-#' "roberta-base", or "xlm-roberta-base".
+#' "roberta-base", or "xlm-roberta-base". Only load models that you trust from HuggingFace; loading a
+#'  malicious model can execute arbitrary code on your computer).
 #' @param layers (string or numeric) Specify the layers that should be extracted
 #' (default -2 which give the second to last layer). It is more efficient to only extract the layers
 #' that you need (e.g., 11). You can also extract several (e.g., 11:12), or all by setting this parameter
@@ -815,9 +843,11 @@ textEmbedLayerAggregation <- function(word_embeddings_layers,
 #' @param max_token_to_sentence (numeric) Maximum number of tokens in a string to handle before
 #' switching to embedding text sentence by sentence.
 #' @param tokenizer_parallelism (boolean) If TRUE this will turn on tokenizer parallelism. Default FALSE.
-#' @param device Name of device to use: 'cpu', 'gpu', or 'gpu:k' where k is a specific device number
+#' @param device Name of device to use: 'cpu', 'gpu', 'gpu:k' or 'mps'/'mps:k' for MacOS, where k is a
+#' specific device number such as 'mps:1'.
 #' @param logging_level Set the logging level. Default: "warning".
 #' Options (ordered from less logging to more logging): critical, error, warning, info, debug
+#' @param ... settings from textEmbedRawLayers().
 #' @return A tibble with tokens, a column for layer identifier and word embeddings.
 #' Note that layer 0 is the input embedding to the transformer
 #' @examples
@@ -850,8 +880,9 @@ textEmbed <- function(texts,
                       model_max_length = NULL,
                       max_token_to_sentence = 4,
                       tokenizer_parallelism = FALSE,
-                      device = "gpu",
-                      logging_level = "error") {
+                      device = "cpu",
+                      logging_level = "error",
+                      ...) {
 
 
   T1_textEmbed <- Sys.time()
@@ -877,7 +908,7 @@ textEmbed <- function(texts,
   output <- list()
 
   if (layers[1] < 0) {
-    n <- textModelLayers("bert-base-uncased")
+    n <- textModelLayers(model)
     layers <- 1 + n + layers
     layers
   }
@@ -897,7 +928,8 @@ textEmbed <- function(texts,
       tokenizer_parallelism = tokenizer_parallelism,
       model_max_length = model_max_length,
       max_token_to_sentence = max_token_to_sentence,
-      logging_level = logging_level
+      logging_level = logging_level,
+      ...
     )
   }
 
@@ -991,7 +1023,12 @@ textEmbed <- function(texts,
 
       # Tokenize texts
       output <- list()
+      token_embeddings_list <- list()
       token_embeddings_list$tokens <- list()
+      if (!tibble::is_tibble(texts)){
+        texts <- tibble::as_tibble(texts)
+      }
+
       for (i_variables in seq_len(ncol(texts))) {
         text_tokens <- lapply(texts[[i_variables]], textTokenize,
                               model = model, max_token_to_sentence = max_token_to_sentence) # , ...
@@ -1122,3 +1159,4 @@ textDimName <- function(word_embeddings,
 
   return(word_embeddings)
 }
+

@@ -8,6 +8,7 @@ textTrainRegression(
   x,
   y,
   x_append = NULL,
+  append_first = FALSE,
   cv_method = "validation_split",
   outside_folds = 10,
   outside_strata_y = "y",
@@ -41,6 +42,8 @@ provided in a list they will be concatenated.}
 \item{x_append}{Variables to be appended after the word embeddings (x); if wanting to preappend them before
 the word embeddings use the option first = TRUE. If not wanting to train with word embeddings, set x = NULL.}
 
+\item{append_first}{(boolean) Option to add variables before or after all word embeddings.}
+
 \item{cv_method}{Cross-validation method to use within a pipeline of nested outer and inner loops
 of folds (see nested_cv in rsample). Default is using cv_folds in the outside folds and "validation_split"
 using rsample::validation_split in the inner loop to achieve a development and assessment set (note that
@@ -62,7 +65,7 @@ For more information see validation_split in rsample.}
 \item{inside_breaks}{The number of bins wanted to stratify a numeric stratification variable in the inner
 cross-validation loop.}
 
-\item{model}{Type of model. Default is "regression"; see also "logistic" for classification.}
+\item{model}{Type of model. Default is "regression"; see also "logistic" and "multinomial" for classification.}
 
 \item{eval_measure}{Type of evaluative measure to select models from. Default = "rmse" for regression and
 "bal_accuracy" for logistic. For regression use "rsq" or "rmse"; and for classification use "accuracy",
@@ -132,5 +135,5 @@ results <- textTrainRegression(
 }
 \seealso{
 see \code{\link{textEmbedLayerAggregation}} \code{\link{textTrainLists}}
-\code{\link{textTrainRandomForest}} \code{\link{textSimilarityTest}}
+\code{\link{textTrainRandomForest}}
 }

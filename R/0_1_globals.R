@@ -16,7 +16,7 @@ utils::globalVariables(c(
   "hgTransformerGetEmbedding", "hgTransformerGetSentiment", "hgTransformerGetTextGeneration",
   "hgTransformerGetNER", "hgTransformerGetSummarization", "hgTransformerGetQA",
   "hgTransformerGetTranslation", "hgTokenizerGetTokens", "hgTransformerGetZeroShot",
-  "textModelsPy", "textModelsRMPy", "get_number_of_hidden_layers",
+  "textModelsPy", "textModelsRMPy", "get_number_of_hidden_layers", "hgTransformerFineTune",
 
 
   # EMBEDDINGS OBJECTS
@@ -32,6 +32,9 @@ utils::globalVariables(c(
   "predictions", "truth", "value", ".pred_1", ".pred_2",
   "data_train",
   "textTrainCVpredictions", "textTrainCVpredictionsRF",
+
+  # textPredcitTest
+  "stats_on_bootstrap",
 
   # Language Tasks
   "NamesNer",

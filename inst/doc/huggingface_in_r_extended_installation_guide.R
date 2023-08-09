@@ -22,6 +22,12 @@ knitr::opts_chunk$set(
 #  textEmbed("hello")
 #  
 
+## ----extended_installation_condaenvE1, eval = FALSE---------------------------
+#  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+## ----extended_installation_condaenvE2, eval = FALSE---------------------------
+#  brew install rust
+
 ## ----conda_tabble_short, echo=FALSE, results='asis'---------------------------
 library(magrittr)
 

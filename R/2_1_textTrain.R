@@ -23,7 +23,7 @@
 #' )
 #' }
 #' @seealso \code{\link{textTrainRegression}} \code{\link{textTrainRandomForest}}
-#' \code{\link{textTrainLists}} \code{\link{textSimilarityTest}}
+#' \code{\link{textTrainLists}}
 #' @importFrom tibble is_tibble
 #' @importFrom dplyr select_if
 #' @export
@@ -262,7 +262,6 @@ textTrainLists <- function(x,
                            force_train_method = "automatic",
                            save_output = "all",
                            method_cor = "pearson",
-                           # model = "regression",
                            eval_measure = "rmse",
                            p_adjust_method = "holm",
                            ...) {

@@ -1,7 +1,52 @@
+# text (development version)
+
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+# text 1.0
+## Function
+- multinomial regression in `textTrainRegression()`
+- `textPredictTest()` can handle `auc`
+- `textEmbed()` is faster (thanks to faster handling of aggregating layers)
+- Added `sort` parameter in `textEmbedRawLayers()`. 
 
-# text 0.9.99
+## Bug/unexpected behaviour
+- Tests using training with random forest was updated since outcomes changed when updating from R 4.2 to R 4.3.1. (see test_2_textTrain.R in tests/testthat folder) 
+
+# text 0.9.99.9
+## Function
+Possibility to use GPU for MacOS M1 and M2 chip using device = "mps" in `textEmbed()`
+
+# text 0.9.99.8
+## Function
+`textFineTune()` as an experimental function is implemented
+`max_length` implemented in `textTranslate()`
+
+# text 0.9.99.7
+## Function
+- `textEmbedReduce()` implemented
+
+
+# text 0.9.99.6
+## Bug Fix
+- Fixing textEmbed error for many non-BERT models. 
+
+
+# text 0.9.99.5
+## Bug Fix
+- fixed `textEmbed(decontextualize=TRUE)`, which gave error.
+
+# text 0.9.99.3
+
+## Functions changes
+- Removing `textSimialirtyTest()` for version 1.0 because it needs more evaluations. 
+
+## Bug Fix
+- changed hard coded "bert-base-uncased" to `model`, so that `layers` = -2 works in `textEmbed()`. 
+- Update logging level critical using integer 50 with `set_verbosity`.
+- changed in `sorting_xs_and_x_append` from Dim to Dim0 when renaming x_appended variables.
+- changed `first` to `append_first` and  made it an option in `textTrainRegression()` and `textTrainRandomForest()`. 
+
+# text 0.9.99.2
 
 ## DEFAULT CHANGES
 - The default setting of textEmbed() is now providing token-level embeddings and text-level embeddings. Word_type embeddings are optional. 

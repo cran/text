@@ -26,7 +26,7 @@ conda_args <- reticulate:::conda_args
 #' package manager with conda-forge channel will be used for installing rpp.
 #' @param rpp_version character; default is "rpp_version_system_specific_defaults", because diffent systems require
 #' different combinations of python version and packages. It is also possible to
-#' specify your own, such as c('torch==0.4.1', 'transformers==3.3.1').
+#' specify your own, such as c("torch==2.0.0", "transformers==4.19.2", "numpy", "pandas", "nltk", "scikit-learn", "datasets", "evaluate").
 #' @param python_version character; default is "python_version_system_specific_defaults". You can specify your
 #' Python version for the condaenv yourself.
 #'   installation.
@@ -56,10 +56,24 @@ textrpp_install <- function(conda = "auto",
   # Set system specific default versions
   if (rpp_version[[1]] == "rpp_version_system_specific_defaults") {
     if (is_osx() | is_linux()) {
-      rpp_version <- c("torch==1.11.0", "transformers==4.19.2", "numpy", "nltk")
+      rpp_version <- c("torch==2.0.0",
+                       "transformers==4.19.2",
+                       "numpy",
+                       "pandas",
+                       "nltk==3.6.7",
+                       "scikit-learn",
+                       "datasets==2.9.0",
+                       "evaluate")
     }
     if (is_windows()) {
-      rpp_version <- c("torch==1.11.0", "transformers==4.19.2", "numpy", "nltk")
+      rpp_version <- c("torch==2.0.0",
+                       "transformers==4.19.2",
+                       "numpy",
+                       "pandas",
+                       "nltk==3.6.7",
+                       "scikit-learn",
+                       "datasets==2.9.0",
+                       "evaluate")
     }
   }
 
@@ -85,6 +99,10 @@ textrpp_install <- function(conda = "auto",
       "Binary installation is only available for 64-bit platforms."
     )
   }
+
+  # install rust for singularity machine -- but it gives error in github action
+  # reticulate::py_run_string("import os\nos.system(\"curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y\")")
+  system("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y")
 
   # resolve and look for conda help(conda_binary)
   conda <- tryCatch(reticulate::conda_binary(conda), error = function(e) NULL)
@@ -226,7 +244,7 @@ process_textrpp_installation_conda <- function(conda,
 #' textrpp_install_virtualenv()
 #' }
 #' @export
-textrpp_install_virtualenv <- function(rpp_version = c("torch==1.11.0", "transformers==4.19.2", "numpy", "nltk"),
+textrpp_install_virtualenv <- function(rpp_version = c("torch==2.0.0", "transformers==4.19.2", "numpy", "pandas", "nltk"),
                                        python_path = "/usr/local/bin/python3.9",
                                        pip_version = NULL,
                                        envname = "textrpp_virtualenv",

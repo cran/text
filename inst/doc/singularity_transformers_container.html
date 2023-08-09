@@ -587,14 +587,15 @@ code .in { color: #008080; }
 </style>
 <style>
 body {
-  box-sizing: border-box;
-  min-width: 200px;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 45px;
-  padding-top: 0px;
+box-sizing: border-box;
+min-width: 200px;
+max-width: 980px;
+margin: 0 auto;
+padding: 45px;
+padding-top: 0px;
 }
 </style>
+
 
 </head>
 
@@ -627,7 +628,7 @@ From: ubuntu:20.04
     # Install
     apt-get -y update
 
-    export R_VERSION=4.1.3
+    export R_VERSION=4.2.2
     echo &quot;export R_VERSION=${R_VERSION}&quot; &gt;&gt; $SINGULARITY_ENVIRONMENT
 
      # Install R
@@ -645,44 +646,56 @@ From: ubuntu:20.04
      r-base-html=${R_VERSION}* \
      r-doc-html=${R_VERSION}* \
      libcurl4-openssl-dev \
+     libharfbuzz-dev \
+     libfribidi-dev \
+     libgit2-dev \
+     libxml2-dev \
+     libfontconfig1-dev \
      libssl-dev \
      libxml2-dev \
-     libcairo2-dev \
-     libxt-dev \
-     libopenblas-dev
+     libfreetype6-dev \
+     libpng-dev \
+     libtiff5-dev \
+     libjpeg-dev
+     
+     # Add a default CRAN mirror
+     echo &quot;options(repos = c(CRAN = &#39;https://cran.rstudio.com/&#39;), download.file.method = &#39;libcurl&#39;)&quot; &gt;&gt; /usr/lib/R/etc/Rprofile.site
 
-    # Add a default CRAN mirror
-    echo &quot;options(repos = c(CRAN = &#39;https://cran.rstudio.com/&#39;), download.file.method = &#39;libcurl&#39;)&quot; &gt;&gt; /usr/lib/R/etc/Rprofile.site
+     # Fix R package libpaths (helps RStudio Server find the right directories)
+     mkdir -p /usr/lib64/R/etc
+     echo &quot;R_LIBS_USER=&#39;/usr/lib64/R/library&#39;&quot; &gt;&gt; /usr/lib64/R/etc/Renviron
+     echo &quot;R_LIBS_SITE=&#39;${R_PACKAGE_DIR}&#39;&quot; &gt;&gt; /usr/lib64/R/etc/Renviron
+     # Clean up
+     rm -rf /var/lib/apt/lists/*
 
-    # Fix R package libpaths (helps RStudio Server find the right directories)
-    mkdir -p /usr/lib64/R/etc
-    echo &quot;R_LIBS_USER=&#39;/usr/lib64/R/library&#39;&quot; &gt;&gt; /usr/lib64/R/etc/Renviron
-    echo &quot;R_LIBS_SITE=&#39;${R_PACKAGE_DIR}&#39;&quot; &gt;&gt; /usr/lib64/R/etc/Renviron
-    # Clean up
-    rm -rf /var/lib/apt/lists/*
+     # Install python3
+     apt-get -y install python3 wget
+     apt-get -y clean
 
-    # Install python3
-    apt-get -y install python3 wget
-    apt-get -y clean
-
-    # Install Miniconda
-    cd /
-    wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    bash Miniconda3-latest-Linux-x86_64.sh -b -p /miniconda
+     # Install Miniconda
+     cd /
+     wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+     bash Miniconda3-latest-Linux-x86_64.sh -b -p /miniconda
 
 /bin/bash &lt;&lt;EOF
-    rm Miniconda3-latest-Linux-x86_64.sh
-    source /miniconda/etc/profile.d/conda.sh
-    conda update -y conda
-    # Install reticulate and text
-    Rscript -e &#39;install.packages(&quot;reticulate&quot;)&#39;
-    Rscript -e &#39;install.packages(&quot;devtools&quot;)&#39;
-    Rscript -e &#39;install.packages(&quot;glmnet&quot;)&#39;
-    Rscript -e &#39;devtools::install_github(&quot;oscarkjell/text&quot;)&#39;
-    # Create the Conda environment at a system folder
-    Rscript -e &#39;text::textrpp_install(prompt = FALSE)&#39;
-    Rscript -e &#39;text::textrpp_initialize(save_profile = TRUE, prompt = FALSE, textEmbed_test = TRUE)&#39;
-EOF</code></pre>
+     rm Miniconda3-latest-Linux-x86_64.sh
+     source /miniconda/etc/profile.d/conda.sh
+     conda update -y conda
+     # Install reticulate and text
+         Rscript -e &#39;install.packages(&quot;pkgdown&quot;)&#39;
+     Rscript -e &#39;install.packages(&quot;ragg&quot;)&#39;
+     Rscript -e &#39;install.packages(&quot;textshaping&quot;)&#39;
+     Rscript -e &#39;install.packages(&quot;reticulate&quot;)&#39;
+     Rscript -e &#39;install.packages(&quot;devtools&quot;)&#39;
+     Rscript -e &#39;install.packages(&quot;glmnet&quot;)&#39;
+     Rscript -e &#39;install.packages(&quot;tidyverse&quot;)&#39;
+#     Rscript -e &#39;install.packages(&quot;text&quot;)&#39;
+     Rscript -e &#39;devtools::install_github(&quot;oscarkjell/text&quot;)&#39;
+     # Create the Conda environment at a system folder
+     Rscript -e &#39;text::textrpp_install(prompt = FALSE, rpp_version = c(&quot;torch==1.11.0&quot;, &quot;transformers==4.19.2&quot;, &quot;numpy&quot;, &quot;nltk&quot;))&#39;
+     Rscript -e &#39;text::textrpp_initialize(save_profile = TRUE, prompt = FALSE, textEmbed_test = TRUE)&#39;
+     Rscript -e &#39;text::textEmbed(&quot;hello&quot;, model = &quot;distilbert-base-uncased&quot;, layers = 5)&#39;
+     Rscript -e &#39;text::textEmbed(&quot;hello&quot;, model = &quot;roberta-base&quot;, layers = 11)&#39;</code></pre>
 
 </body>
 </html>

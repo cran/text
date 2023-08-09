@@ -587,21 +587,23 @@ code .in { color: #008080; }
 </style>
 <style>
 body {
-  box-sizing: border-box;
-  min-width: 200px;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 45px;
-  padding-top: 0px;
+box-sizing: border-box;
+min-width: 200px;
+max-width: 980px;
+margin: 0 auto;
+padding: 45px;
+padding-top: 0px;
 }
 </style>
+
 
 </head>
 
 <body>
 
 <h1 id="getting-started">Getting started</h1>
-<p>Oscar Kjell</p>
+<p><a rel="me" href="https://mastodon.online/@oscarkjell">Oscar
+Kjell</a></p>
 <p>The <em>text</em>-package uses Hugging Face transformers language
 models, natural language processing and machine learning methods to
 examine text and numerical variables.</p>
@@ -627,29 +629,29 @@ have described their harmony in life and satisfaction with life with a
 text response, 10 descriptive words or rating scales. For a more
 detailed description please see the <a href="https://www.r-text.org/articles/huggingface_in_r.html">word
 embedding tutorial</a></p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># View example data including both text and numerical variables</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>Language_based_assessment_data_8</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Transform the text data to BERT word embeddings</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>word_embeddings <span class="ot">&lt;-</span> <span class="fu">textEmbed</span>(</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">texts =</span> Language_based_assessment_data_8[<span class="dv">3</span>],</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;bert-base-uncased&quot;</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">layers =</span> <span class="sc">-</span><span class="dv">2</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">aggregation_from_tokens_to_texts =</span> <span class="st">&quot;mean&quot;</span>,</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">aggregation_from_tokens_to_word_types =</span> <span class="st">&quot;mean&quot;</span>,</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">keep_token_embeddings =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># See how word embeddings are structured</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>word_embeddings</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the word embeddings to avoid having to import the text every time. (i.e., remove the ##)</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="do">## saveRDS(word_embeddings, &quot;word_embeddings.rds&quot;)</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the word embeddings again (i.e., remove the ##)</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="do">## word_embeddings &lt;- readRDS(&quot;_YOURPATH_/word_embeddings.rds&quot;)</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(text)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># View example data including both text and numerical variables</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>Language_based_assessment_data_8</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co"># Transform the text data to BERT word embeddings</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>word_embeddings <span class="ot">&lt;-</span> <span class="fu">textEmbed</span>(</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>  <span class="at">texts =</span> Language_based_assessment_data_8[<span class="dv">3</span>],</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;bert-base-uncased&quot;</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>  <span class="at">layers =</span> <span class="sc">-</span><span class="dv">2</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>  <span class="at">aggregation_from_tokens_to_texts =</span> <span class="st">&quot;mean&quot;</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>  <span class="at">aggregation_from_tokens_to_word_types =</span> <span class="st">&quot;mean&quot;</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>  <span class="at">keep_token_embeddings =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co"># See how word embeddings are structured</span></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>word_embeddings</span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="co"># Save the word embeddings to avoid having to import the text every time. (i.e., remove the ##)</span></span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="do">## saveRDS(word_embeddings, &quot;word_embeddings.rds&quot;)</span></span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="co"># Get the word embeddings again (i.e., remove the ##)</span></span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a><span class="do">## word_embeddings &lt;- readRDS(&quot;_YOURPATH_/word_embeddings.rds&quot;)</span></span></code></pre></div>
 <h3 id="texttrain-examine-the-relationship-between-text-and-numeric-variables">textTrain():
 Examine the relationship between text and numeric variables</h3>
 <p>The <code>textTrain()</code> is used to examine how well the word
@@ -658,14 +660,14 @@ training the word embeddings using ridge regression and 10-fold
 cross-validation. In the example below we examine how well the harmony
 text responses can predict the rating scale scores from the Harmony in
 life scale.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Examine the relationship between harmonytext word embeddings and the harmony in life rating scale</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>model_htext_hils <span class="ot">&lt;-</span> <span class="fu">textTrain</span>(word_embeddings<span class="sc">$</span>texts<span class="sc">$</span>harmonywords, </span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                              Language_based_assessment_data_8<span class="sc">$</span>hilstotal)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Examine the correlation between predicted and observed Harmony in life scale scores</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>model_htext_hils<span class="sc">$</span>results</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># Examine the relationship between harmonytext word embeddings and the harmony in life rating scale</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>model_htext_hils <span class="ot">&lt;-</span> <span class="fu">textTrain</span>(word_embeddings<span class="sc">$</span>texts<span class="sc">$</span>harmonywords, </span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>                              Language_based_assessment_data_8<span class="sc">$</span>hilstotal)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co"># Examine the correlation between predicted and observed Harmony in life scale scores</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>model_htext_hils<span class="sc">$</span>results</span></code></pre></div>
 <h2 id="plot-statistically-significant-words">Plot statistically
 significant words</h2>
 <p>The text-package has several ways to plot words; here we will use the
@@ -681,49 +683,69 @@ the first step, the last step goes quicker so that one can try different
 design settings.</p>
 <h3 id="textprojection-pre-process-data-for-plotting">textProjection():
 Pre-process data for plotting</h3>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Pre-process data</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>projection_results <span class="ot">&lt;-</span> <span class="fu">textProjection</span>(</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">words =</span> Language_based_assessment_data_8<span class="sc">$</span>harmonywords,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_embeddings =</span> word_embeddings<span class="sc">$</span>texts,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_types_embeddings =</span> word_embeddings<span class="sc">$</span>word_types,</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> Language_based_assessment_data_8<span class="sc">$</span>hilstotal,</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> Language_based_assessment_data_8<span class="sc">$</span>age</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>projection_results<span class="sc">$</span>word_data</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co"># Pre-process data</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>projection_results <span class="ot">&lt;-</span> <span class="fu">textProjection</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">words =</span> Language_based_assessment_data_8<span class="sc">$</span>harmonywords,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">word_embeddings =</span> word_embeddings<span class="sc">$</span>texts,</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">word_types_embeddings =</span> word_embeddings<span class="sc">$</span>word_types,</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">x =</span> Language_based_assessment_data_8<span class="sc">$</span>hilstotal,</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="at">y =</span> Language_based_assessment_data_8<span class="sc">$</span>age</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>)</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>projection_results<span class="sc">$</span>word_data</span></code></pre></div>
 <h3 id="textprojectionplot-a-two-dimensional-word-plot">textProjectionPlot():
 A two-dimensional word plot</h3>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Supervised Dimension Projection Plot</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># To avoid warnings -- and that words do not get plotted, first increase the max.overlaps for the entire session: </span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">ggrepel.max.overlaps =</span> <span class="dv">1000</span>)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Supervised Dimension Projection Plot</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>plot_projection_2D <span class="ot">&lt;-</span> <span class="fu">textProjectionPlot</span>(</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">word_data =</span> projection_results,</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a> <span class="at">min_freq_words_plot =</span> <span class="dv">1</span>,</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a> <span class="at">plot_n_word_extreme =</span> <span class="dv">10</span>,</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a> <span class="at">plot_n_word_frequency =</span> <span class="dv">5</span>,</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a> <span class="at">plot_n_words_middle =</span> <span class="dv">5</span>,</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a> <span class="at">y_axes =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a> <span class="at">p_alpha =</span> <span class="fl">0.05</span>,</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a> <span class="at">p_adjust_method =</span> <span class="st">&quot;fdr&quot;</span>,</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">title_top =</span> <span class="st">&quot;Harmony Words Responses (Supervised Dimension Projection)&quot;</span>,</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">x_axes_label =</span> <span class="st">&quot;Low vs. High Harmony in Life Scale Score&quot;</span>,</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">y_axes_label =</span> <span class="st">&quot;Low vs.High Age&quot;</span>,</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">bivariate_color_codes =</span> <span class="fu">c</span>(<span class="st">&quot;#E07f6a&quot;</span>, <span class="st">&quot;#60A1F7&quot;</span>, <span class="st">&quot;#85DB8E&quot;</span>,</span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>                            <span class="st">&quot;#FF0000&quot;</span>, <span class="st">&quot;#EAEAEA&quot;</span>, <span class="st">&quot;#5dc688&quot;</span>,</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>                            <span class="st">&quot;#E07f6a&quot;</span>, <span class="st">&quot;#60A1F7&quot;</span>, <span class="st">&quot;#85DB8E&quot;</span></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>))</span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="co"># View plot</span></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>plot_projection_2D<span class="sc">$</span>final_plot</span></code></pre></div>
-<h3 id="relevant-references">Relevant References</h3>
-<p><em>Text</em> is new and has not been used in a publication yet.
-therefore, the below list consists of papers analyzing human language in
-a similar fashion that is possible <em>text</em>.</p>
-<p><em><strong>Methods Articles</strong></em><br />
-<a href="http://www.peggykern.org/uploads/5/6/6/7/56678211/kern_2016_-_gaining_insights_from_social_media_language-_methodologies_and_challenges.pdf">Gaining
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co"># Supervised Dimension Projection Plot</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># To avoid warnings -- and that words do not get plotted, first increase the max.overlaps for the entire session: </span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">options</span>(<span class="at">ggrepel.max.overlaps =</span> <span class="dv">1000</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co"># Supervised Dimension Projection Plot</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>plot_projection_2D <span class="ot">&lt;-</span> <span class="fu">textProjectionPlot</span>(</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">word_data =</span> projection_results,</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a> <span class="at">min_freq_words_plot =</span> <span class="dv">1</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a> <span class="at">plot_n_word_extreme =</span> <span class="dv">10</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a> <span class="at">plot_n_word_frequency =</span> <span class="dv">5</span>,</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a> <span class="at">plot_n_words_middle =</span> <span class="dv">5</span>,</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a> <span class="at">y_axes =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a> <span class="at">p_alpha =</span> <span class="fl">0.05</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a> <span class="at">p_adjust_method =</span> <span class="st">&quot;fdr&quot;</span>,</span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>  <span class="at">title_top =</span> <span class="st">&quot;Harmony Words Responses (Supervised Dimension Projection)&quot;</span>,</span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>  <span class="at">x_axes_label =</span> <span class="st">&quot;Low vs. High Harmony in Life Scale Score&quot;</span>,</span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>  <span class="at">y_axes_label =</span> <span class="st">&quot;Low vs.High Age&quot;</span>,</span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>  <span class="at">bivariate_color_codes =</span> <span class="fu">c</span>(<span class="st">&quot;#E07f6a&quot;</span>, <span class="st">&quot;#60A1F7&quot;</span>, <span class="st">&quot;#85DB8E&quot;</span>,</span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a>                            <span class="st">&quot;#FF0000&quot;</span>, <span class="st">&quot;#EAEAEA&quot;</span>, <span class="st">&quot;#5dc688&quot;</span>,</span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>                            <span class="st">&quot;#E07f6a&quot;</span>, <span class="st">&quot;#60A1F7&quot;</span>, <span class="st">&quot;#85DB8E&quot;</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a>))</span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="co"># View plot</span></span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a>plot_projection_2D<span class="sc">$</span>final_plot</span></code></pre></div>
+<h3 id="articles-using-the-text-package">Articles using the
+text-package</h3>
+<p><a href="https://www.nature.com/articles/s41598-022-07520-w/">Natural
+language analyzed with AI‐based transformers predict traditional
+subjective well‐being measures approaching the theoretical upper limits
+in accuracy</a> <em>Kjell et al., (2022). Scientific Reports</em></p>
+<p><a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0270503">Doing
+well-being: Self-reported activities are related to subjective
+well-being</a>. <em>Nilsson, et al., (2022). PLOSONE</em></p>
+<p><a href="https://www.frontiersin.org/articles/10.3389/fpsyg.2021.601679/">Computational
+Language Assessments of Harmony in Life — Not Satisfaction With Life or
+Rating Scales — Correlate With Cooperative Behaviors</a>. <em>Kjell et
+al., (2021). Frontiers</em></p>
+<p><a href="https://www.frontiersin.org/articles/10.3389/fpsyg.2021.602581/">Freely
+Generated Word Responses Analyzed With Artificial Intelligence Predict
+Self-Reported Symptoms of Depression, Anxiety, and Worry</a>. <em>Kjell
+K., et al. (2021). Frontiers</em></p>
+<h3 id="other-relevant-references">Other relevant references</h3>
+<p>The below list consists of papers analyzing human language in a
+similar fashion that is possible in <em>text</em>.</p>
+<p><em><strong>Methods Articles</strong></em></p>
+<p><a href="https://psyarxiv.com/293kt/">The text-package: An R-package
+for Analyzing and Visualizing Human Language Using Natural Language
+Processing and Deep Learning</a> <em>Kjell, Salvatore, &amp; Schwartz.
+(2023) Psychological Methods.</em></p>
+<p><a href="http://www.peggykern.org/uploads/5/6/6/7/56678211/kern_2016_-_gaining_insights_from_social_media_language-_methodologies_and_challenges.pdf">Gaining
 insights from social media language: Methodologies and
 challenges</a>.<br />
 <em>Kern et al., (2016). Psychological Methods.</em></p>
@@ -731,36 +753,30 @@ challenges</a>.<br />
 measures: Using natural language processing to measure, differentiate,
 and describe psychological constructs.</a> <a href="https://psyarxiv.com/er6t7/">Pre-print</a><br />
 <em>Kjell et al., (2019). Psychological Methods.</em></p>
-<p><em><strong>Clinical Psychology</strong></em><br />
-<a href="https://www.pnas.org/doi/10.1073/pnas.1802331115/">Facebook
-language predicts depression in medical records</a><br />
+<p><em><strong>Clinical Psychology</strong></em></p>
+<p>Facebook language predicts depression in medical records<br />
 <em>Eichstaedt, J. C., … &amp; Schwartz, H. A. (2018). PNAS.</em></p>
-<p><em><strong>Social and Personality Psychology</strong></em><br />
-<a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0073791">Personality,
+<p><em><strong>Social and Personality Psychology</strong></em></p>
+<p><a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0073791">Personality,
 gender, and age in the language of social media: The open-vocabulary
 approach</a><br />
 <em>Schwartz, H. A., … &amp; Seligman, M. E. (2013). PloSOne.</em></p>
-<p><a href="https://www.semanticscholar.org/paper/Automatic-personality-assessment-through-social-Park-Schwartz/280034e01f41d0184b977479a5474bd805c2922c/">Automatic
-Personality Assessment Through Social Media Language</a><br />
+<p>Automatic Personality Assessment Through Social Media Language<br />
 <em>Park, G., Schwartz, H. A., … &amp; Seligman, M. E. P. (2014).
 Journal of Personality and Social Psychology.</em></p>
-<p><em><strong>Health Psychology</strong></em><br />
-<a href="https://journals.sagepub.com/doi/abs/10.1177/0956797614557867/">Psychological
-language on Twitter predicts county-level heart disease
-mortality</a><br />
+<p><em><strong>Health Psychology</strong></em></p>
+<p>Psychological language on Twitter predicts county-level heart disease
+mortality<br />
 <em>Eichstaedt, J. C., Schwartz, et al. (2015). Psychological
 Science.</em></p>
-<p><em><strong>Positive Psychology</strong></em><br />
-<a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0270503">Doing
-well-being: Self-reported activities are related to subjective
-well-being</a> <em>Nilsson, et al., (2022). PLOSONE</em></p>
+<p><em><strong>Positive Psychology</strong></em></p>
 <p><a href="https://link.springer.com/article/10.1007/s11205-015-0903-z/">The
 Harmony in Life Scale Complements the Satisfaction with Life Scale:
 Expanding the Conceptualization of the Cognitive Component of Subjective
 Well-Being</a><br />
 <em>Kjell, et al., (2016). Social Indicators Research</em></p>
-<p><em><strong>Computer Science: Python Software</strong></em><br />
-<a href="https://aclanthology.org/D17-2010/">DLATK: Differential
+<p><em><strong>Computer Science: Python Software</strong></em></p>
+<p><a href="https://aclanthology.org/D17-2010/">DLATK: Differential
 language analysis toolkit</a> <em>Schwartz, H. A., Giorgi, et al.,
 (2017). In Proceedings of the 2017 Conference on Empirical Methods in
 Natural Language Processing: System Demonstrations</em></p>
