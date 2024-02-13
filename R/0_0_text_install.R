@@ -26,7 +26,8 @@ conda_args <- reticulate:::conda_args
 #' package manager with conda-forge channel will be used for installing rpp.
 #' @param rpp_version character; default is "rpp_version_system_specific_defaults", because diffent systems require
 #' different combinations of python version and packages. It is also possible to
-#' specify your own, such as c("torch==2.0.0", "transformers==4.19.2", "numpy", "pandas", "nltk", "scikit-learn", "datasets", "evaluate").
+#' specify your own, such as c("torch==2.0.0", "transformers==4.19.2", "numpy", "pandas", "nltk", "scikit-learn",
+#' "datasets", "evaluate").
 #' @param python_version character; default is "python_version_system_specific_defaults". You can specify your
 #' Python version for the condaenv yourself.
 #'   installation.
@@ -52,33 +53,50 @@ textrpp_install <- function(conda = "auto",
                             pip = TRUE,
                             python_path = NULL,
                             prompt = TRUE) {
-
   # Set system specific default versions
   if (rpp_version[[1]] == "rpp_version_system_specific_defaults") {
-    if (is_osx() | is_linux()) {
-      rpp_version <- c("torch==2.0.0",
-                       "transformers==4.19.2",
-                       "numpy",
-                       "pandas",
-                       "nltk==3.6.7",
-                       "scikit-learn",
-                       "datasets==2.9.0",
-                       "evaluate")
+    if (is_osx() || is_linux()) {
+      rpp_version <- c(
+        "torch==2.0.0",
+        "transformers==4.36.0",
+        "numpy==1.26.0",
+        "pandas==2.0.3",
+        "nltk==3.6.7",
+        "scikit-learn==1.3.0",
+        "datasets==2.16.1",
+        "evaluate==0.4.0",
+        "accelerate==0.26.0",
+        "bertopic==0.16.0",
+        "jsonschema==4.19.2",
+        "sentence-transformers==2.2.2",
+        "flair==0.13.0",
+        "umap-learn==0.5.4",
+        "hdbscan==0.8.33"
+      )
     }
     if (is_windows()) {
-      rpp_version <- c("torch==2.0.0",
-                       "transformers==4.19.2",
-                       "numpy",
-                       "pandas",
-                       "nltk==3.6.7",
-                       "scikit-learn",
-                       "datasets==2.9.0",
-                       "evaluate")
+      rpp_version <- c(
+        "torch==2.0.0",
+        "transformers==4.36.0",
+        "numpy==1.26.0",
+        "pandas==2.0.3",
+        "nltk==3.6.7",
+        "scikit-learn==1.3.0",
+        "datasets==2.16.1",
+        "evaluate==0.4.0",
+        "accelerate==0.26.0",
+        "bertopic==0.16.0",
+        "jsonschema==4.19.2",
+        "sentence-transformers==2.2.2",
+        "flair==0.13.0",
+        "umap-learn==0.5.4",
+        "hdbscan==0.8.33"
+      )
     }
   }
 
   if (python_version == "python_version_system_specific_defaults") {
-    if (is_osx() | is_linux()) {
+    if (is_osx() || is_linux()) {
       python_version <- "3.9.0"
     }
 
@@ -101,7 +119,8 @@ textrpp_install <- function(conda = "auto",
   }
 
   # install rust for singularity machine -- but it gives error in github action
-  # reticulate::py_run_string("import os\nos.system(\"curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y\")")
+  # reticulate::py_run_string("import os\nos.system(\"curl --proto '=https' --tlsv1.2 -sSf
+  # https://sh.rustup.rs | sh -s -- -y\")")
   system("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y")
 
   # resolve and look for conda help(conda_binary)
@@ -129,7 +148,7 @@ textrpp_install <- function(conda = "auto",
     }
 
     # Update mini_conda
-    if (update_conda & force_conda | force_conda) {
+    if (update_conda && force_conda || force_conda) {
       reticulate::install_miniconda(update = update_conda, force = force_conda)
     }
 
@@ -144,7 +163,6 @@ textrpp_install <- function(conda = "auto",
 
     # Windows installation
   } else {
-
     # determine whether we have system python help(py_versions_windows)
     if (python_version == "find_python") {
       python_versions <- reticulate::py_versions_windows()
@@ -161,13 +179,12 @@ textrpp_install <- function(conda = "auto",
 
     # validate that we have conda:
     if (!have_conda) {
-
       # OK adds help(install_miniconda)
       reticulate::install_miniconda(update = update_conda)
       conda <- tryCatch(reticulate::conda_binary("auto"), error = function(e) NULL)
     }
     # Update mini_conda
-    if (have_conda & update_conda | have_conda & force_conda) {
+    if (have_conda && update_conda || have_conda && force_conda) {
       reticulate::install_miniconda(update = update_conda, force = force_conda)
     }
     # process the installation of text required python packages
@@ -244,12 +261,15 @@ process_textrpp_installation_conda <- function(conda,
 #' textrpp_install_virtualenv()
 #' }
 #' @export
-textrpp_install_virtualenv <- function(rpp_version = c("torch==2.0.0", "transformers==4.19.2", "numpy", "pandas", "nltk"),
+textrpp_install_virtualenv <- function(rpp_version = c("torch==2.0.0",
+                                                       "transformers==4.19.2",
+                                                       "numpy",
+                                                       "pandas",
+                                                       "nltk"),
                                        python_path = "/usr/local/bin/python3.9",
                                        pip_version = NULL,
                                        envname = "textrpp_virtualenv",
                                        prompt = TRUE) {
-
   # find system python binary
   python <- if (!is.null(python_path)) python_path else python_unix_binary("python")
   if (is.null(python)) {
@@ -321,7 +341,6 @@ python_unix_binary <- function(bin) {
 
 
 python_version_function <- function(python) {
-
   # check for the version
   result <- system2(python, "--version", stdout = TRUE, stderr = TRUE)
 
@@ -377,37 +396,6 @@ textrpp_uninstall <- function(conda = "auto",
 }
 
 
-text_install_miniconda <- function() {
-  if (is_osx()) {
-    message("Downloading installation script")
-    system(paste(
-      "curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o ~/miniconda.sh;",
-      "echo \"Running installation script\";",
-      "bash ~/miniconda.sh -b -p $HOME/miniconda"
-    ))
-    system('echo \'export PATH="$PATH:$HOME/miniconda/bin"\' >> $HOME/.bash_profile; rm ~/miniconda.sh')
-    message(colourise(
-      "Installation of miniconda complete",
-      fg = "green", bg = NULL
-    ))
-  } else if (is_linux()) {
-    message("Downloading installation script")
-    system(paste(
-      "wget -nv https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh;",
-      "echo \"Running installation script\";",
-      "bash ~/miniconda.sh -b -p $HOME/miniconda"
-    ))
-    system('echo \'export PATH="$PATH:$HOME/miniconda/bin"\' >> $HOME/.bashrc; rm ~/miniconda.sh')
-    message(colourise(
-      "Installation of miniconda complete",
-      fg = "green", bg = NULL
-    ))
-  } else {
-    stop("miniconda installation is available only for Mac or Linux")
-  }
-}
-
-
 pip_get_version <- function(cmd, major_version) {
   regex <- "^(\\S+)\\s?(.*)$"
   cmd1 <- sub(regex, "\\1", cmd)
@@ -439,7 +427,7 @@ conda_get_version <- function(major_version = NA, conda, envname) {
   result <- system2(cmd1, cmd2, stdout = TRUE, stderr = TRUE)
   result <- sub("\\S+\\s+(\\S+)\\s.+", "\\1", result)
   if (!is.na(major_version)) {
-    result <- grep(paste0("^", major_version, "\\."), result, value = T)
+    result <- grep(paste0("^", major_version, "\\."), result, value = TRUE)
   }
   #
   return(result[length(result)])

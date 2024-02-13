@@ -1,10 +1,10 @@
-
 ####  textPCA and textPCAPlot #####
 
 #' Compute 2 PCA dimensions of the word embeddings for individual words.
 #' @param words Word or text variable to be plotted.
 #' @param word_types_embeddings Word embeddings from textEmbed for individual words
 #' (i.e., decontextualized embeddings).
+#' @param to_lower_case Lower case words
 #' @param seed Set different seed.
 #' @return A dataframe with words, their frquency and two PCA dimensions from the word_embeddings
 #' for the individual words that is used for the plotting in the textPCAPlot function.
@@ -23,6 +23,7 @@
 #' @export
 textPCA <- function(words,
                     word_types_embeddings = word_types_embeddings_df,
+                    to_lower_case = TRUE,
                     seed = 1010) {
   textPCA_comment <- paste(
     "words =", substitute(words),
@@ -33,8 +34,14 @@ textPCA <- function(words,
   set.seed(seed)
   # PCA on word_types_embeddings
   # Select word embeddings to be included in plot
-  uniques_words_all <- unique_freq_words(words)
-  uniques_words_all_wordembedding <- sapply(uniques_words_all$words, applysemrep, word_types_embeddings)
+  # no_upcase_embedding_words <- !any(grepl("[A-Z]", word_types_embeddings$words))
+
+  uniques_words_all <- unique_freq_words(words = words, upper_case = to_lower_case)
+
+  uniques_words_all_wordembedding <- sapply(uniques_words_all$words,
+    applysemrep, word_types_embeddings,
+    tolower = to_lower_case
+  )
   uniques_words_all_wordembedding <- tibble::as_tibble(t(uniques_words_all_wordembedding))
 
   rec_pca <- recipes::recipe(~., data = uniques_words_all_wordembedding)
@@ -229,25 +236,25 @@ textPCAPlot <- function(word_data,
   # Combine selected words
   word_data_all <- word_data %>%
     dplyr::left_join(word_data_extrem_max_PC1 %>%
-      dplyr::transmute(words, check_extreme_max_PC1 = 1), by = "words") %>%
+                       dplyr::transmute(words, check_extreme_max_PC1 = 1), by = "words") %>%
     dplyr::left_join(word_data_extrem_max_PC2 %>%
-      dplyr::transmute(words, check_extreme_max_PC2 = 1), by = "words") %>%
+                       dplyr::transmute(words, check_extreme_max_PC2 = 1), by = "words") %>%
     dplyr::left_join(word_data_extrem_min_PC1 %>%
-      dplyr::transmute(words, check_extreme_min_PC1 = 1), by = "words") %>%
+                       dplyr::transmute(words, check_extreme_min_PC1 = 1), by = "words") %>%
     dplyr::left_join(word_data_extrem_min_PC2 %>%
-      dplyr::transmute(words, check_extreme_min_PC2 = 1), by = "words") %>%
+                       dplyr::transmute(words, check_extreme_min_PC2 = 1), by = "words") %>%
     dplyr::left_join(word_data_frequency %>%
-      dplyr::transmute(words, check_extreme_frequency = 1), by = "words") %>%
+                       dplyr::transmute(words, check_extreme_frequency = 1), by = "words") %>%
     dplyr::left_join(word_data_middle_PC1 %>%
-      dplyr::transmute(words, check_middle_PC1 = 1), by = "words") %>%
+                       dplyr::transmute(words, check_middle_PC1 = 1), by = "words") %>%
     dplyr::left_join(word_data_middle_PC2 %>%
-      dplyr::transmute(words, check_middle_PC2 = 1), by = "words") %>%
+                       dplyr::transmute(words, check_middle_PC2 = 1), by = "words") %>%
     dplyr::mutate(extremes_all = rowSums(cbind(
       check_extreme_max_PC1, check_extreme_max_PC2,
       check_extreme_min_PC1, check_extreme_min_PC2,
       check_extreme_frequency,
       check_middle_PC1, check_middle_PC2
-    ), na.rm = T))
+    ), na.rm = TRUE))
 
   # Changing NAs to 0
   word_data_all$check_extreme_max_PC1[is.na(word_data_all$check_extreme_max_PC1)] <- 0
@@ -294,7 +301,7 @@ textPCAPlot <- function(word_data,
     # ggrepel geom, make arrows transparent, color by rank, size by n word_data_all_yadjusted$colour_categories
     ggrepel::geom_text_repel(
       data = word_data_all_yadjusted,
-      segment.alpha  = arrow_transparency,
+      segment.alpha = arrow_transparency,
       position = ggplot2::position_jitter(h = position_jitter_hight, w = position_jitter_width),
       ggplot2::aes(color = colour_categories, size = n, family = word_font),
     ) +
@@ -315,7 +322,7 @@ textPCAPlot <- function(word_data,
         title.position = "top",
         direction = "horizontal",
         label.position = "bottom",
-        ggplot2::element_text(color = titles_color)
+        title.theme = ggplot2::element_text(color = titles_color)
       )
     ) +
 
@@ -368,39 +375,48 @@ textPCAPlot <- function(word_data,
     ) +
     ggplot2::theme_void() +
     ggplot2::annotate(
-      geom = "text", x = 1, y = 3, label = sum(word_data_all$colour_categories == bivariate_color_codes[1], na.rm = T),
+      geom = "text", x = 1, y = 3,
+      label = sum(word_data_all$colour_categories == bivariate_color_codes[1], na.rm = TRUE),
       color = titles_color, size = legend_number_size
     ) +
     ggplot2::annotate(
-      geom = "text", x = 2, y = 3, label = sum(word_data_all$colour_categories == bivariate_color_codes[2], na.rm = T),
+      geom = "text", x = 2, y = 3,
+      label = sum(word_data_all$colour_categories == bivariate_color_codes[2], na.rm = TRUE),
       color = titles_color, size = legend_number_size
     ) +
     ggplot2::annotate(
-      geom = "text", x = 3, y = 3, label = sum(word_data_all$colour_categories == bivariate_color_codes[3], na.rm = T),
+      geom = "text", x = 3, y = 3,
+      label = sum(word_data_all$colour_categories == bivariate_color_codes[3], na.rm = TRUE),
       color = titles_color, size = legend_number_size
     ) +
     ggplot2::annotate(
-      geom = "text", x = 1, y = 2, label = sum(word_data_all$colour_categories == bivariate_color_codes[4], na.rm = T),
+      geom = "text", x = 1, y = 2,
+      label = sum(word_data_all$colour_categories == bivariate_color_codes[4], na.rm = TRUE),
       color = titles_color, size = legend_number_size
     ) +
     ggplot2::annotate(
-      geom = "text", x = 2, y = 2, label = sum(word_data_all$colour_categories == bivariate_color_codes[5], na.rm = T),
+      geom = "text", x = 2, y = 2,
+      label = sum(word_data_all$colour_categories == bivariate_color_codes[5], na.rm = TRUE),
       color = titles_color, size = legend_number_size
     ) +
     ggplot2::annotate(
-      geom = "text", x = 3, y = 2, label = sum(word_data_all$colour_categories == bivariate_color_codes[6], na.rm = T),
+      geom = "text", x = 3, y = 2,
+      label = sum(word_data_all$colour_categories == bivariate_color_codes[6], na.rm = TRUE),
       color = titles_color, size = legend_number_size
     ) +
     ggplot2::annotate(
-      geom = "text", x = 1, y = 1, label = sum(word_data_all$colour_categories == bivariate_color_codes[7], na.rm = T),
+      geom = "text", x = 1, y = 1,
+      label = sum(word_data_all$colour_categories == bivariate_color_codes[7], na.rm = TRUE),
       color = titles_color, size = legend_number_size
     ) +
     ggplot2::annotate(
-      geom = "text", x = 2, y = 1, label = sum(word_data_all$colour_categories == bivariate_color_codes[8], na.rm = T),
+      geom = "text", x = 2, y = 1,
+      label = sum(word_data_all$colour_categories == bivariate_color_codes[8], na.rm = TRUE),
       color = titles_color, size = legend_number_size
     ) +
     ggplot2::annotate(
-      geom = "text", x = 3, y = 1, label = sum(word_data_all$colour_categories == bivariate_color_codes[9], na.rm = T),
+      geom = "text", x = 3, y = 1,
+      label = sum(word_data_all$colour_categories == bivariate_color_codes[9], na.rm = TRUE),
       color = titles_color, size = legend_number_size
     ) +
     ggplot2::theme(
@@ -415,8 +431,12 @@ textPCAPlot <- function(word_data,
 
   # Plot both figure and legend together
   final_plot <- suppressWarnings(cowplot::ggdraw() +
-    cowplot::draw_plot(plot, 0, 0, 1, 1) +
-    cowplot::draw_plot(legend, legend_x_position, legend_y_position, legend_h_size, legend_w_size))
+                                   cowplot::draw_plot(plot, 0, 0, 1, 1) +
+                                   cowplot::draw_plot(legend,
+                                                      legend_x_position,
+                                                      legend_y_position,
+                                                      legend_h_size,
+                                                      legend_w_size))
 
   output_plot_data <- list(final_plot, textPCAPlot_comment, word_data_all)
   names(output_plot_data) <- c("final_plot", "description", "processed_word_data")

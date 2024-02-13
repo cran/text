@@ -1,4 +1,3 @@
-
 #' Select evaluation measure and compute it (also used in logistic regression)
 #'
 #' @param eval_measure Measure used to evaluate and select models default: "roc_auc", see also
@@ -16,7 +15,8 @@
 select_eval_measure_val <- function(eval_measure = "bal_accuracy",
                                     holdout_pred = NULL,
                                     truth = y,
-                                    estimate = .pred_class, class) {
+                                    estimate = .pred_class, class,
+                                    ...) {
   # Get accuracy
   if (eval_measure == "accuracy") {
     eval_measure_val <- yardstick::accuracy(holdout_pred, truth = y, estimate = .pred_class)
@@ -54,6 +54,8 @@ select_eval_measure_val <- function(eval_measure = "bal_accuracy",
 #'
 #' @param outputlist_results_outer Results from outer predictions.
 #' @param id_nr ID numbers
+#' @param simulate.p.value (Boolean) From fisher.test: a logical indicating whether to
+#' compute p-values by Monte Carlo simulation, in larger than 2 × 2 tables.
 #' @return returns sorted predictions and truth, chi-square test, fisher test, and all evaluation metrics/measures
 #' @importFrom  tidyr unnest
 #' @importFrom  tibble is_tibble
@@ -62,7 +64,10 @@ select_eval_measure_val <- function(eval_measure = "bal_accuracy",
 #' @importFrom  yardstick accuracy bal_accuracy sens spec precision kap f_meas roc_auc rmse rsq
 #' @importFrom  ggplot2 autoplot
 #' @noRd
-classification_results <- function(outputlist_results_outer, id_nr = NA, ...) {
+classification_results <- function(outputlist_results_outer,
+                                   id_nr = NA,
+                                   simulate.p.value = simulate.p.value,
+                                   ...) {
   # Unnest predictions and y
   predy_y <- tibble::tibble(
     tidyr::unnest(outputlist_results_outer$truth, cols = c(truth)),
@@ -80,18 +85,21 @@ classification_results <- function(outputlist_results_outer, id_nr = NA, ...) {
   # Correlate predictions and observed help(all_of)
   chisq <- suppressWarnings(chisq.test(table(predy_y$truth, predy_y$estimate)))
 
-  fisher <- stats::fisher.test(predy_y$truth, predy_y$estimate)
+  fisher <- stats::fisher.test(predy_y$truth,
+    predy_y$estimate,
+    simulate.p.value = simulate.p.value
+  )
 
 
-  accuracy     <- yardstick::accuracy(predy_y, truth, estimate, ...)
+  accuracy <- yardstick::accuracy(predy_y, truth, estimate, ...)
   bal_accuracy <- yardstick::bal_accuracy(predy_y, truth, estimate, ...)
-  sens         <- yardstick::sens(predy_y, truth, estimate, ...)
-  spec         <- yardstick::spec(predy_y, truth, estimate, ...)
-  precision    <- yardstick::precision(predy_y, truth, estimate, ...)
-  kappa        <- yardstick::kap(predy_y, truth, estimate, ...)
-  f_measure    <- yardstick::f_meas(predy_y, truth, estimate, ...)
+  sens <- yardstick::sens(predy_y, truth, estimate, ...)
+  spec <- yardstick::spec(predy_y, truth, estimate, ...)
+  precision <- yardstick::precision(predy_y, truth, estimate, ...)
+  kappa <- yardstick::kap(predy_y, truth, estimate, ...)
+  f_measure <- yardstick::f_meas(predy_y, truth, estimate, ...)
 
-  roc_auc        <- yardstick::roc_auc(predy_y, truth, colnames(predy_y[3]))
+  roc_auc <- yardstick::roc_auc(predy_y, truth, colnames(predy_y[3]))
   roc_curve_data <- yardstick::roc_curve(predy_y, truth, colnames(predy_y[3]))
 
   roc_curve_plot <- ggplot2::autoplot(yardstick::roc_curve(predy_y, truth, colnames(predy_y[3])))
@@ -116,6 +124,8 @@ classification_results <- function(outputlist_results_outer, id_nr = NA, ...) {
 #'
 #' @param outputlist_results_outer Results from outer predictions.
 #' @param id_nr ID numbers
+#' @param simulate.p.value (Boolean) From fisher.test: a logical indicating whether to
+#'  compute p-values by Monte Carlo simulation, in larger than 2 × 2 tables.
 #' @return returns sorted predictions and truth, chi-square test, fisher test, and all evaluation metrics/measures
 #' @importFrom  tidyr unnest
 #' @importFrom  tibble is_tibble
@@ -124,7 +134,10 @@ classification_results <- function(outputlist_results_outer, id_nr = NA, ...) {
 #' @importFrom  yardstick accuracy bal_accuracy sens spec precision kap f_meas roc_auc rmse rsq
 #' @importFrom  ggplot2 autoplot
 #' @noRd
-classification_results_multi <- function(outputlist_results_outer, id_nr = NA, ...) {
+classification_results_multi <- function(outputlist_results_outer,
+                                         id_nr = NA,
+                                         simulate.p.value = FALSE,
+                                         ...) {
   predy_y <- tibble::tibble(
     tidyr::unnest(outputlist_results_outer$truth, cols = c(truth)),
     tidyr::unnest(outputlist_results_outer$estimate, cols = c(estimate)),
@@ -132,7 +145,7 @@ classification_results_multi <- function(outputlist_results_outer, id_nr = NA, .
   )
   for (i in 1:length(unique(levels(outputlist_results_outer$truth$truth[[1]]))))
   {
-    predy_y[3+i]<-tibble::tibble(tidyr::unnest(outputlist_results_outer[[i]], cols = c(paste(".pred_", i, sep = ""))))
+    predy_y[3 + i] <- tibble::tibble(tidyr::unnest(outputlist_results_outer[[i]], cols = c(paste(".pred_", i, sep = ""))))
   }
 
   if (tibble::is_tibble(id_nr)) {
@@ -144,18 +157,21 @@ classification_results_multi <- function(outputlist_results_outer, id_nr = NA, .
 
   chisq <- suppressWarnings(chisq.test(table(predy_y$truth, predy_y$estimate)))
 
-  fisher <- stats::fisher.test(predy_y$truth, predy_y$estimate)
+  fisher <- stats::fisher.test(predy_y$truth,
+    predy_y$estimate,
+    simulate.p.value = simulate.p.value
+  )
 
 
-  accuracy     <- yardstick::accuracy(predy_y, truth, estimate, ...)
+  accuracy <- yardstick::accuracy(predy_y, truth, estimate, ...)
   bal_accuracy <- yardstick::bal_accuracy(predy_y, truth, estimate, ...)
-  sens         <- yardstick::sens(predy_y, truth, estimate, ...)
-  spec         <- yardstick::spec(predy_y, truth, estimate, ...)
-  precision    <- yardstick::precision(predy_y, truth, estimate, ...)
-  kappa        <- yardstick::kap(predy_y, truth, estimate, ...)
-  f_measure    <- yardstick::f_meas(predy_y, truth, estimate, ...)
+  sens <- yardstick::sens(predy_y, truth, estimate, ...)
+  spec <- yardstick::spec(predy_y, truth, estimate, ...)
+  precision <- yardstick::precision(predy_y, truth, estimate, ...)
+  kappa <- yardstick::kap(predy_y, truth, estimate, ...)
+  f_measure <- yardstick::f_meas(predy_y, truth, estimate, ...)
 
-  roc_auc        <- yardstick::roc_auc(predy_y, truth, colnames(predy_y[4:(length(predy_y))]))
+  roc_auc <- yardstick::roc_auc(predy_y, truth, colnames(predy_y[4:(length(predy_y))]))
   roc_curve_data <- yardstick::roc_curve(predy_y, truth, colnames(predy_y[4:(length(predy_y))]))
 
   roc_curve_plot <- ggplot2::autoplot(yardstick::roc_curve(predy_y, truth, colnames(predy_y[4:(length(predy_y))])))
@@ -211,8 +227,15 @@ fit_model_accuracy_rf <- function(object,
     xy_recipe <- rsample::analysis(object) %>%
       recipes::recipe(y ~ .) %>%
       recipes::update_role(id_nr, new_role = "id variable") %>% # New
-      recipes::update_role(-id_nr, new_role = "predictor") %>% # New
-      recipes::update_role(y, new_role = "outcome") %>% # New
+      # recipes::update_role(-id_nr, new_role = "predictor") %>% # New
+      recipes::update_role(y, new_role = "outcome") # %>% # New
+
+    if ("strata" %in% colnames(data_train)) {
+      xy_recipe <- xy_recipe %>%
+        recipes::update_role(strata, new_role = "strata")
+    }
+
+    xy_recipe <- xy_recipe %>%
       recipes::step_naomit(recipes::all_predictors(), skip = FALSE) # %>%
     # recipes::step_BoxCox(recipes::all_predictors()) %>%
 
@@ -247,8 +270,15 @@ fit_model_accuracy_rf <- function(object,
       recipes::recipe(y ~ .) %>%
       # recipes::step_BoxCox(all_predictors()) %>%  preprocess_PCA = NULL, preprocess_PCA = 0.9 preprocess_PCA = 2
       recipes::update_role(id_nr, new_role = "id variable") %>%
-      recipes::update_role(-id_nr, new_role = "predictor") %>%
-      recipes::update_role(y, new_role = "outcome") %>%
+      # recipes::update_role(-id_nr, new_role = "predictor") %>%
+      recipes::update_role(y, new_role = "outcome") # %>%
+
+    if ("strata" %in% colnames(data_train)) {
+      xy_recipe <- xy_recipe %>%
+        recipes::update_role(strata, new_role = "strata")
+    }
+
+    xy_recipe <- xy_recipe %>%
       recipes::step_naomit(recipes::all_predictors(), skip = FALSE) %>%
       recipes::step_center(recipes::all_predictors()) %>%
       recipes::step_scale(recipes::all_predictors())
@@ -316,12 +346,12 @@ fit_model_accuracy_rf <- function(object,
   # Apply model on new data
   holdout_pred_class <-
     stats::predict(mod, xy_testing %>%
-      dplyr::select(-y), type = c("class")) %>%
+                     dplyr::select(-y), type = c("class")) %>%
     dplyr::bind_cols(rsample::assessment(object) %>% dplyr::select(y, id_nr))
 
   holdout_pred <-
     stats::predict(mod, xy_testing %>%
-      dplyr::select(-y), type = c("prob")) %>%
+                     dplyr::select(-y), type = c("prob")) %>%
     dplyr::bind_cols(rsample::assessment(object) %>% dplyr::select(y, id_nr))
 
   holdout_pred$.pred_class <- holdout_pred_class$.pred_class
@@ -450,20 +480,21 @@ tune_over_cost_rf <- function(object,
   )
 
   # Test models with the different hyperparameters for the inner samples
-  tune_results <- purrr::pmap(list(
-    grid_inner$mtry,
-    grid_inner$min_n,
-    grid_inner$trees,
-    grid_inner$preprocess_PCA
-  ),
-  fit_model_accuracy_wrapper_rf,
-  object = object,
-  mode_rf = mode_rf,
-  variable_name_index_pca = variable_name_index_pca,
-  eval_measure = eval_measure,
-  preprocess_step_center = preprocess_step_center,
-  preprocess_scale_center = preprocess_scale_center,
-  extremely_randomised_splitrule
+  tune_results <- purrr::pmap(
+    list(
+      grid_inner$mtry,
+      grid_inner$min_n,
+      grid_inner$trees,
+      grid_inner$preprocess_PCA
+    ),
+    fit_model_accuracy_wrapper_rf,
+    object = object,
+    mode_rf = mode_rf,
+    variable_name_index_pca = variable_name_index_pca,
+    eval_measure = eval_measure,
+    preprocess_step_center = preprocess_step_center,
+    preprocess_scale_center = preprocess_scale_center,
+    extremely_randomised_splitrule
   )
 
   # Sort the output to separate the accuracy, predictions and truth
@@ -526,7 +557,6 @@ summarize_tune_results_rf <- function(object,
                                       variable_name_index_pca,
                                       eval_measure,
                                       extremely_randomised_splitrule) {
-
   # Return row-bound tibble containing the INNER results
   results <- purrr::map_df(
     .x = object$splits,
@@ -548,62 +578,74 @@ summarize_tune_results_rf <- function(object,
 }
 
 
-#' Train word embeddings to a categorical variable using random forrest.
+
+
+#' Train word embeddings to a categorical variable using random forest.
 #'
 #' @param x Word embeddings from textEmbed.
 #' @param y Categorical variable to predict.
-#' @param x_append Variables to be appended after the word embeddings (x);
+#' @param x_append (optional) Variables to be appended after the word embeddings (x);
 #' if wanting to preappend them before the word embeddings use the option
-#' first = TRUE.  If not wanting to train with word embeddings, set x = NULL.
-#' @param append_first (boolean) Option to add variables before or after all word embeddings.
-#' @param cv_method Cross-validation method to use within a pipeline of nested outer and
+#' first = TRUE.  If not wanting to train with word embeddings, set x_append = NULL (default = null).
+#' @param append_first (boolean) Option to add variables before or after all word embeddings (default = FALSE).
+#' @param cv_method (character) Cross-validation method to use within a pipeline of nested outer and
 #' inner loops of folds (see nested_cv in rsample). Default is using cv_folds in the
 #' outside folds and "validation_split" using rsample::validation_split in the inner loop to
 #' achieve a development and assessment set (note that for validation_split the inside_folds
 #' should be a proportion, e.g., inside_folds = 3/4); whereas "cv_folds" uses rsample::vfold_cv
 #' to achieve n-folds in both the outer and inner loops.
-#' @param outside_folds Number of folds for the outer folds (default = 10).
-#' @param outside_strata_y Variable to stratify according (default "y"; can also set to NULL).
-#' @param outside_breaks The number of bins wanted to stratify a numeric stratification variable
-#' in the outer cross-validation loop.
-#' @param inside_folds Number of folds for the inner folds (default = 3/4).
-#' @param inside_strata_y Variable to stratify according (default "y"; can also set to NULL).
+#' @param outside_folds (numeric) Number of folds for the outer folds (default = 10).
+#' @param inside_folds (numeric) Number of folds for the inner folds (default = 3/4).
+#' @param strata (string or tibble; default "y") Variable to stratify according; if a string the
+#' variable needs to be in the training set - if you want to stratify according to another variable
+#' you can include it as a tibble (please note you can only add 1 variable to stratify according).
+#' Can set it to NULL.
+#' @param outside_strata (boolean) Whether to stratify the outside folds.
+#' @param outside_breaks (numeric) The number of bins wanted to stratify a numeric stratification variable
+#' in the outer cross-validation loop (default = 4).
+#' @param inside_strata (boolean) Whether to stratify the outside folds.
 #' @param inside_breaks The number of bins wanted to stratify a numeric stratification variable
-#' in the inner cross-validation loop.
+#' in the inner cross-validation loop (default = 4).
 #' @param mode_rf Default is "classification" ("regression" is not supported yet).
-#' @param preprocess_step_center normalizes dimensions to have a mean of zero; default is set to TRUE.
+#' @param preprocess_step_center (boolean) Normalizes dimensions to have a mean of zero; default is set to FALSE
 #' For more info see (step_center in recipes).
-#' @param preprocess_scale_center  normalize dimensions to have a standard deviation of one.
-#' For more info see (step_scale in recipes).
+#' @param preprocess_scale_center (boolean) Normalizes dimensions to have a standard deviation of one;
+#' default is set to FALSE. For more info see (step_scale in recipes).
 #' @param preprocess_PCA Pre-processing threshold for PCA. Can select amount of variance to
 #' retain (e.g., .90 or as a grid c(0.80, 0.90)); or
-#' number of components to select (e.g., 10). Default is "min_halving", which is a function that
-#' selects the number of PCA components based on number of participants and feature (word embedding
-#' dimensions) in the data. The formula is:
+#' number of components to select (e.g., 10). (To skip this step, set preprocess_PCA to NA) Default is "min_halving",
+#' which is a function that selects the number of PCA components based on number of participants and feature
+#' (word embedding dimensions) in the data. The formula is:
 #' preprocess_PCA = round(max(min(number_features/2), number_participants/2), min(50, number_features))).
-#' @param extremely_randomised_splitrule default: "extratrees", which thus implement a random forest;
+#' @param extremely_randomised_splitrule Default is "extratrees", which thus implement a random forest;
 #' can also select: NULL, "gini" or "hellinger"; if these are selected your mtry settings will
 #'  be overridden (see Geurts et al. (2006) Extremely randomized trees for details; and see the ranger r-package
 #' for details on implementations).
-#' @param mtry hyper parameter that may be tuned;  default:c(1, 20, 40),
-#' @param min_n hyper parameter that may be tuned; default: c(1, 20, 40)
+#' @param mtry Hyper parameter that may be tuned; default: c(1, 20, 40),
+#' @param min_n Hyper parameter that may be tuned; default: c(1, 20, 40)
 #' @param trees Number of trees to use (default 1000).
-#' @param eval_measure Measure to evaluate the models in order to select the best hyperparameters default "roc_auc";
-#' see also "accuracy", "bal_accuracy", "sens", "spec", "precision", "kappa", "f_measure".
-#' @param model_description Text to describe your model (optional; good when sharing the model with others).
+#' @param eval_measure (character) Measure to evaluate the models in order to select the best
+#' hyperparameters default "roc_auc"; see also "accuracy", "bal_accuracy", "sens", "spec", "precision",
+#' "kappa", "f_measure".
+#' @param model_description (character) Text to describe your model (optional; good when sharing the model with others).
 #' @param multi_cores If TRUE it enables the use of multiple cores if the computer system allows for it (i.e.,
 #'  only on unix, not windows). Hence it makes the analyses considerably faster to run. Default is
 #'   "multi_cores_sys_default", where it automatically uses TRUE for Mac and Linux and FALSE for Windows.
-#' @param save_output Option not to save all output; default "all". see also "only_results" and
+#' @param save_output (character) Option not to save all output; default "all". See also "only_results" and
 #' "only_results_predictions".
-#' @param seed Set different seed.
+#' @param simulate.p.value (Boolean) From fisher.test: a logical indicating whether to compute p-values
+#' by Monte Carlo simulation, in larger than 2 × 2 tables.
+#' @param seed (numeric) Set different seed (default = 2020).
 #' @param ... For example settings in yardstick::accuracy to set event_level (e.g., event_level = "second").
 #' @return A list with roc_curve_data, roc_curve_plot, truth and predictions, preprocessing_recipe,
 #' final_model, model_description chisq and fishers test as well as evaluation measures, e.g., including accuracy,
 #' f_meas and roc_auc (for details on these measures see the yardstick r-package documentation).
 #' @examples
-#' \donttest{
-#' results <- textTrainRandomForest(
+#' # Examines how well the embeddings from column "harmonywords" in
+#' # Language_based_assessment_data_8 can binarily classify gender.
+#'
+#' \dontrun{
+#' trained_model <- textTrainRandomForest(
 #'   x = word_embeddings_4$texts$harmonywords,
 #'   y = as.factor(Language_based_assessment_data_8$gender),
 #'   trees = c(1000, 1500),
@@ -611,8 +653,15 @@ summarize_tune_results_rf <- function(object,
 #'   min_n = c(1), # this is short because of testing
 #'   multi_cores = FALSE # This is FALSE due to CRAN testing and Windows machines.
 #' )
+#'
+#'
+#' # Examine results (t-value, degree of freedom (df), p-value,
+#' # alternative-hypothesis, confidence interval, correlation coefficient).
+#'
+#' trained_model$results
 #' }
-#' @seealso see \code{\link{textTrainLists}}
+#' @seealso See \code{\link{textEmbedLayerAggregation}}, \code{\link{textTrainLists}} and
+#' \code{\link{textTrainRegression}}.
 #' @importFrom stats cor.test na.omit chisq.test fisher.test complete.cases
 #' @importFrom dplyr select bind_cols starts_with filter arrange rename
 #' @importFrom tibble as_tibble
@@ -632,10 +681,11 @@ textTrainRandomForest <- function(x,
                                   append_first = FALSE,
                                   cv_method = "validation_split",
                                   outside_folds = 10,
-                                  outside_strata_y = "y",
-                                  outside_breaks = 4,
                                   inside_folds = 3 / 4,
-                                  inside_strata_y = "y",
+                                  strata = "y",
+                                  outside_strata = TRUE,
+                                  outside_breaks = 4,
+                                  inside_strata = TRUE,
                                   inside_breaks = 4,
                                   mode_rf = "classification",
                                   preprocess_step_center = FALSE,
@@ -649,13 +699,14 @@ textTrainRandomForest <- function(x,
                                   model_description = "Consider writing a description of your model here",
                                   multi_cores = "multi_cores_sys_default",
                                   save_output = "all",
+                                  simulate.p.value = FALSE,
                                   seed = 2020,
                                   ...) {
   T1_textTrainRandomForest <- Sys.time()
   set.seed(seed)
 
   # Sorting out y
-  if (tibble::is_tibble(y) | is.data.frame(y)) {
+  if (tibble::is_tibble(y) || is.data.frame(y)) {
     y_name <- colnames(y)
     y <- tibble::as_tibble_col(y[[1]], column_name = "y")
   } else {
@@ -672,10 +723,12 @@ textTrainRandomForest <- function(x,
   }
 
   # sorting out x's
-  variables_and_names <- sorting_xs_and_x_append(x = x,
-                                                 x_append = x_append,
-                                                 append_first = append_first,
-                                                 ...)
+  variables_and_names <- sorting_xs_and_x_append(
+    x = x,
+    x_append = x_append,
+    append_first = append_first,
+    ...
+  )
   x1 <- variables_and_names$x1
   x_name <- variables_and_names$x_name
   embedding_description <- variables_and_names$embedding_description
@@ -694,6 +747,37 @@ textTrainRandomForest <- function(x,
   xy$id_nr <- c(seq_len(nrow(xy)))
   id_nr <- tibble::as_tibble_col(c(seq_len(nrow(xy))), column_name = "id_nr")
   xy <- tibble::as_tibble(xy[stats::complete.cases(xy), ])
+
+  # Adding strata variable to the data set -- and then calling it "outside_strata"
+  # Which is then called in strata variable, and also made into not a predictor downstream
+  outside_strata_y <- NULL
+  inside_strata_y <- NULL
+  strata_name <- NULL
+
+  if (!is.null(strata)) {
+    if (tibble::is_tibble(strata)) {
+      strata_name <- colnames(strata)
+      colnames(strata) <- "strata"
+      xy <- dplyr::bind_cols(xy, strata)
+
+      if (inside_strata) {
+        outside_strata_y <- "strata"
+      }
+      if (outside_strata) {
+        inside_strata_y <- "strata"
+      }
+    }
+
+    if (strata[[1]][[1]] == "y") {
+      strata_name <- "y"
+      if (inside_strata) {
+        outside_strata_y <- "y"
+      }
+      if (outside_strata) {
+        inside_strata_y <- "y"
+      }
+    }
+  }
 
 
   # Cross-Validation help(nested_cv) help(vfold_cv) help(validation_split)
@@ -816,15 +900,24 @@ textTrainRandomForest <- function(x,
     purrr::map(na.omit)
 
   # Get  predictions and evaluation results help(full_join)
-  results_collected <- classification_results(outputlist_results_outer = outputlist_results_outer, id_nr, ...)
+  results_collected <- classification_results(
+    outputlist_results_outer = outputlist_results_outer,
+    id_nr,
+    simulate.p.value = simulate.p.value,
+    ...
+  )
   names(results_collected) <- c("predy_y", "roc_curve_data", "roc_curve_plot", "fisher", "chisq", "results_collected")
 
 
   ##### Construct final model to be saved and applied on other data  ########
   ############################################################################
 
-  xy_all <- xy
-
+  if ("strata" %in% colnames(xy)) {
+    xy_all <- xy %>%
+      dplyr::select(-strata)
+  } else {
+    xy_all <- xy
+  }
   ######### One word embedding as input
   n_embbeddings <- as.numeric(comment(eval_measure))
 
@@ -832,8 +925,9 @@ textTrainRandomForest <- function(x,
     final_recipe <- # xy %>%
       recipes::recipe(y ~ ., xy_all[0, ]) %>%
       recipes::update_role(id_nr, new_role = "id variable") %>%
-      recipes::update_role(-id_nr, new_role = "predictor") %>%
-      recipes::update_role(y, new_role = "outcome") %>%
+      recipes::update_role(y, new_role = "outcome")
+
+    final_recipe <- final_recipe %>%
       recipes::step_naomit(recipes::all_predictors(), skip = FALSE) # %>%
     # recipes::step_BoxCox(recipes::all_predictors()) %>%
 
@@ -867,10 +961,11 @@ textTrainRandomForest <- function(x,
   } else {
     final_recipe <- recipes::recipe(y ~ ., xy_all[0, ]) %>%
       recipes::update_role(id_nr, new_role = "id variable") %>%
-      recipes::update_role(-id_nr, new_role = "predictor") %>%
+      # recipes::update_role(-id_nr, new_role = "predictor") %>%
       recipes::update_role(y, new_role = "outcome") %>%
       recipes::step_naomit(recipes::all_predictors(), skip = TRUE) # %>%
     # recipes::step_BoxCox(recipes::all_predictors()) %>%
+
 
     if (preprocess_step_center) {
       final_recipe <- recipes::step_center(final_recipe, recipes::all_predictors())
@@ -913,8 +1008,8 @@ textTrainRandomForest <- function(x,
     env_final_recipe$final_recipe <- final_recipe
 
     with(env_final_recipe, preprocessing_recipe_save <- suppressWarnings(recipes::prep(final_recipe,
-      xy_all,
-      retain = FALSE
+                                                                                       xy_all,
+                                                                                       retain = FALSE
     )))
   }
   preprocessing_recipe_save <- recipe_save_small_size(final_recipe = final_recipe, xy_all = xy_all)
@@ -1004,6 +1099,7 @@ textTrainRandomForest <- function(x,
   }
 
   cv_method_description <- paste("cv_method = ", deparse(cv_method))
+  strata_description <- paste("strata = ", strata_name)
   outside_folds_description <- paste("outside_folds = ", deparse(outside_folds))
   outside_strata_y_description <- paste("outside_strata_y = ", deparse(outside_strata_y))
   inside_folds_description <- paste("inside_folds = ", deparse(inside_folds))
@@ -1037,8 +1133,9 @@ textTrainRandomForest <- function(x,
     y_name,
     cv_method_description,
     outside_folds_description,
-    outside_strata_y_description,
     inside_folds_description,
+    strata_description,
+    outside_strata_y_description,
     inside_strata_y_description,
     mode_rf_description,
     preprocess_step_center,

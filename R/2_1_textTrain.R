@@ -1,4 +1,3 @@
-
 #' Train word embeddings to a numeric (ridge regression) or categorical (random forest) variable.
 #'
 #' @param x Word embeddings from textEmbed (or textEmbedLayerAggreation).
@@ -8,22 +7,32 @@
 #' @param y Numeric variable to predict. Can be several; although then make
 #' sure to have them within a tibble (this is required
 #' even if it is only one outcome but several word embeddings variables).
-#' @param force_train_method default is "automatic", so if y is a factor
+#' @param force_train_method Default is "automatic", so if y is a factor
 #' random_forest is used, and if y is numeric ridge regression
 #' is used. This can be overridden using "regression" or "random_forest".
 #' @param ... Arguments from textTrainRegression or textTrainRandomForest
 #' the textTrain function.
 #' @return A correlation between predicted and observed values; as well as a
-#'  tibble of predicted values.
+#'  tibble of predicted values (t-value, degree of freedom (df), p-value,
+#'  alternative-hypothesis, confidence interval, correlation coefficient).
 #' @examples
+#' # Examines how well the embeddings from "harmonytext" can
+#' # predict the numeric variable "hilstotal" in the pre-included
+#' # dataset "Language_based_assessment_data_8".
+#'
 #' \dontrun{
-#' results <- textTrain(
+#' trained_model <- textTrain(
 #'   x = word_embeddings_4$texts$harmonytext,
 #'   y = Language_based_assessment_data_8$hilstotal
 #' )
+#'
+#' # Examine results (t-value, degree of freedom (df), p-value,
+#' # alternative-hypothesis, confidence interval, correlation coefficient).
+#'
+#' trained_model$results
 #' }
-#' @seealso \code{\link{textTrainRegression}} \code{\link{textTrainRandomForest}}
-#' \code{\link{textTrainLists}}
+#' @seealso See \code{\link{textTrainRegression}}, \code{\link{textTrainRandomForest}} and
+#' \code{\link{textTrainLists}}.
 #' @importFrom tibble is_tibble
 #' @importFrom dplyr select_if
 #' @export
@@ -31,14 +40,12 @@ textTrain <- function(x,
                       y,
                       force_train_method = "automatic",
                       ...) {
-
   # Figure out which train_method to use (textTrainRegression or textTrainRandomForest)
-  if (is.numeric(y) == TRUE & force_train_method == "automatic") {
+  if (is.numeric(y) == TRUE && force_train_method == "automatic") {
     train_method <- "regression"
-  } else if (is.factor(y) == TRUE & force_train_method == "automatic") {
+  } else if (is.factor(y) == TRUE && force_train_method == "automatic") {
     train_method <- "logistic"
-  } else if ((tibble::is_tibble(y) | is.data.frame(y) & length(y) > 1) & force_train_method == "automatic") {
-
+  } else if ((tibble::is_tibble(y) || is.data.frame(y) && length(y) > 1) && force_train_method == "automatic") {
     # Create a dataframe with only one type (numeric or categorical) depending on most frequent type
     # Select all numeric variables
     y_n <- dplyr::select_if(y, is.numeric)
@@ -52,10 +59,10 @@ textTrain <- function(x,
       y <- y_f
       train_method <- "logistic"
     }
-  } else if (((tibble::is_tibble(y) | is.data.frame(y)) & length(y) > 1) & force_train_method == "regression") {
+  } else if (((tibble::is_tibble(y) || is.data.frame(y)) && length(y) > 1) && force_train_method == "regression") {
     y <- dplyr::select_if(y, is.numeric)
     train_method <- "regression"
-  } else if (((tibble::is_tibble(y) | is.data.frame(y)) & length(y) > 1) & force_train_method == "random_forest") {
+  } else if (((tibble::is_tibble(y) || is.data.frame(y)) && length(y) > 1) && force_train_method == "random_forest") {
     y <- dplyr::select_if(y, is.factor)
     train_method <- "random_forest"
   } else if (force_train_method == "regression") {
@@ -65,9 +72,9 @@ textTrain <- function(x,
   }
 
   # Analyze according to train_method decided above.
-  if (train_method == "regression" | train_method == "logistic") {
+  if (train_method == "regression" || train_method == "logistic") {
     # textTrainLists x; if more than one wordembedding list; or more than one column of numeric/categorical variable
-    if ((!tibble::is_tibble(x) & length(x) > 1) | ((tibble::is_tibble(y) | is.data.frame(y)) & length(y) > 1)) {
+    if ((!tibble::is_tibble(x) && length(x) > 1) || ((tibble::is_tibble(y) || is.data.frame(y)) && length(y) > 1)) {
       repression_output <- textTrainLists(
         x = x,
         y = y,
@@ -85,7 +92,7 @@ textTrain <- function(x,
       repression_output
     }
   } else if (train_method == "random_forest") {
-    if ((!tibble::is_tibble(x) & length(x) > 1) | (tibble::is_tibble(y) | is.data.frame(y) & length(y) > 1)) {
+    if ((!tibble::is_tibble(x) && length(x) > 1) || (tibble::is_tibble(y) || is.data.frame(y) && length(y) > 1)) {
       random_forest_output <- textTrainLists(
         x = x,
         y = y,
@@ -125,7 +132,7 @@ sort_regression_output_list <- function(output, method_cor, save_output, descrip
     output_ordered_named <- data.frame(cbind(descriptions, output_r, output_df, output_p, output_t, output_a))
     colnames(output_ordered_named) <- c("descriptions", "correlation", "df", "p_value", "t_statistics", "alternative")
     rownames(output_ordered_named) <- NULL
-  } else if (method_cor == "spearman" | method_cor == "kendall") {
+  } else if (method_cor == "spearman" || method_cor == "kendall") {
     output_S <- t(as.data.frame(lapply(output, function(output) unlist(output$results)[[1]][c(1)])))
     output_p <- t(as.data.frame(lapply(output, function(output) unlist(output$results)[[2]][c(1)])))
     output_r <- t(as.data.frame(lapply(output, function(output) unlist(output$results)[[3]][c(1)])))
@@ -145,7 +152,7 @@ sort_regression_output_list <- function(output, method_cor, save_output, descrip
   # Remove predictions from output since they are saved together
   output1 <- purrr::map(output, ~ purrr::discard(.x, names(.x) == "predictions"))
 
-  if (save_output == "all" | save_output == "only_results_predictions") {
+  if (save_output == "all" || save_output == "only_results_predictions") {
     output_predscore <- as.data.frame(lapply(output, function(output) unlist(output$predictions)))
     output_predscore_reg <- output_predscore[grep("predictions", rownames(output_predscore)), ]
     colnames(output_predscore_reg) <- c(paste(descriptions, "_pred", sep = ""))
@@ -197,7 +204,7 @@ sort_classification_output_list <- function(output, save_output, descriptions, t
 
 
   # Get and sort the Prediction scores; names(output$harmonywords_factors2)
-  if (save_output == "all" | save_output == "only_results_predictions") {
+  if (save_output == "all" || save_output == "only_results_predictions") {
     if (train_method == "random_forest") output_predscore <- lapply(output, "[[", "truth_predictions")
     if (train_method == "logistic") output_predscore <- lapply(output, "[[", "predictions")
     # Append dataframe name to each of its columns within a list of dataframes
@@ -225,33 +232,44 @@ sort_classification_output_list <- function(output, save_output, descriptions, t
 
 
 #' Individually trains word embeddings from several text variables to several numeric or categorical variables.
-#' It is possible to have  word embeddings from one text variable and several numeric/categprical variables;
+#' @param x Word embeddings from textEmbed (or textEmbedLayerAggreation). It is possible to have word embeddings
+#' from one text variable and several numeric/categorical variables;
 #' or vice verse, word embeddings from several text variables to one numeric/categorical variable.
 #' It is not possible to mix numeric and categorical variables.
-#' @param x Word embeddings from textEmbed (or textEmbedLayerAggreation).
 #' @param y Tibble with several numeric or categorical variables to predict. Please note that you cannot mix numeric and
 #' categorical variables.
-#' @param force_train_method Default is "automatic"; see also "regression" and "random_forest".
-#' @param save_output Option not to save all output; default "all". see also "only_results"
+#' @param force_train_method (character) Default is "automatic"; see also "regression" and "random_forest".
+#' @param save_output (character) Option not to save all output; default "all". See also "only_results"
 #' and "only_results_predictions".
-#' @param method_cor  A character string describing type of correlation (default "Pearson").
-#' @param eval_measure  Type of evaluative measure to assess models on.
-#' @param p_adjust_method Method to adjust/correct p-values for multiple comparisons
+#' @param method_cor (character) A character string describing type of correlation (default "Pearson").
+#' @param eval_measure (character) Type of evaluative measure to assess models on (default "rmse").
+#' @param p_adjust_method Method to adjust/correct p-values for multiple comparisons.
 #' (default = "holm"; see also "none", "hochberg", "hommel", "bonferroni", "BH", "BY",  "fdr").
-#' @param ... Arguments from textTrainRegression or textTrainRandomForest the textTrain function.
-#' @return Correlations between predicted and observed values.
+#' @param ... Arguments from textTrainRegression or textTrainRandomForest (the textTrain function).
+#' @return Correlations between predicted and observed values (t-value, degree of freedom (df), p-value,
+#' confidence interval, alternative hypothesis, correlation coefficient) stored in a dataframe.
 #' @examples
+#' # Examines how well the embeddings from Language_based_assessment_data_8 can
+#' # predict the numerical numerical variables in Language_based_assessment_data_8.
+#' # The training is done combination wise, i.e., correlations are tested pair wise,
+#' # column: 1-5,1-6,2-5,2-6, resulting in a dataframe with four rows.
+#'
 #' \dontrun{
 #' word_embeddings <- word_embeddings_4$texts[1:2]
 #' ratings_data <- Language_based_assessment_data_8[5:6]
-#' results <- textTrainLists(
+#'
+#' trained_model <- textTrainLists(
 #'   x = word_embeddings,
 #'   y = ratings_data
 #' )
-#' results
-#' comment(results)
+#'
+#' # Examine results (t-value, degree of freedom (df), p-value,
+#' # alternative-hypothesis, confidence interval, correlation coefficient).
+#'
+#' trained_model$results
 #' }
-#' @seealso see \code{\link{textTrain}}  \code{\link{textTrainRegression}}  \code{\link{textTrainRandomForest}}
+#'
+#' @seealso See \code{\link{textTrain}}, \code{\link{textTrainRegression}} and  \code{\link{textTrainRandomForest}}.
 #' @importFrom stats cor.test
 #' @importFrom tibble as_tibble
 #' @importFrom magrittr %>%
@@ -280,16 +298,15 @@ textTrainLists <- function(x,
   }
 
   # Force or decide regression or random forest (and select only categorical or numeric variables for multiple input).
-  if (is.numeric(y) == TRUE & force_train_method == "automatic") {
+  if (is.numeric(y) == TRUE && force_train_method == "automatic") {
     train_method <- "regression"
   } else if (force_train_method == "regression") {
     train_method <- "regression"
-  } else if (is.factor(y) == TRUE & force_train_method == "automatic") {
+  } else if (is.factor(y) == TRUE && force_train_method == "automatic") {
     train_method <- "logistic"
   } else if (force_train_method == "random_forest") {
     train_method <- "random_forest"
-  } else if ((tibble::is_tibble(y) | is.data.frame(y) & length(y) > 1) & force_train_method == "automatic") {
-
+  } else if ((tibble::is_tibble(y) || is.data.frame(y) && length(y) > 1) && force_train_method == "automatic") {
     # Create a dataframe only comprising numeric or categorical depending on most frequent type
     # Select all numeric variables
     y_n <- dplyr::select_if(y, is.numeric)
@@ -303,10 +320,10 @@ textTrainLists <- function(x,
       y <- y_f
       train_method <- "logistic"
     }
-  } else if ((tibble::is_tibble(y) | is.data.frame(y) & length(y) > 1) & force_train_method == "regression") {
+  } else if ((tibble::is_tibble(y) || is.data.frame(y) && length(y) > 1) && force_train_method == "regression") {
     y <- dplyr::select_if(y, is.numeric)
     train_method <- "regression"
-  } else if ((tibble::is_tibble(y) | is.data.frame(y) & length(y) > 1) & force_train_method == "random_forest") {
+  } else if ((tibble::is_tibble(y) || is.data.frame(y) && length(y) > 1) && force_train_method == "random_forest") {
     y <- dplyr::select_if(y, is.factor)
     train_method <- "random_forest"
   }
@@ -324,7 +341,7 @@ textTrainLists <- function(x,
   # Creating descriptions of which variables are used in training, which is  added to the output.
   descriptions <- paste(rep(names(x), length(y)), "_", names(y1), sep = "")
 
-  if (train_method == "regression" | train_method == "logistic") {
+  if (train_method == "regression" || train_method == "logistic") {
     # Using mapply to loop over the word embeddings and the outcome variables to train the different combinations
 
     output <- mapply(textTrainRegression, x = x, y = y1, MoreArgs = list(
@@ -349,7 +366,6 @@ textTrainLists <- function(x,
       )
     }
   } else if (train_method == "random_forest") {
-
     # Apply textTrainRandomForest function between each list element and sort outcome.
     output <- mapply(textTrainRandomForest,
       x = x, y = y1,

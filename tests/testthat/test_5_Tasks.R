@@ -1,4 +1,3 @@
-
 library(testthat)
 library(tibble)
 library(text)
@@ -41,15 +40,16 @@ test_that("textGeneration test", {
     logging_level = "warning",
     return_incorrect_results = FALSE,
     return_tensors = FALSE,
-    return_text = TRUE,
     return_full_text = TRUE,
     clean_up_tokenization_spaces = FALSE,
     prefix = "",
     handle_long_generation = "hole",
     set_seed = 22L
   )
-  #torch 1.11
-  # expect_equal(generated_text$x_generated, "The meaning of life is to live for the sake of one's children, and to take the name or life of another, and not as the child of a dead person. It is a name, a life, and not as the son, daughter")
+  # torch 1.11
+  # expect_equal(generated_text$x_generated, "The meaning of life is to live for
+  # the sake of one's children, and to take the name or life of another, and not as
+  # the child of a dead person. It is a name, a life, and not as the son, daughter")
   expect_that(generated_text$x_generated, is_a("character"))
 
   # Return token IDs
@@ -61,7 +61,6 @@ test_that("textGeneration test", {
     logging_level = "warning",
     return_incorrect_results = FALSE,
     return_tensors = TRUE,
-    return_text = FALSE,
     return_full_text = FALSE,
     clean_up_tokenization_spaces = FALSE,
     prefix = "",
@@ -126,7 +125,7 @@ test_that("textZeroShot test", {
   ZeroShot_example <- text::textZeroShot(
     sequences = c("I play football", "The forrest is wonderful"),
     candidate_labels = c("sport", "nature", "research"),
-    #model = "facebook/bart-large-mnli"
+    # model = "facebook/bart-large-mnli"
     model = "okho0653/distilbert-base-uncased-zero-shot-sentiment-model"
   )
 
@@ -147,7 +146,9 @@ test_that("textTranslate test", {
   )
 
   testthat::expect_that(translation_example$en_to_fr_satisfactiontexts, testthat::is_a("character"))
-  testthat::expect_equal(translation_example$en_to_fr_satisfactiontexts[1],
-                         "Je ne suis pas satisfait de ma vie, je suis reconnaissante de ce que j'ai et de ce que je suis, car la situation peut toujours être pire. Je veux une carrière et un diplôme, je veux perdre de poids et je n'ai pas encore atteint ces objectifs.")
+  testthat::expect_equal(
+    translation_example$en_to_fr_satisfactiontexts[1],
+    "Je ne suis pas satisfait de ma vie, je suis reconnaissante de ce que j'ai et de ce que je suis, car la situation peut toujours être pire. Je veux une carrière et un diplôme, je veux perdre de poids et je n'ai pas encore atteint ces objectifs."
+  )
   textModelsRemove("t5-small")
 })

@@ -9,7 +9,6 @@
 textModels <- function() {
   reticulate::source_python(system.file("python",
     "textModelPy.py",
-    # envir = NULL,
     package = "text",
     mustWork = TRUE
   ))
@@ -32,11 +31,10 @@ textModels <- function() {
 #' @importFrom reticulate source_python
 #' @export
 textModelLayers <- function(target_model) {
-
   reticulate::source_python(system.file("python",
-                                        "huggingface_Interface3.py",
-                                        package = "text",
-                                        mustWork = TRUE
+    "huggingface_Interface3.py",
+    package = "text",
+    mustWork = TRUE
   ))
 
   n_layer <- get_number_of_hidden_layers(target_model,
@@ -59,7 +57,6 @@ textModelLayers <- function(target_model) {
 textModelsRemove <- function(target_model) {
   reticulate::source_python(system.file("python",
     "textModelPy.py",
-    # envir = NULL,
     package = "text",
     mustWork = TRUE
   ))

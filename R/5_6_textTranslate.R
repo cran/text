@@ -1,5 +1,3 @@
-
-
 #' Translation. (experimental)
 #' @param x (string)  The text to be translated.
 #' @param source_lang (string)  The input language. Might be needed for multilingual models
@@ -53,7 +51,6 @@ textTranslate <- function(x,
   # Run python file with HunggingFace interface to state-of-the-art transformers
   reticulate::source_python(system.file("python",
     "huggingface_Interface3.py",
-    # envir = NULL,
     package = "text",
     mustWork = TRUE
   ))

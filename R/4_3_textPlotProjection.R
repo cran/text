@@ -1,41 +1,41 @@
-
 #### Supervised Dimension Projection ######
 
 #' Compute Supervised Dimension Projection and related variables for plotting words.
-#' @param words Word or text variable to be plotted.
+#' @param words (character) Word or text variable to be plotted.
 #' @param word_embeddings Word embeddings from textEmbed for the words to be plotted
 #' (i.e., the aggregated word embeddings for the "words" parameter).
 #' @param word_types_embeddings Word embeddings from textEmbed for individual words
 #' (i.e., decontextualized embeddings).
 #' @param x Numeric variable that the words should be plotted according to on the x-axes.
-#' @param y Numeric variable that the words should be plotted according to on the y-axes (y=NULL).
-#' @param pca Number of PCA dimensions applied to the word embeddings in the beginning of the function.
-#' A number below 1 takes out \% of variance; An integer specify number of components to extract.
+#' @param y Numeric variable that the words should be plotted according to on the y-axes
+#' (default = NULL, i.e., a 1-dimensional plot is created).
+#' @param pca Number of PCA dimensions applied to the word embeddings in the beginning of the
+#' function (default = NULL).
+#'  A number below 1 takes out \% of variance; An integer specify number of components to extract.
 #' (default is NULL as this setting has not yet been evaluated).
-#' @param aggregation Method to aggregate the word embeddings
+#' @param aggregation (character) Method to aggregate the word embeddings
 #' (default = "mean"; see also "min", "max", and "[CLS]").
-#' @param split Method to split the axes
+#' @param split (character) Method to split the axes
 #' (default = "quartile" involving selecting lower and upper quartile; see also "mean"). However, if the variable is
 #' only containing two different values (i.e., being dichotomous) mean split is used.
 #' @param word_weight_power Compute the power of the frequency of the words and multiply
 #' the word embeddings with this in the computation of aggregated word embeddings for
 #' group low (1) and group high (2). This increases the weight of more frequent words.
-#' @param min_freq_words_test Option to select words that have occurred a specified number of
+#' @param min_freq_words_test (numeric) Option to select words that have occurred a specified number of
 #' times (default = 0); when creating the Supervised Dimension Projection line
 #' (i.e., single words receive Supervised Dimension Projection and p-value).
-#' @param mean_centering Boolean; separately mean centering the Group 1 split aggregation embedding,
+#' @param mean_centering (boolean) Separately mean centering the Group 1 split aggregation embedding,
 #' and the Group 2 split aggregation embedding
-#' @param mean_centering2 Boolean; separately mean centering the G1 and G2 split aggregation embeddings
-#' @param Npermutations Number of permutations in the creation of the null distribution.
-#' @param n_per_split Setting to split Npermutations to avoid reaching computer memory limits;
+#' @param mean_centering2 (boolean) Separately mean centering the G1 and G2 split aggregation embeddings
+#' @param Npermutations (numeric) Number of permutations in the creation of the null distribution (default = 10000).
+#' @param n_per_split (numeric) Setting to split Npermutations to avoid reaching computer memory limits;
 #' set it lower than Npermutations <- and the higher it is set the faster the computation completes,
-#'  but too high may lead to abortion.
-#' @param seed Set different seed.
+#'  but too high may lead to abortion (default = 50000).
+#' @param seed (numeric) Set different seed (default = 1003).
 #' @return A dataframe with variables (e.g., including Supervised Dimension Projection, frequencies, p-values)
 #' for the individual words that is used for the plotting in the textProjectionPlot function.
 #' @examples
-#' # Data
-#' # Pre-processing data for plotting
+#' # Pre-processing data for plotting.
 #' \dontrun{
 #' df_for_plotting <- textProjection(
 #'   words = Language_based_assessment_data_8$harmonywords,
@@ -46,9 +46,10 @@
 #'   Npermutations = 10,
 #'   n_per_split = 1
 #' )
+#' # Run df_for_plotting to examine result.
 #' df_for_plotting
 #' }
-#' #' @seealso see \code{\link{textProjectionPlot}}
+#' @seealso See \code{\link{textProjectionPlot}}.
 #' @importFrom tibble as_tibble
 #' @importFrom recipes recipe step_center step_scale step_naomit all_numeric prep bake
 #' @importFrom tidyr uncount
@@ -71,6 +72,11 @@ textProjection <- function(words,
                            Npermutations = 10000,
                            n_per_split = 50000,
                            seed = 1003) {
+  # This avoids breaking the Psych Method tutorial code
+  # If there only is one word_types in a list, get it:
+  if (length(word_types_embeddings) == 1) {
+    word_types_embeddings <- word_types_embeddings[[1]]
+  }
 
   # Description to include as a comment in the end of function
   textProjection_descriptions <- paste(
@@ -102,7 +108,8 @@ textProjection <- function(words,
     )
 
 
-    uniques_words_all_wordembedding <- sapply(uniques_words_all$words, applysemrep, word_types_embeddings, tolower = FALSE)
+    uniques_words_all_wordembedding <- sapply(uniques_words_all$words, applysemrep,
+                                              word_types_embeddings, tolower = FALSE)
     uniques_words_all_wordembedding <- tibble::as_tibble(t(uniques_words_all_wordembedding))
 
     rec_pca <- recipes::recipe(~., data = uniques_words_all_wordembedding)
@@ -141,7 +148,6 @@ textProjection <- function(words,
 
   # For-loop for x and y input/dimensions; i.e., y if the plot has two dimensions (i_dim=1 i_dim=2) remove(i_dim)
   for (i_dim in seq_len(ncol(x))) {
-
     # Get the word embeddings and scale/category for the plot dimension (i.e., x or y from above)
     x0 <- x[i_dim]
     x1 <- cbind(words, x0)
@@ -152,11 +158,9 @@ textProjection <- function(words,
     # Pre-processing: Create Projection embedding ####
 
     # 1. Responses are divided into two groups (G1 and G2 ####
-    if (split == "mean" | split == "quartile") {
-
+    if (split == "mean" || split == "quartile") {
       # split="median" split = "quartile" or create interval sensitive
       if (split == "mean") {
-
         # Splitting datasets up to low versus high according to median split
         group1 <- x2 %>%
           dplyr::filter(value < mean(purrr::as_vector(value), na.rm = TRUE))
@@ -249,7 +253,6 @@ textProjection <- function(words,
 
       # Interval: No split. Weighting embeddings according to interval scale.
     } else if (split == "no") {
-
       # Getting unique words and their frequency
       words_group1b_freq <- unique_freq_words(x2$words)
       words_group1b_freq <- words_group1b_freq[words_group1b_freq$n >= min_freq_words_test, ]
@@ -276,18 +279,22 @@ textProjection <- function(words,
 
       words_single_wordembedding_d_scaled <- scale(words_single_wordembedding_d)
 
-      words_group2_agg_single_wordembedding_d <- tibble::as_tibble((words_single_wordembedding_d_scaled * weights) / mean(weights))
+      words_group2_agg_single_wordembedding_d <- tibble::as_tibble(
+                                                        (words_single_wordembedding_d_scaled * weights) / mean(weights))
 
       # reversed weights
-      weight_rev <- (max(words_single_wordembedding_c$value) + 1 - words_single_wordembedding_c$value)^word_weight_power
-      words_group1_agg_single_wordembedding_d <- tibble::as_tibble((words_single_wordembedding_d_scaled * weight_rev) / mean(weight_rev))
+      weight_rev <- (max(
+        words_single_wordembedding_c$value) + 1 - words_single_wordembedding_c$value)^word_weight_power
+      words_group1_agg_single_wordembedding_d <- tibble::as_tibble(
+        (words_single_wordembedding_d_scaled * weight_rev) / mean(weight_rev))
 
       ## Get dataframe with ALL embeddings to randomly draw from (without log transformed,
       # and quartiles) for Comparison distribution
       # Shuffle weights/values
       weights_shuffled <- sample(words_single_wordembedding_c$value, replace = FALSE)
-      words_single_wordembedding_d_weights_shuffled <- tibble::as_tibble((words_single_wordembedding_d_scaled * weights_shuffled) /
-        mean(weights_shuffled))
+      words_single_wordembedding_d_weights_shuffled <- tibble::as_tibble(
+        (words_single_wordembedding_d_scaled * weights_shuffled) /
+          mean(weights_shuffled))
 
       words_group1_2_agg_single_wordembedding_e1 <- words_single_wordembedding_d_weights_shuffled
     } # end of split == "no"
@@ -357,7 +364,7 @@ textProjection <- function(words,
 
     # Position the embedding; i.e., taking the word embedding subtracted with aggregated word embedding
     embedding_to_anchour_with <- tibble::as_tibble_row((Aggregated_word_embedding_group2 +
-      Aggregated_word_embedding_group1) / 2)
+                                                          Aggregated_word_embedding_group1) / 2)
 
     embedding_to_anchour_with <- embedding_to_anchour_with %>%
       dplyr::slice(rep(1:dplyr::n(), each = nrow(all_unique_words_we_b)))
@@ -427,14 +434,15 @@ textProjection <- function(words,
         dplyr::slice(rep(1:dplyr::n(), each = nrow(random_group2_embedding)))
 
       words_positioned_embeddings_random <- random_group2_embedding - (Aggregated_word_embedding_group2_long +
-        Aggregated_word_embedding_group1) / 2
+                                                                         Aggregated_word_embedding_group1) / 2
 
       # project the embeddings using dot products
 
       projected_embedding_random_long <- tibble::as_tibble_row(projected_embedding_random) %>%
         dplyr::slice(rep(1:dplyr::n(), each = nrow(words_positioned_embeddings_random)))
 
-      dot_products_null <- tibble::as_tibble(rowSums(words_positioned_embeddings_random * projected_embedding_random_long))
+      dot_products_null <- tibble::as_tibble(rowSums(
+        words_positioned_embeddings_random * projected_embedding_random_long))
 
       dot_null_distribution[i] <- dot_products_null
 
@@ -493,8 +501,10 @@ textProjection <- function(words,
 
     # Adding the scale parameters for the word embeddings so that words can be manually added in the textProjectionPlot.
     if (split == "no") {
-      to_be_saved_below$scale_centre <- tibble::as_tibble_row(attr(words_single_wordembedding_d_scaled, "scaled:center"))
-      to_be_saved_below$scale_scale <- tibble::as_tibble_row(attr(words_single_wordembedding_d_scaled, "scaled:scale"))
+      to_be_saved_below$scale_centre <- tibble::as_tibble_row(attr(
+        words_single_wordembedding_d_scaled, "scaled:center"))
+      to_be_saved_below$scale_scale <- tibble::as_tibble_row(attr(
+        words_single_wordembedding_d_scaled, "scaled:scale"))
     }
 
     aggregated_embeddings_dot_null_distribution[i_dim] <- list(to_be_saved_below)
@@ -579,6 +589,7 @@ textProjection <- function(words,
 #### End textProjection
 #############
 
+
 #' Plot words according to Supervised Dimension Projection.
 #' @param word_data Dataframe from textProjection
 #' @param k_n_words_to_test Select the k most frequent words to significance
@@ -605,6 +616,7 @@ textProjection <- function(words,
 #' y-axes produces a two dimension 2-dimensional plot, but the textProjection function has to
 #' have had a variable on the y-axes.
 #' @param p_alpha Alpha (default = .05).
+#' @param overlapping (boolean) Allow overlapping (TRUE) or disallow (FALSE) (default = TRUE).
 #' @param p_adjust_method Method to adjust/correct p-values for multiple comparisons
 #' (default = "holm"; see also "none", "hochberg", "hommel", "bonferroni", "BH", "BY",  "fdr").
 #' @param x_axes_label Label on the x-axes.
@@ -666,7 +678,8 @@ textProjection <- function(words,
 #' @param scaling Scaling word embeddings before aggregation.
 #' @return A 1- or 2-dimensional word plot, as well as tibble with processed data used to plot.
 #' @examples
-#' # The test-data included in the package is called: DP_projections_HILS_SWLS_100
+#' # The test-data included in the package is called: DP_projections_HILS_SWLS_100.
+#' # The dataframe created by textProjection can also be used as input-data.
 #'
 #' # Supervised Dimension Projection Plot
 #' plot_projection <- textProjectionPlot(
@@ -686,10 +699,12 @@ textProjection <- function(words,
 #'   p_adjust_method = "bonferroni",
 #'   scale_y_axes_lim = NULL
 #' )
+#'
 #' plot_projection
 #'
+#' # Investigate elements in DP_projections_HILS_SWLS_100.
 #' names(DP_projections_HILS_SWLS_100)
-#' @seealso see \code{\link{textProjection}}
+#' @seealso See \code{\link{textProjection}}.
 #' @importFrom tibble as_tibble tibble
 #' @importFrom dplyr row_number slice mutate mutate_if bind_rows group_by summarize left_join %>% n
 #' @importFrom tidyr gather separate
@@ -710,9 +725,9 @@ textProjectionPlot <- function(word_data,
                                plot_n_word_frequency = 5,
                                plot_n_words_middle = 5,
                                titles_color = "#61605e",
-                               # x_axes = TRUE,
                                y_axes = FALSE,
                                p_alpha = 0.05,
+                               overlapping = TRUE,
                                p_adjust_method = "none",
                                title_top = "Supervised Dimension Projection",
                                x_axes_label = "Supervised Dimension Projection (SDP)",
@@ -770,9 +785,9 @@ textProjectionPlot <- function(word_data,
     plot_n_word_frequency = plot_n_word_frequency,
     plot_n_words_middle = plot_n_words_middle,
     titles_color = titles_color,
-    # x_axes = TRUE,
     y_axes = y_axes,
     p_alpha = p_alpha,
+    overlapping = overlapping,
     p_adjust_method = p_adjust_method,
     title_top = title_top,
     x_axes_label = x_axes_label,

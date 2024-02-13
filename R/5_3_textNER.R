@@ -1,5 +1,3 @@
-
-
 #' Named Entity Recognition. (experimental)
 #' @param x (string)  A  variable or a tibble/dataframe with at least one character variable.
 #' @param model (string)  Specification of a pre-trained language model for token classification
@@ -39,7 +37,6 @@ textNER <- function(x,
   # Run python file with HunggingFace interface to state-of-the-art transformers
   reticulate::source_python(system.file("python",
     "huggingface_Interface3.py",
-    # envir = NULL,
     package = "text",
     mustWork = TRUE
   ))

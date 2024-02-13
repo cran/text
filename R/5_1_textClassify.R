@@ -1,4 +1,3 @@
-
 #' Predict label and probability of a text using a pretrained classifier language model. (experimental)
 #' @param x (string)  A character variable or a tibble/dataframe with at least one character variable.
 #' @param model (string)  Specification of a pre-trained classifier language model.
@@ -51,7 +50,6 @@ textClassify <- function(x,
   # Run python file with HunggingFace interface to state-of-the-art transformers
   reticulate::source_python(system.file("python",
     "huggingface_Interface3.py",
-    # envir = NULL,
     package = "text",
     mustWork = TRUE
   ))

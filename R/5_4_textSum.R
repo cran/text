@@ -1,5 +1,3 @@
-
-
 #' Summarize texts. (experimental)
 #' @param x (string)  A variable or a tibble/dataframe with at least one character variable.
 #' @param min_length (explicit integer; e.g., 10L)  The minimum number of tokens in the summed output.
@@ -49,7 +47,6 @@ textSum <- function(x,
   # Run python file with HunggingFace interface to state-of-the-art transformers
   reticulate::source_python(system.file("python",
     "huggingface_Interface3.py",
-    # envir = NULL,
     package = "text",
     mustWork = TRUE
   ))
