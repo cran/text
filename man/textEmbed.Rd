@@ -20,6 +20,8 @@ textEmbed(
   max_token_to_sentence = 4,
   tokenizer_parallelism = FALSE,
   device = "cpu",
+  hg_gated = FALSE,
+  hg_token = Sys.getenv("HUGGINGFACE_TOKEN", unset = ""),
   logging_level = "error",
   ...
 )
@@ -50,11 +52,14 @@ see \code{\link{textDimName}} to change names back and forth.}
 contextualized layers (e.g., "mean", "min" or "max, which takes the minimum, maximum or mean, respectively,
 across each column; or "concatenate", which links  together each word embedding layer to one long row.}
 
-\item{aggregation_from_tokens_to_texts}{(string)  Aggregates to the individual text (i.e., the aggregation of
-all tokens/words given to the transformer).}
+\item{aggregation_from_tokens_to_texts}{(string) Method to carry out the aggregation among the word embeddings
+for the words/tokens, including "min", "max" and "mean" which takes the minimum, maximum or mean across each column;
+or "concatenate", which links together each layer of the word embedding to one long row (default = "mean"). If set to NULL, embeddings are not
+aggregated.}
 
 \item{aggregation_from_tokens_to_word_types}{(string) Aggregates to the word type (i.e., the individual words)
-rather than texts.}
+rather than texts. If set to "individually", then duplicate words are not aggregated, (i.e, the context of individual
+is preserved). (default = NULL).}
 
 \item{keep_token_embeddings}{(boolean) Whether to also keep token embeddings when using texts or word
 types aggregation.}
@@ -79,6 +84,13 @@ switching to embedding text sentence by sentence.}
 
 \item{device}{Name of device to use: 'cpu', 'gpu', 'gpu:k' or 'mps'/'mps:k' for MacOS, where k is a
 specific device number such as 'mps:1'.}
+
+\item{hg_gated}{Set to TRUE if the accessed model is gated.}
+
+\item{hg_token}{The token needed to access the gated model.
+Create a token from the ['Settings' page](https://huggingface.co/settings/tokens) of
+the Hugging Face website. An an environment variable HUGGINGFACE_TOKEN can
+be set to avoid the need to enter the token each time.}
 
 \item{logging_level}{Set the logging level. Default: "warning".
 Options (ordered from less logging to more logging): critical, error, warning, info, debug}

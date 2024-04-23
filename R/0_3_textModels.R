@@ -6,7 +6,7 @@
 #' }
 #' @seealso see \code{\link{textModelsRemove}}
 #' @export
-textModels <- function() {
+textModels <- function(){
   reticulate::source_python(system.file("python",
     "textModelPy.py",
     package = "text",
@@ -22,6 +22,11 @@ textModels <- function() {
 
 #' Get the number of layers in a given model.
 #' @param target_model (string) The name of the model to know the number of layers of.
+#' @param hg_gated Set to TRUE if the accessed model is gated.
+#' @param hg_token The token needed to access the gated model.
+#' Create a token from the ['Settings' page](https://huggingface.co/settings/tokens) of
+#' the Hugging Face website. An an environment variable HUGGINGFACE_TOKEN can
+#' be set to avoid the need to enter the token each time.
 #' @return Number of layers.
 #' @examples
 #' \dontrun{
@@ -30,7 +35,10 @@ textModels <- function() {
 #' @seealso see \code{\link{textModels}}
 #' @importFrom reticulate source_python
 #' @export
-textModelLayers <- function(target_model) {
+textModelLayers <- function(target_model,
+                            hg_gated = FALSE,
+                            hg_token = Sys.getenv("HUGGINGFACE_TOKEN",
+                                                  unset = "")){
   reticulate::source_python(system.file("python",
     "huggingface_Interface3.py",
     package = "text",
@@ -38,7 +46,9 @@ textModelLayers <- function(target_model) {
   ))
 
   n_layer <- get_number_of_hidden_layers(target_model,
-    logging_level = "error"
+    logging_level = "error",
+    hg_gated = reticulate::r_to_py(hg_gated),
+    hg_token = reticulate::r_to_py(hg_token)
   )
 
   return(n_layer)
@@ -54,7 +64,7 @@ textModelLayers <- function(target_model) {
 #' }
 #' @seealso see \code{\link{textModels}}
 #' @export
-textModelsRemove <- function(target_model) {
+textModelsRemove <- function(target_model){
   reticulate::source_python(system.file("python",
     "textModelPy.py",
     package = "text",

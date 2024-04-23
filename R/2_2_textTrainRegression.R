@@ -37,6 +37,7 @@ fit_model_rmse <- function(object,
                            preprocess_step_center = TRUE,
                            preprocess_step_scale = TRUE,
                            impute_missing = FALSE) {
+
   data_train <- rsample::analysis(object)
   data_train <- tibble::as_tibble(data_train)
 
@@ -231,8 +232,8 @@ fit_model_rmse <- function(object,
 
     # Get RMSE; eval_measure = "rmse" library(tidyverse)
     eval_result <- select_eval_measure_val(eval_measure,
-      holdout_pred = holdout_pred,
-      truth = y, estimate = .pred
+                                           holdout_pred = holdout_pred,
+                                           truth = y, estimate = .pred
     )$.estimate
     # Sort output of RMSE, predictions and truth (observed y)
     output <- list(
@@ -256,8 +257,8 @@ fit_model_rmse <- function(object,
 
     # Get RMSE; eval_measure = "rmse"
     eval_result <- select_eval_measure_val(eval_measure,
-      holdout_pred = holdout_pred,
-      truth = y, estimate = .pred_class
+                                           holdout_pred = holdout_pred,
+                                           truth = y, estimate = .pred_class
     )$.estimate
     # Sort output of RMSE, predictions and truth (observed y)
     output <- list(
@@ -294,8 +295,8 @@ fit_model_rmse <- function(object,
 
     # Get RMSE; eval_measure = "rmse"
     eval_result <- select_eval_measure_val(eval_measure,
-      holdout_pred = holdout_pred,
-      truth = y, estimate = .pred_class
+                                           holdout_pred = holdout_pred,
+                                           truth = y, estimate = .pred_class
     )$.estimate
     # Sort output of RMSE, predictions and truth (observed y)
     output <- list(
@@ -328,7 +329,6 @@ fit_model_rmse <- function(object,
 }
 
 
-
 #' In some situations, we want to parameterize the function over the tuning parameter:
 #' Function to fit a model and compute RMSE.
 #'
@@ -353,16 +353,16 @@ fit_model_rmse_wrapper <- function(penalty = penalty,
                                    preprocess_step_scale = preprocess_step_scale,
                                    impute_missing = impute_missing) {
   fit_model_rmse(object,
-    model,
-    eval_measure,
-    penalty,
-    mixture,
-    preprocess_PCA = preprocess_PCA,
-    variable_name_index_pca = variable_name_index_pca,
-    first_n_predictors = first_n_predictors,
-    preprocess_step_center = preprocess_step_center,
-    preprocess_step_scale = preprocess_step_scale,
-    impute_missing = impute_missing
+                 model,
+                 eval_measure,
+                 penalty,
+                 mixture,
+                 preprocess_PCA = preprocess_PCA,
+                 variable_name_index_pca = variable_name_index_pca,
+                 first_n_predictors = first_n_predictors,
+                 preprocess_step_center = preprocess_step_center,
+                 preprocess_step_scale = preprocess_step_scale,
+                 impute_missing = impute_missing
   )
 }
 
@@ -503,7 +503,8 @@ tune_over_cost <- function(object,
 #' @param eval_measure the evaluation measure which decide if min or max value should be selected
 #' @return The row with the best evaluation measure.
 #' @noRd
-bestParameters <- function(data, eval_measure) {
+bestParameters <- function(data,
+                           eval_measure) {
   if (eval_measure %in% c(
     "accuracy", "bal_accuracy", "sens", "spec",
     "precision", "kappa", "f_measure", "roc_auc",
@@ -623,6 +624,14 @@ summarize_tune_results <- function(object,
 #' Monte Carlo simulation, in larger than 2 × 2 tables.
 #' @param seed (numeric) Set different seed (default = 2020).
 #' @param ... For example settings in yardstick::accuracy to set event_level (e.g., event_level = "second").
+#' @details
+#' By default, NAs are treated as follows:
+#'    1. rows with NAs in word embeddings are removed.
+#'    2. rows with NAs in y are removed
+#'    3. rows with NAs in  x_append are removed; if impute_missing is set to
+#'       TRUE, missing values will be imputed using k-nearest neighbours.
+#'    When rows are omitted, the user will get a warning.
+#'    The CV predictions will include NAs with the same length as the input.
 #' @return A (one-sided) correlation test between predicted and observed values; tibble
 #' of predicted values (t-value, degree of freedom (df), p-value,
 #'  alternative-hypothesis, confidence interval, correlation coefficient), as well as information about
@@ -646,7 +655,7 @@ summarize_tune_results <- function(object,
 #' @seealso See \code{\link{textEmbedLayerAggregation}}, \code{\link{textTrainLists}} and
 #' \code{\link{textTrainRandomForest}}.
 #' @importFrom stats cor.test na.omit lm
-#' @importFrom dplyr bind_cols select starts_with filter all_of
+#' @importFrom dplyr bind_cols select starts_with filter all_of add_row
 #' @importFrom recipes recipe step_naomit step_center step_scale step_pca all_predictors
 #' @importFrom rsample vfold_cv
 #' @importFrom parsnip linear_reg set_engine multinom_reg
@@ -668,7 +677,7 @@ textTrainRegression <- function(x,
                                 outside_breaks = 4,
                                 inside_strata = TRUE,
                                 inside_breaks = 4,
-                                model = "regression",
+                                model = "regression", # model = "multinomial"
                                 eval_measure = "default",
                                 preprocess_step_center = TRUE,
                                 preprocess_step_scale = TRUE,
@@ -703,6 +712,28 @@ textTrainRegression <- function(x,
     comment(eval_measure) <- paste(length(x))
   }
 
+  # display warnings if x_append, x or y contain NA-values.
+  if (sum(is.na(x_append)) > 0){
+    warning("NAs in x_append have been omitted.")
+  } else if (sum(is.na(x)) > 0){
+    warning("NAs in x have been omitted.")
+  } else if (sum(is.na(y)) > 0){
+    warning("NAs in y have been omitted.")
+  }
+
+  # save for later use
+  y_original <- y
+
+  # Search and remove NA-values in y
+  if (sum(is.na(y)) > 0){
+    # find indexes of NA elements in y
+    na_idx <- which(is.na(y) == TRUE)
+    # remove rows with NA values in x and y
+    y <- y[-c(na_idx)]
+    x <- x[-c(na_idx),]
+    x_append <- x_append[-c(na_idx),]
+  }
+
   # Sorting out y
   if (tibble::is_tibble(y) || is.data.frame(y)) {
     y_name <- colnames(y)
@@ -721,8 +752,7 @@ textTrainRegression <- function(x,
   variables_and_names <- sorting_xs_and_x_append(
     x = x,
     x_append = x_append,
-    append_first = append_first,
-    ...
+    append_first = append_first, ...
   )
   x2 <- variables_and_names$x1
   x_name <- variables_and_names$x_name
@@ -916,8 +946,7 @@ textTrainRegression <- function(x,
   } else if (model == "multinomial") {
     collected_results <- classification_results_multi(
       outputlist_results_outer = outputlist_results_outer,
-      simulate.p.value = simulate.p.value,
-      ...
+      simulate.p.value = simulate.p.value, ...
     )
 
     #  Save predictions outside list to make similar structure as model == regression output.
@@ -926,6 +955,18 @@ textTrainRegression <- function(x,
     collected_results[[1]] <- NULL
   }
 
+  # Correct for NA-values in y
+  # Insert NA's into predictions component of the model object at
+  # the sae indexes as ehere there was NA-values in y
+  if (sum(is.na(y_original)) > 0){
+    for (idx in seq_along(1:length(y_original))){
+      if (idx %in% na_idx){
+        # create row with NA-values and insert into predy_y
+        predy_y <- dplyr::add_row(.before = c(idx), .data = predy_y)
+      }
+    }
+    predy_y$id_nr <- c(1:length(y_original))
+  }
 
   ##### Construct final model to be saved and applied on other data  ########
   ############################################################################
@@ -937,7 +978,7 @@ textTrainRegression <- function(x,
     xy_all <- xy
   }
 
-  colnames(xy_all)
+
   ######### One word embedding as input
   n_embbeddings <- as.numeric(comment(eval_measure))
   if (n_embbeddings == 1) {
@@ -975,11 +1016,11 @@ textTrainRegression <- function(x,
         if (!is.na(preprocess_PCA[1])) {
           if (preprocess_PCA[1] >= 1) {
             recipes::step_pca(., recipes::all_predictors(),
-              num_comp = statisticalMode(results_split_parameter$preprocess_PCA)
+                              num_comp = statisticalMode(results_split_parameter$preprocess_PCA)
             )
           } else if (preprocess_PCA[1] < 1) {
             recipes::step_pca(., recipes::all_predictors(),
-              threshold = statisticalMode(results_split_parameter$preprocess_PCA)
+                              threshold = statisticalMode(results_split_parameter$preprocess_PCA)
             )
           } else {
             .
@@ -1041,16 +1082,16 @@ textTrainRegression <- function(x,
     env_final_recipe$xy_all <- xy_all
     env_final_recipe$final_recipe <- final_recipe
 
-    preprocessing_recipe_save <- with(
-      env_final_recipe,
-      suppressWarnings(recipes::prep(final_recipe, xy_all, retain = FALSE))
+
+    preprocessing_recipe <- with(
+      env_final_recipe, final_recipe
     )
 
     # Optionally remove xy_all if you are concerned about memory and it's no longer needed
     remove("xy_all", envir = env_final_recipe)
     remove("final_recipe", envir = env_final_recipe)
 
-    return(preprocessing_recipe_save)
+    return(list(preprocessing_recipe)) # preprocessing_recipe_save_trained
   }
 
   preprocessing_recipe_save <- recipe_save_small_size(
@@ -1101,7 +1142,7 @@ textTrainRegression <- function(x,
         # Create Workflow (to know variable roles from recipes) help(workflow)
         wf_final <- workflows::workflow() %>%
           workflows::add_model(final_predictive_model_spec) %>%
-          workflows::add_recipe(final_recipe)
+          workflows::add_recipe(final_recipe[[1]])
 
         parsnip::fit(wf_final, data = xy_all)
       } else if (nr_predictors == 3) {
@@ -1119,7 +1160,7 @@ textTrainRegression <- function(x,
 
         wf_final <- workflows::workflow() %>%
           workflows::add_model(final_predictive_model_spec) %>%
-          workflows::add_recipe(final_recipe)
+          workflows::add_recipe(final_recipe[[1]])
 
         parsnip::fit(wf_final, data = xy_all)
       }
@@ -1130,9 +1171,18 @@ textTrainRegression <- function(x,
   }
 
   final_predictive_model <- model_save_small_size(
-    xy_all, preprocessing_recipe_save, results_split_parameter$penalty,
-    results_split_parameter$mixture, model, nr_predictors
+    xy_all,
+    preprocessing_recipe_save,
+    results_split_parameter$penalty,
+    results_split_parameter$mixture,
+    model,
+    nr_predictors
   )
+
+  # Removing parts of the model not needed for prediction (primarily removing training data)
+  final_predictive_model$pre$mold$predictors <- NULL
+  final_predictive_model$pre$mold$outcomes <- NULL
+  final_predictive_model$pre$mold$extras <- NULL
 
 
   ##### NEW ENVIRONMENT END
@@ -1195,11 +1245,12 @@ textTrainRegression <- function(x,
   )
   Date_textTrainRegression <- Sys.time()
   time_date <- paste(Time_textTrainRegression,
-    "; Date created: ", Date_textTrainRegression,
-    sep = "",
-    collapse = " "
+                     "; Date created: ", Date_textTrainRegression,
+                     sep = "",
+                     collapse = " "
   )
 
+  text_version <- paste("; text_version: ", packageVersion("text"), ".", sep = "")
 
   # Describe model; adding user's-description + the name of the x and y
   model_description_detail <- c(
@@ -1229,7 +1280,8 @@ textTrainRegression <- function(x,
     impute_missing,
     embedding_description,
     model_description,
-    time_date
+    time_date,
+    text_version
   )
 
   ###### Saving and arranging output ######
@@ -1238,11 +1290,11 @@ textTrainRegression <- function(x,
   if (model == "regression") {
     if (save_output == "all") {
       final_results <- list(
-        predy_y, preprocessing_recipe_save, final_predictive_model, model_description_detail,
+        predy_y, final_predictive_model, model_description_detail, #final_recipe <- preprocessing_recipe_save[[1]],
         collected_results[[2]]
       )
       names(final_results) <- c(
-        "predictions", "final_recipe", "final_model", "model_description",
+        "predictions",  "final_model", "model_description", #"final_recipe",
         "results"
       )
     } else if (save_output == "only_results_predictions") {
@@ -1261,12 +1313,12 @@ textTrainRegression <- function(x,
   } else if (model == "logistic") {
     if (save_output == "all") {
       final_results <- list(
-        predy_y, preprocessing_recipe_save, final_predictive_model, model_description_detail,
+        predy_y, final_predictive_model, model_description_detail, # preprocessing_recipe_save
         collected_results$roc_curve_data, collected_results$roc_curve_plot, collected_results$fisher,
         collected_results$chisq, collected_results$results_collected
       )
       names(final_results) <- c(
-        "predictions", "final_recipe", "final_model", "model_description",
+        "predictions",  "final_model", "model_description", #"final_recipe",
         "roc_curve_data", "roc_curve_plot", "fisher", "chisq", "results_metrics"
       )
       final_results
@@ -1297,12 +1349,12 @@ textTrainRegression <- function(x,
   } else if (model == "multinomial") {
     if (save_output == "all") {
       final_results <- list(
-        predy_y, preprocessing_recipe_save, final_predictive_model, model_description_detail,
+        predy_y, final_predictive_model, model_description_detail, # preprocessing_recipe_save,
         collected_results$roc_curve_data, collected_results$roc_curve_plot, collected_results$fisher,
         collected_results$chisq, collected_results$results_collected
       )
       names(final_results) <- c(
-        "predictions", "final_recipe", "final_model", "model_description",
+        "predictions", "final_model", "model_description",  # "final_recipe",
         "roc_curve_data", "roc_curve_plot", "fisher", "chisq", "results_metrics"
       )
       final_results

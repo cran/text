@@ -4,19 +4,44 @@ library(testthat)
 
 context("Installation and Embedding of text and retrieval of word embeddings")
 
-# helper function to skip tests if we don't have the 'foo' module
-skip_if_no_transformers <- function() {
-  have_transformers <- reticulate::py_module_available("transformers")
-  if (!have_transformers) {
-    skip("transformers not available for testing")
-  }
-}
-skip_if_no_torch <- function() {
-  have_torch <- reticulate::py_module_available("torch")
-  if (!have_torch) {
-    skip("torch not available for testing")
-  }
-}
+## helper function to skip tests if we don't have the 'foo' module
+#skip_if_no_transformers <- function() {
+#  have_transformers <- reticulate::py_module_available("transformers")
+#  if (!have_transformers) {
+#    skip("transformers not available for testing")
+#  }
+#}
+#skip_if_no_torch <- function() {
+#  have_torch <- reticulate::py_module_available("torch")
+#  if (!have_torch) {
+#    skip("torch not available for testing")
+#  }
+#}
+
+test_that("textEmbed handling NAs", {
+  skip_on_cran()
+
+  # testing NA and empty strings
+  embeddings_with_NA <- textEmbed(c("hej",
+                                    NA,
+                                    "hej jag heter na",
+                                    "",
+                                    " ",
+                                    "    ",
+                                    "NA",
+                                    "Im NA"
+                                    ))
+
+  testthat::expect_equal(embeddings_with_NA$texts$texts[1][[1]][1], -0.04640419, tolerance = 0.0001)
+  testthat::expect_equal(embeddings_with_NA$texts$texts[1][[1]][2], NaN)
+  testthat::expect_equal(embeddings_with_NA$texts$texts[1][[1]][3], 0.2512017, tolerance = 0.0001)
+  testthat::expect_equal(embeddings_with_NA$texts$texts[1][[1]][4], NaN)
+  testthat::expect_equal(embeddings_with_NA$texts$texts[1][[1]][5], NaN)
+  testthat::expect_equal(embeddings_with_NA$texts$texts[1][[1]][6], NaN)
+  testthat::expect_equal(embeddings_with_NA$texts$texts[1][[1]][7], NaN)
+  testthat::expect_equal(embeddings_with_NA$texts$texts[1][[1]][8], -0.4003294, tolerance = 0.0001)
+
+  })
 
 
 test_that("textEmbedLayerAggregation 'all': layer =  aggregate_tokens = 'mean' produces aggregated word embeddings", {
@@ -119,6 +144,8 @@ test_that("textEmbedStatic with example space", {
 test_that("textEmbedRawLayers contexts=TRUE, decontextualize = FALSE returns a list", {
   skip_on_cran()
 
+  textrpp_initialize()
+
   text_to_test_import1 <- c("test this", "hope it works")
   text_to_test_import2 <- c("I am happy", "Let us go")
   x <- tibble::tibble(text_to_test_import1, text_to_test_import2)
@@ -163,6 +190,8 @@ test_that("textEmbedRawLayers bert-base-uncased contexts=FALSE, decontexts = TRU
 
 test_that("textEmbed", {
   skip_on_cran()
+
+  textrpp_initialize()
 
   text_to_test_import1 <- c("test this", "hope it works")
   text_to_test_import2 <- c("I am happy", "Let us go")

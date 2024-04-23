@@ -2,6 +2,10 @@
 from task_finetune import main as task_finetuner
 from run_mlm import main as mlm_finetuner
 import json
+import os
+
+from platform import system
+
 
 def set_tokenizer_parallelism(tokenizer_parallelism):
     if tokenizer_parallelism:
@@ -37,6 +41,7 @@ def hgTransformerFineTune(json_path,
                             text_outcome_df_train, 
                             text_outcome_df_val, 
                             text_outcome_df_test,
+                            pytorch_mps_high_watermark_ratio,
                             is_regression = True,
                             tokenizer_parallelism = False,
                             label_names = None, 
@@ -64,6 +69,12 @@ def hgTransformerFineTune(json_path,
     -------
     None
     """
+
+    # Check if running on macOS and PYTORCH_MPS_HIGH_WATERMARK_RATIO is set to 'TRUE'
+    if system() == 'Darwin' and pytorch_mps_high_watermark_ratio:
+      os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = '0.0'
+      print("Setting PYTORCH_MPS_HIGH_WATERMARK_RATIO to '0.0' on macOS with enabled flag.")
+
 
     args = json.load(open(json_path))
     return task_finetuner(args, text_outcome_df_train, text_outcome_df_val, text_outcome_df_test, is_regression, label_names, **kwargs)

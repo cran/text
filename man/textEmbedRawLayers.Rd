@@ -17,6 +17,8 @@ textEmbedRawLayers(
   tokenizer_parallelism = FALSE,
   model_max_length = NULL,
   max_token_to_sentence = 4,
+  hg_gated = FALSE,
+  hg_token = Sys.getenv("HUGGINGFACE_TOKEN", unset = ""),
   logging_level = "error",
   sort = TRUE
 )
@@ -63,6 +65,13 @@ transformer model (default the value stored for the associated model).}
 
 \item{max_token_to_sentence}{(numeric) Maximum number of tokens in a string to handle before
 switching to embedding text sentence by sentence. (default= 4)}
+
+\item{hg_gated}{Set to TRUE if the accessed model is gated.}
+
+\item{hg_token}{The token needed to access the gated model.
+Create a token from the ['Settings' page](https://huggingface.co/settings/tokens) of
+the Hugging Face website. An an environment variable HUGGINGFACE_TOKEN can
+be set to avoid the need to enter the token each time.}
 
 \item{logging_level}{(character) Set the logging level. (default ="error")
 Options (ordered from less logging to more logging): critical, error, warning, info, debug}
