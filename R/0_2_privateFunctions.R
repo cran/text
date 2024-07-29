@@ -274,6 +274,26 @@ extract_comment <- function(comment,
     output <- sub(" ; word_type_embeddings:.*", "", layer_text)
   }
 
+  # penalty_in_final_model
+  if (part == "penalty_in_final_model") {
+    selected_element <- grep("^penalty in final model =",
+                             comment,
+                             value = TRUE)
+    pen <- sub(".*penalty in final model =  ", "",
+                      selected_element)
+    output <- as.numeric(pen)
+  }
+
+  # penalty_in_final_model
+  if (part == "mixture_in_final_model") {
+    selected_element <- grep("^mixture in final model =",
+                             comment,
+                             value = TRUE)
+    mix <- sub(".*mixture in final model =  ", "",
+               selected_element)
+    output <- as.numeric(mix)
+  }
+
   return(output)
 }
 
@@ -580,30 +600,6 @@ cohens_d <- function(x,
   cd
 }
 
-
-#' Extract part of a comment
-#'
-#' @param comment (string) The comment
-#' @param part (string) The part to be extracted ("model" or "layers").
-#' @return string from the comment
-#' @noRd
-extract_comment <- function(comment,
-                            part) {
-  if (part == "model") {
-    model_text <- sub(".*textEmbedRawLayers: model: ", "", comment)
-    output <- sub(" ; layers.*", "", model_text)
-  }
-
-  if (part == "layers") {
-    layer_text <- sub(".*layers: ", "", comment)
-    output <- sub(" ; word_type_embeddings:.*", "", layer_text)
-  }
-
-  return(output)
-}
-
-
-
 # wanted_file <- "https://raw.githubusercontent.com/adithya8/ContextualEmbeddingDR/master/models/fb20/scalar.csv"
 #' Name to Path
 #' See if file exist in "inst/extdata/"
@@ -904,11 +900,11 @@ implicit_motives_results <- function(model_reference,
                                      lower_case_model) {
 
   #### Assign correct column name ####
-  if (grepl("implicit_power_roberta_large_l23_v1", lower_case_model)) {
+  if (grepl("implicit", lower_case_model) & grepl("power", lower_case_model)) {
     column_name <- "power"
-  } else if (grepl("implicit_affiliation_roberta_large_l23_v1", lower_case_model)) {
+  } else if (grepl("implicit", lower_case_model) & grepl("affiliation", lower_case_model)) {
     column_name <- "affiliation"
-  } else if (grepl("implicit_achievement_roberta_large_l23_v1", lower_case_model)) {
+  } else if (grepl("implicit", lower_case_model) & grepl("achievement", lower_case_model)) {
     column_name <- "achievement"
   } else if (model_reference == "implicit_motives") {
     column_name <- model_reference
@@ -1033,9 +1029,9 @@ get_model_info <- function(model_info,
   show_prob <- FALSE
 
   if (
-    grepl("implicit_power_roberta_large_l23_v1", lower_case_model) ||
-    grepl("implicit_affiliation_roberta_large_l23_v1", lower_case_model) ||
-    grepl("implicit_achievement_roberta_large_l23_v1", lower_case_model) ||
+    (grepl("implicit", lower_case_model) & grepl("power", lower_case_model)) ||
+    (grepl("implicit", lower_case_model) & grepl("affiliation", lower_case_model)) ||
+    (grepl("implicit", lower_case_model) & grepl("achievement", lower_case_model)) ||
     (grepl("implicit_motives", lower_case_model) &&
      (!is.null(participant_id) || !is.null(story_id)))
   ) {
@@ -1048,6 +1044,12 @@ get_model_info <- function(model_info,
       model_info <- "https://github.com/AugustNilsson/Implicit-motive-models/raw/main/schone_training_rob_la_l23_to_achievement_open.rds"
     } else if (lower_case_model == "implicit_affiliation_roberta_large_l23_v1") {
       model_info <- "https://github.com/AugustNilsson/Implicit-motive-models/raw/main/schone_training_rob_la_l23_to_affiliation_open.rds"
+    } else if (lower_case_model == "implicit_ger_be_l11_to_power") {
+      model_info <- "https://github.com/AugustNilsson/Implicit-motive-models/raw/main/schone_training_ger_be_l11_to_power_open.rds"
+    } else if (lower_case_model == "implicit_ger_be_l11_to_achievement") {
+      model_info <- "https://github.com/AugustNilsson/Implicit-motive-models/raw/main/schone_training_ger_be_l11_to_achievement_open.rds"
+    } else if (lower_case_model == "implicit_ger_be_l11_to_affiliation") {
+      model_info <- "https://github.com/AugustNilsson/Implicit-motive-models/raw/main/schone_training_ger_be_l11_to_affiliation_open.rds"
     }
     # specific configuration for implicit motive coding
     if (!is.null(participant_id) || !is.null(story_id)) {

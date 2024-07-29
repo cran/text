@@ -33,15 +33,16 @@ utils::globalVariables(c(
   "textTrainCVpredictions", "textTrainCVpredictionsRF",
   "strata",
   "data_prepared_with_recipe",
+  "bestParametersFunction", "eval_result",
 
   # textTrainNPlot
-  "sample_size", "percent", "std",
+  "sample_size", "percent", "std", "ymin", "ymax",
 
   # textPredcitTest
   "stats_on_bootstrap",
 
   # textPredict
-  ":=", "predicted_class",
+  ":=", "predicted_class", "osf_download", "osf_retrieve_file",
 
   # implicit motives
   "resid",

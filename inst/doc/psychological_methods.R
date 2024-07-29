@@ -1,11 +1,11 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
 evaluate = FALSE
 
-## ---- eval = evaluate, warning=FALSE, message=FALSE, dpi=300------------------
+## ----eval = evaluate, warning=FALSE, message=FALSE, dpi=300-------------------
 #  # For text-version => 0.9.99
 #  # Install text from CRAN
 #  install.packages("text")

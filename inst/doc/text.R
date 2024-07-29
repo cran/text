@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -30,7 +30,7 @@ evaluate = FALSE
 #  # Get the word embeddings again (i.e., remove the ##)
 #  ## word_embeddings <- readRDS("_YOURPATH_/word_embeddings.rds")
 
-## ---- eval = evaluate,  warning=FALSE, message=FALSE--------------------------
+## ----eval = evaluate,  warning=FALSE, message=FALSE---------------------------
 #  library(text)
 #  
 #  # Examine the relationship between harmonytext word embeddings and the harmony in life rating scale
@@ -41,7 +41,7 @@ evaluate = FALSE
 #  model_htext_hils$results
 #  
 
-## ---- eval = evaluate, warning=FALSE, message=FALSE---------------------------
+## ----eval = evaluate, warning=FALSE, message=FALSE----------------------------
 #  library(text)
 #  
 #  # Pre-process data
@@ -55,7 +55,7 @@ evaluate = FALSE
 #  projection_results$word_data
 #  
 
-## ---- eval = evaluate, warning=FALSE, message=FALSE, dpi=300------------------
+## ----eval = evaluate, warning=FALSE, message=FALSE, dpi=300-------------------
 #  library(text)
 #  # Supervised Dimension Projection Plot
 #  # To avoid warnings -- and that words do not get plotted, first increase the max.overlaps for the entire session:
