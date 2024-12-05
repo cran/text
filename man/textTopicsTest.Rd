@@ -2,44 +2,36 @@
 % Please edit documentation in R/7_2_textTopicsAnalysis.R
 \name{textTopicsTest}
 \alias{textTopicsTest}
-\title{This function tests the relationship between a single topic or all topics and a
-variable of interest. Available tests include correlation, t-test, linear regression,
-binary regression, and ridge regression. (EXPERIMENTAL - under development)}
+\title{Wrapper for topicsTest function from the topics package}
 \usage{
 textTopicsTest(
   model,
-  pred_var,
+  pred_var_x = NULL,
+  pred_var_y = NULL,
   group_var = NULL,
   control_vars = c(),
   test_method = "linear_regression",
-  multiple_comparison = "fdr",
-  load_dir = NULL
+  ...
 )
 }
 \arguments{
-\item{model}{(data.frame) The model returned from textTopics().}
+\item{model}{(list) The trained model}
 
-\item{pred_var}{(string) Variable of interest for linear or binary regression}
+\item{pred_var_x}{(string) The x variable name to be predicted, and to be plotted (only needed for regression or correlation)}
 
-\item{group_var}{(string) Grouping variable for t-test}
+\item{pred_var_y}{(string) The y variable name to be predicted, and to be plotted (only needed for regression or correlation)}
 
-\item{control_vars}{(list) Control variables for linear or binary regression}
+\item{group_var}{(string) The variable to group by (only needed for t-test)}
 
-\item{test_method}{(string) Choose between "correlation", "t-test", "binary_regression",
-"linear_regression" or "ridge_regression"}
+\item{control_vars}{(vector) The control variables (not supported yet)}
 
-\item{multiple_comparison}{Method for correction of multiple tests
-(e.g., "fdr", "bonferroni").}
+\item{test_method}{(string) The test method to use, either "correlation","t-test", "linear_regression","logistic_regression", or "ridge_regression"}
 
-\item{load_dir}{(string) if specified, the function returns the precomputed analysis
-from the directory, otherwise leave blank}
+\item{...}{Parameter settings from topicsTest in the topics-package.}
 }
 \value{
-Metadata and results of the test such as estimate, t-value, p-value,
-and variable name.
+A list of the test results, test method, and prediction variable
 }
 \description{
-This function tests the relationship between a single topic or all topics and a
-variable of interest. Available tests include correlation, t-test, linear regression,
-binary regression, and ridge regression. (EXPERIMENTAL - under development)
+Wrapper for topicsTest function from the topics package
 }

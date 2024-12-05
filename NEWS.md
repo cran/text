@@ -1,7 +1,44 @@
-# text (development version)
-
+# text (development versions)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# text 1.3.0
+- Alias function: `textPredict()`, `textAssess()` and `textClassify()`.
+- LBAM integration with `textLBAM()`.
+- Full support of implicit motives models.
+- Text cleaning functionality with `textClean()` (removing common personal information).
+- Compatability with the topics-package, see [www.r-topics.org](https://r-topics.org/).
+
+# text 1.2.17
+- `textLBAM()` returns the library as a datafram
+
+# text 1.2.16
+- `textPredict()` detects `model_type`.
+- Instead of having to specify the URL, one can now specify the model name from 
+the Language-Based Assessmet Model (L-BAM) library. 
+- Including default option to download an updated version of the L-BAM file
+
+# text 1.2.8 - 1.2.13
+- fixing bugs related to text prediction functions
+- adding method_typ = "texttrained" and "finetuned"
+- streamlining code for implicit motives output
+- adding `textFindNonASCII()` function and feature in `textEmbed()` to 
+warn and clean non-ASCII characters. This may change results slightly. 
+- removed `type` parameter in textPredict() and instead giving both probability and class.
+
+# text 1.2.7
+- `textClassify()` is now called `textClassifyPipe() `
+- `textPredict()` is now called `textPredictR()`
+- Making `textAssess()`, `textPredict()` and `textClassify()` works the same, now taking the parameter `method` with the string "text" to using textPredict(), and 
+"huggingface" to using textClassifyPipe(). 
+
+
+# text 1.2.6
+- updating python code, including adding parameters `hg_gated`, `hg_token`, and `trust_remote_code`. 
+- changed parameter name from `return_incorrect_results` to `force_return_results`
+- changed default of `function_to_apply` = NULL instead of "none"; this 
+is to mimic huggingface default.
+- `textWordPrediction` since it is under development and note tested.
 
 # text 1.2.5
 - updating security issues with python packages. 

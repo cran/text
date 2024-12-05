@@ -1,4 +1,6 @@
-#' This function creates and trains a BERTopic model (based on bertopic python packaged) on a
+#' BERTopics
+#'
+#' textTopics creates and trains a BERTopic model (based on bertopic python packaged) on a
 #' text-variable in a tibble/data.frame. (EXPERIMENTAL)
 #' @param data (tibble/data.frame) A tibble with a text-variable to be analysed, and optional
 #' numeric/categorical variables that you might want to use for later analyses testing the
@@ -49,7 +51,7 @@ textTopics <- function(
     bm25_weighting = FALSE,
     reduce_frequent_words = TRUE,
     set_seed = 8,
-    save_dir = "./results"
+    save_dir
     ) {
   # Run python file with HunggingFace interface to state-of-the-art transformers
   reticulate::source_python(system.file("python",
@@ -127,7 +129,7 @@ textTopicsReduce <- function(
     data_var,
     n_topics = 10,
     load_path = "./results", # From textTopics saved output
-    save_dir = "./results_reduced",
+    save_dir,
     embedding_model = "default"
     ){
 
@@ -147,7 +149,7 @@ textTopicsReduce <- function(
     embedding_model = embedding_model
   )
 
-  print("Complete")
+  message("Complete")
 }
 
 

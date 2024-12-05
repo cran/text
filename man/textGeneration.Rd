@@ -2,7 +2,7 @@
 % Please edit documentation in R/5_2_textGeneration.R
 \name{textGeneration}
 \alias{textGeneration}
-\title{Predicts the words that will follow a specified text prompt. (experimental)}
+\title{Text generation}
 \usage{
 textGeneration(
   x,
@@ -10,7 +10,7 @@ textGeneration(
   device = "cpu",
   tokenizer_parallelism = FALSE,
   logging_level = "warning",
-  return_incorrect_results = FALSE,
+  force_return_results = FALSE,
   return_tensors = FALSE,
   return_full_text = TRUE,
   clean_up_tokenization_spaces = FALSE,
@@ -32,7 +32,7 @@ autoregressive language modeling objective, which includes the uni-directional m
 \item{logging_level}{(string)  Set the logging level.
 Options (ordered from less logging to more logging): critical, error, warning, info, debug}
 
-\item{return_incorrect_results}{(boolean)  Stop returning some incorrectly formatted/structured results.
+\item{force_return_results}{(boolean)  Stop returning some incorrectly formatted/structured results.
 This setting does CANOT evaluate the actual results (whether or not they make sense, exist, etc.).
 All it does is to ensure the returned results are formatted correctly (e.g., does the question-answering
 dictionary contain the key "answer", is sentiments from textClassify containing the labels "positive"
@@ -61,7 +61,7 @@ None: default way, where no particular strategy is applied.
 A tibble with generated text.
 }
 \description{
-Predicts the words that will follow a specified text prompt. (experimental)
+textGeneration() predicts the words that will follow a specified text prompt. (experimental)
 }
 \examples{
 \donttest{

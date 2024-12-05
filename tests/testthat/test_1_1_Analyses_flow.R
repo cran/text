@@ -7,20 +7,13 @@ context("Big analyses flow")
 test_that("Testing textEmbed as well as train", {
   skip_on_cran()
 
-  textrpp_initialize()
+#  textrpp_initialize(refresh_settings = T,
+#                     save_profile = T)
 
-  descr1 <- textDescriptives(Language_based_assessment_data_8[[1]][[1]],
-                             entropy_unit = "log10"
-                             )
-  testthat::expect_that(descr1[[1]], testthat::is_a("character"))
-  testthat::expect_equal(descr1[[2]], 61)
-  testthat::expect_equal(descr1[[10]], 1.503212, tolerance = 0.00001)
 
-  descr2 <- textDescriptives(Language_based_assessment_data_8[1:2])
-  expect_equal(descr2[[2]][[1]], 2482)
-  expect_equal(descr2[[3]][[1]], 62.05)
 
-  harmony_word_embeddings <- text::textEmbed(Language_based_assessment_data_8[1:20, 1:2],
+  harmony_word_embeddings <- text::textEmbed(
+    Language_based_assessment_data_8[1:20, 1:2],
     model = "bert-base-uncased",
     dim_name = TRUE,
     layers = c(11:12),
@@ -71,12 +64,14 @@ test_that("Testing textEmbed as well as train", {
   expect_equal(hils_predicted_scores1[[1]][1], 11.89219, tolerance = 0.0001)
   expect_equal(hils_predicted_scores1[[1]][2], 25.90329, tolerance = 0.0001)
 
-
+#### testing testing
   # Train with x_variable
   train_x_append <- text::textTrainRegression(
     x = harmony_word_embeddings$texts["satisfactiontexts"],
     x_append = Language_based_assessment_data_8[1:20, 6:7],
     y = Language_based_assessment_data_8["hilstotal"][1:20, ],
+    language_distribution = Language_based_assessment_data_8["satisfactiontexts"],
+    save_aggregated_word_embedding = TRUE,
     cv_method = "cv_folds",
     outside_folds = 2,
     inside_folds = 2,
@@ -87,19 +82,42 @@ test_that("Testing textEmbed as well as train", {
     penalty = 1e-16,
     multi_cores = "multi_cores_sys_default"
   )
+  expect_that(train_x_append$language_distribution, is_a("tbl_df"))
 
   # Predict
   hils_predicted_scores2 <- text::textPredict(
     model_info = train_x_append,
     x_append = Language_based_assessment_data_8[1:20, 6:7],
-    append_first = TRUE,
     word_embeddings = harmony_word_embeddings$texts["satisfactiontexts"],
-    dim_names = TRUE
+    language_distribution = Language_based_assessment_data_8[1:20, 1],
+    dim_names = TRUE,
+    append_first = FALSE
   )
 
-  expect_that(hils_predicted_scores2[[1]], is_a("numeric"))
-  expect_equal(hils_predicted_scores2[[1]][1], 12.40038, tolerance = 0.1)
-  expect_equal(hils_predicted_scores2[[1]][2], 25.89001, tolerance = 0.1)
+  expect_that(hils_predicted_scores2, is_a("list"))
+  expect_equal(hils_predicted_scores2[[1]]$ss_min[[1]], 0.9459751, tolerance = 0.1)
+  expect_equal(hils_predicted_scores2[[5]]$test_recall_percentage, 1, tolerance = 0.1)
+  expect_equal(hils_predicted_scores2[[5]]$cosine_similarity, 0.986325, tolerance = 0.1)
+  expect_equal(hils_predicted_scores2[[5]]$cosine_similarity_standardised, 0.9846371, tolerance = 0.1)
+
+  expect_equal(hils_predicted_scores2[[6]]$satisfactiontexts_swlstotal_age_hilstotalpred[[1]], 12.40038, tolerance = 0.1)
+  expect_equal(hils_predicted_scores2[[6]]$satisfactiontexts_swlstotal_age_hilstotalpred[[2]], 25.89001, tolerance = 0.1)
+
+
+  # Trying with text
+  # Predict help(textPredict)
+  hils_predicted_scores3 <- text::textPredict(
+    model_info = train_x_append,
+    x_append = Language_based_assessment_data_8[1:20, 6:7],
+    texts = Language_based_assessment_data_8[1:20,"satisfactiontexts"],
+    dim_names = TRUE,
+    append_first = FALSE
+  )
+
+  expect_that(hils_predicted_scores3, is_a("list"))
+  expect_equal(hils_predicted_scores3$predictions[[1]][1], 12.40038, tolerance = 0.1)
+  expect_equal(hils_predicted_scores3$similarity_scores$overlap_percentage[[1]], 0.5915493, tolerance = 0.1)
+
 
   # Same as above with different input
   hils_predicted_scores1b <- textPredict(
@@ -180,8 +198,7 @@ test_that("Testing textEmbed as well as train", {
   #                        y_axes = FALSE)
   #
 
-
-  text_train_results <- textTrain(
+  text_train_results <- text::textTrain(
     x = harmony_word_embeddings$texts$satisfactiontexts,
     y = Language_based_assessment_data_8$hilstotal[1:20],
     cv_method = "cv_folds",

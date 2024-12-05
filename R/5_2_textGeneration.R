@@ -1,4 +1,21 @@
-#' Predicts the words that will follow a specified text prompt. (experimental)
+x = "The meaning of life is"
+model = "gpt2"
+device = "cpu"
+tokenizer_parallelism = FALSE
+logging_level = "warning"
+force_return_results = FALSE
+return_tensors = TRUE
+return_tensors = FALSE
+return_full_text = FALSE
+clean_up_tokenization_spaces = FALSE
+prefix = ""
+handle_long_generation = "hole"
+set_seed = 22L
+
+
+#' Text generation
+#'
+#' textGeneration() predicts the words that will follow a specified text prompt. (experimental)
 #' @param x (string)  A variable or a tibble/dataframe with at least one character variable.
 #' @param model (string)  Specification of a pre-trained language model that have been trained with an
 #' autoregressive language modeling objective, which includes the uni-directional models (e.g., gpt2).
@@ -6,7 +23,7 @@
 #' @param tokenizer_parallelism (boolean)  If TRUE this will turn on tokenizer parallelism.
 #' @param logging_level (string)  Set the logging level.
 #' Options (ordered from less logging to more logging): critical, error, warning, info, debug
-#' @param return_incorrect_results (boolean)  Stop returning some incorrectly formatted/structured results.
+#' @param force_return_results (boolean)  Stop returning some incorrectly formatted/structured results.
 #' This setting does CANOT evaluate the actual results (whether or not they make sense, exist, etc.).
 #' All it does is to ensure the returned results are formatted correctly (e.g., does the question-answering
 #' dictionary contain the key "answer", is sentiments from textClassify containing the labels "positive"
@@ -40,7 +57,7 @@ textGeneration <- function(x,
                            device = "cpu",
                            tokenizer_parallelism = FALSE,
                            logging_level = "warning",
-                           return_incorrect_results = FALSE,
+                           force_return_results = FALSE,
                            return_tensors = FALSE,
                            return_full_text = TRUE,
                            clean_up_tokenization_spaces = FALSE,
@@ -71,7 +88,7 @@ textGeneration <- function(x,
       device = device,
       tokenizer_parallelism = tokenizer_parallelism,
       logging_level = logging_level,
-      return_incorrect_results = return_incorrect_results,
+      force_return_results = force_return_results,
       return_tensors = return_tensors,
       return_full_text = return_full_text,
       clean_up_tokenization_spaces = clean_up_tokenization_spaces,
@@ -82,7 +99,7 @@ textGeneration <- function(x,
 
     # Sort output into tidy-format
     if (return_tensors == FALSE) {
-      output1 <- dplyr::bind_rows(hg_generated)
+      output1 <- dplyr::bind_rows(hg_generated[[1]][[1]][[1]])
       output1
     }
 
@@ -109,7 +126,7 @@ textGeneration <- function(x,
       sep = " "
     )
 
-    cat(colourise(loop_text, "green"))
+    message(colourise(loop_text, "green"))
   }
 
   ALL_output1 <- dplyr::bind_cols(ALL_output)

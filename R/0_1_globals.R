@@ -2,8 +2,7 @@
 # https://community.rstudio.com/t/how-to-solve-no-visible-binding-for-global-variable-note/28887
 utils::globalVariables(c(
   # GENERAL
-  "text_version_nr",
-
+  "text_version_nr", "find_textrpp",
   # EXPORTED FUNCTIONS
   "textEmbedLayerAggreation", "textProjection", "textProjectionPlot", "textSimilarity",
   "textTrainRandomForest", "textCentrality", "textCentralityPlot", "textEmbed", "textEmbedLayersOutput",
@@ -16,6 +15,7 @@ utils::globalVariables(c(
   "hgTransformerGetNER", "hgTransformerGetSummarization", "hgTransformerGetQA",
   "hgTransformerGetTranslation", "hgTokenizerGetTokens", "hgTransformerGetZeroShot",
   "textModelsPy", "textModelsRMPy", "get_number_of_hidden_layers", "hgTransformerFineTune",
+  "remove_pii",
 
 
   # EMBEDDINGS OBJECTS
@@ -46,6 +46,9 @@ utils::globalVariables(c(
 
   # implicit motives
   "resid",
+
+  # textTokenizeAndCount and textDomainComapre
+  "n_assess", "n_train",
 
   # Similarity
   "dist",
@@ -89,6 +92,9 @@ utils::globalVariables(c(
   "adjust.p_value", "mean_group_1", "mean_group_2", "sort_stats_tibble", "label_1", "top_terms",
   "topics_t_test_grouping", "extract_topic_stats_cate", "topic_name", "p.value",
   "adjusted_p.value", "cohen_d", "prevalence", "coherence", "log_sample_size", "reduce_topics",
-  "get_topic_tree"
+  "get_topic_tree",
+
+  ## L-BAM table
+  "Model_Type", "Name", "Path"
 
 ))

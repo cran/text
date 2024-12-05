@@ -19,6 +19,9 @@ textTrainRegression(
   inside_breaks = 4,
   model = "regression",
   eval_measure = "default",
+  save_aggregated_word_embedding = FALSE,
+  language_distribution = NULL,
+  language_distribution_min_words = 3,
   preprocess_step_center = TRUE,
   preprocess_step_scale = TRUE,
   preprocess_PCA = NA,
@@ -81,6 +84,18 @@ cross-validation loop (default = 4).}
  "bal_accuracy", "sens", "spec", "precision", "kappa", "f_measure", or "roc_auc",(for more details see
  the yardstick package).}
 
+\item{save_aggregated_word_embedding}{(boolean) If TRUE, the aggregated word embeddings (mean, min, and max) are saved
+for comparison with other language input when the model is applied to other types of data.}
+
+\item{language_distribution}{(Character column) If you provide the raw language data used for making the embeddings,
+the language distribution (i.e., a word and frequency table) will be saved to the model object. This enables
+calculating similarity scores when the model is being applied to new language domains.
+Note that this saves the individual words, which, if you are analyzing sensitive data, can be problematic from a
+privacy perspective; to some extent this can be mitigated by increasing the number of words needed to be saved.}
+
+\item{language_distribution_min_words}{(numeric) Minimum number a words need to occur in the data set to be saved to the
+language distribution.}
+
 \item{preprocess_step_center}{(boolean) Normalizes dimensions to have a mean of zero; default is set to TRUE.
 For more info see (step_center in recipes).}
 
@@ -138,7 +153,7 @@ of predicted values (t-value, degree of freedom (df), p-value,
  the model (preprossing_recipe, final_model and model_description).
 }
 \description{
-Train word embeddings to a numeric variable.
+textTrainRegression() trains word embeddings to a numeric or a factor variable.
 }
 \details{
 By default, NAs are treated as follows:

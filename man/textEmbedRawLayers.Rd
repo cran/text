@@ -2,8 +2,7 @@
 % Please edit documentation in R/1_1_textEmbed.R
 \name{textEmbedRawLayers}
 \alias{textEmbedRawLayers}
-\title{Extract layers of hidden states (word embeddings) for all character variables
-in a given dataframe.}
+\title{Extract layers of hidden states}
 \usage{
 textEmbedRawLayers(
   texts,
@@ -19,6 +18,7 @@ textEmbedRawLayers(
   max_token_to_sentence = 4,
   hg_gated = FALSE,
   hg_token = Sys.getenv("HUGGINGFACE_TOKEN", unset = ""),
+  trust_remote_code = FALSE,
   logging_level = "error",
   sort = TRUE
 )
@@ -73,6 +73,8 @@ Create a token from the ['Settings' page](https://huggingface.co/settings/tokens
 the Hugging Face website. An an environment variable HUGGINGFACE_TOKEN can
 be set to avoid the need to enter the token each time.}
 
+\item{trust_remote_code}{use a model with custom code on the Huggingface Hub}
+
 \item{logging_level}{(character) Set the logging level. (default ="error")
 Options (ordered from less logging to more logging): critical, error, warning, info, debug}
 
@@ -84,7 +86,7 @@ each token of the text, including the [CLS] and the [SEP].
 Note that layer 0 is the input embedding to the transformer, and should normally not be used.
 }
 \description{
-Extract layers of hidden states (word embeddings) for all character variables
+textEmbedRawLayers extracts layers of hidden states (word embeddings) for all character variables
 in a given dataframe.
 }
 \examples{

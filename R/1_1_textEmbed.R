@@ -33,6 +33,83 @@ select_character_v_utf8 <- function(x) {
 }
 
 
+#' Detect non-ASCII characters
+#'
+#' This function to detect non-ASCII characters in a tibble with multiple columns.
+#' @param data_tibble A character variable or a tibble including  character variables.
+#' @return a tibble containing variable names, row numbers and text including non-acii.
+#' @importFrom tibble tibble
+#' @export
+textFindNonASCII <- function(data_tibble) {
+
+  # Initialize an empty list to store results
+  results_list <- list()
+
+  # Iterate over each column in the tibble
+  for (col_name in colnames(data_tibble)) {
+
+    # Extract the actual vector from the tibble column, ensuring it's treated as a character vector
+    data_column <- as.character(data_tibble[[col_name]])
+
+    # Use sapply to identify any characters outside the ASCII range
+    matches <- base::sapply(seq_along(data_column), function(i) {
+      text <- data_column[i]
+      # Check if the element is a valid string, then convert to a character and check
+      if (length(text) == 1 && !base::is.na(text) && !base::is.null(text)) {
+        any(base::charToRaw(base::as.character(text)) > base::as.raw(0x7F))
+      } else {
+        FALSE
+      }
+    })
+
+    # Get the original row numbers
+    row_indices <- base::which(matches)
+
+    # Extract the text entries that have non-ASCII characters
+    matching_texts <- data_column[row_indices]
+
+    # If there are any matches, create a tibble and add to the results list
+    if (length(row_indices) > 0) {
+      results_list[[col_name]] <- tibble::tibble(
+        column_name = col_name,
+        row_number = base::as.integer(row_indices),
+        text = base::as.character(matching_texts)
+      )
+    }
+  }
+
+  # Combine all results into a single tibble
+  final_result <- dplyr::bind_rows(results_list)
+
+  return(final_result)
+}
+
+#' # Function to clean non-ASCII characters from a single text entry
+#' @param data_tibble A character variable.
+#' @return a tibble with removed ascii characters
+#' @noRd
+clean_text <- function(text) {
+  #iconv(text, from = "UTF-8", to = "UTF-8", sub = "")
+  iconv(text, from = "UTF-8", to = "ASCII", sub = "")
+}
+
+#' Clean non-ASCII characters
+#'
+#' textCleanNonASCII() cleans all text entries with a non-ASCII character in a tibble.
+#' @param data_tibble A tibble with character variables.
+#' @return a tibble with removed ascii characters
+#' @importFrom dplyr mutate across everything
+#' @importFrom purrr map_chr
+#' @export
+textCleanNonASCII <- function(data_tibble) {
+  # Apply `clean_text` to each element in the tibble
+  cleaned_tibble <- data_tibble %>%
+    dplyr::mutate(dplyr::across(dplyr::everything(), ~ purrr::map_chr(., clean_text)))
+
+  return(cleaned_tibble)
+}
+
+
 #' Function to normalize the vector to one; to a unit vector.
 #'
 #' @param x a word embedding
@@ -267,7 +344,9 @@ grep_col_by_name_in_list <- function(l,
 }
 
 
-#' Tokenize according to different huggingface transformers
+#' Tokenize text-variables
+#'
+#' textTokenize() tokenizes according to different huggingface transformers
 #' @param texts A character variable or a tibble/dataframe with at least one character variable.
 #' @param model Character string specifying pre-trained language model (default 'bert-base-uncased').
 #'  For full list of options see pretrained models at
@@ -282,6 +361,12 @@ grep_col_by_name_in_list <- function(l,
 #' @param tokenizer_parallelism If TRUE this will turn on tokenizer parallelism. Default FALSE.
 #' @param model_max_length The maximum length (in number of tokens) for the inputs to the transformer model
 #' (default the value stored for the associated model).
+#' @param hg_gated Set to TRUE if the accessed model is gated.
+#' @param hg_token The token needed to access the gated model.
+#' Create a token from the ['Settings' page](https://huggingface.co/settings/tokens) of
+#' the Hugging Face website. An an environment variable HUGGINGFACE_TOKEN can
+#' be set to avoid the need to enter the token each time.
+#' @param trust_remote_code use a model with custom code on the Huggingface Hub
 #' @param logging_level Set the logging level. Default: "warning".
 #' Options (ordered from less logging to more logging): critical, error, warning, info, debug
 #' @return Returns tokens according to specified huggingface transformer.
@@ -299,6 +384,10 @@ textTokenize <- function(texts,
                          device = "cpu",
                          tokenizer_parallelism = FALSE,
                          model_max_length = NULL,
+                         hg_gated = FALSE,
+                         hg_token = Sys.getenv("HUGGINGFACE_TOKEN",
+                                                  unset = ""),
+                         trust_remote_code = FALSE,
                          logging_level = "error") {
   # Run python file with HunggingFace interface to state-of-the-art transformers
   reticulate::source_python(system.file("python",
@@ -314,6 +403,9 @@ textTokenize <- function(texts,
     device = device,
     tokenizer_parallelism = tokenizer_parallelism,
     model_max_length = model_max_length,
+    hg_gated = reticulate::r_to_py(hg_gated),
+    hg_token = reticulate::r_to_py(hg_token),
+    trust_remote_code = trust_remote_code,
     logging_level = logging_level
   )
   tokens1 <- lapply(tokens, tibble::as_tibble_col, column_name = "tokens")
@@ -321,7 +413,9 @@ textTokenize <- function(texts,
   return(tokens1)
 }
 
-#' Extract layers of hidden states (word embeddings) for all character variables
+#' Extract layers of hidden states
+#'
+#' textEmbedRawLayers extracts layers of hidden states (word embeddings) for all character variables
 #' in a given dataframe.
 #' @param texts A character variable or a tibble with at least one character variable.
 #' @param model (character) Character string specifying pre-trained language model
@@ -359,6 +453,7 @@ textTokenize <- function(texts,
 #' Create a token from the ['Settings' page](https://huggingface.co/settings/tokens) of
 #' the Hugging Face website. An an environment variable HUGGINGFACE_TOKEN can
 #' be set to avoid the need to enter the token each time.
+#' @param trust_remote_code use a model with custom code on the Huggingface Hub
 #' @param logging_level (character) Set the logging level. (default ="error")
 #' Options (ordered from less logging to more logging): critical, error, warning, info, debug
 #' @param sort (boolean) If TRUE sort the output to tidy format. (default = TRUE)
@@ -396,10 +491,11 @@ textEmbedRawLayers <- function(texts,
                                hg_gated = FALSE,
                                hg_token = Sys.getenv("HUGGINGFACE_TOKEN",
                                                      unset = ""),
+                               trust_remote_code = FALSE,
                                logging_level = "error",
                                sort = TRUE) {
   if (decontextualize == TRUE && word_type_embeddings == FALSE) {
-    stop(cat(
+    stop(message(
       colourise("decontextualize = TRUE & word_type_embeddings = FALSE has not been
                 implemented in textEmbedRawLayers() at this stage.",
                 fg = "red"
@@ -459,6 +555,7 @@ textEmbedRawLayers <- function(texts,
         max_token_to_sentence = max_token_to_sentence,
         hg_gated = reticulate::r_to_py(hg_gated),
         hg_token = reticulate::r_to_py(hg_token),
+        trust_remote_code = trust_remote_code,
         logging_level = logging_level
       )
 
@@ -509,7 +606,7 @@ textEmbedRawLayers <- function(texts,
                          sep = ""
       )
 
-      cat(colourise(loop_text, "green"))
+      message(colourise(loop_text, "green"))
     }
   }
 
@@ -553,7 +650,7 @@ textEmbedRawLayers <- function(texts,
     individual_tokens$tokens <- single_words_n
 
     sing_text <- c("Completed layers aggregation for word_type_embeddings. \n")
-    cat(colourise(sing_text, "green"))
+    message(colourise(sing_text, "green"))
   }
 
   # Decontextualized embeddings for aggregated embeddings and word type embeddings
@@ -617,7 +714,7 @@ textEmbedRawLayers <- function(texts,
     ))
 
     de_text <- c("Completed layers aggregation for decontexts embeddings. \n")
-    cat(colourise(de_text, "green"))
+    message(colourise(de_text, "green"))
 
     individual_tokens
   }
@@ -644,7 +741,9 @@ textEmbedRawLayers <- function(texts,
 
 
 
-#' Select and aggregate layers of hidden states to form a word embedding.
+#' Aggregate layers
+#'
+#' textEmbedLayerAggregation selects and aggregates layers of hidden states to form a word embedding.
 #' @param word_embeddings_layers Layers returned by the textEmbedRawLayers function.
 #' @param layers (character or numeric) The numbers of the layers to be aggregated
 #' (e.g., c(11:12) to aggregate the eleventh and twelfth).
@@ -690,7 +789,7 @@ textEmbedLayerAggregation <- function(word_embeddings_layers,
                                       tokens_select = NULL,
                                       tokens_deselect = NULL) {
   if (return_tokens == TRUE && !is.null(aggregation_from_tokens_to_texts)) {
-    stop(cat(
+    stop(message(
       colourise("return_tokens = TRUE does not work with aggregation_from_tokens_to_texts not being NULL ", fg = "red"),
       colourise("When aggregating tokens to text, it is not possible to have return_token = TRUE.
                 To get both token_embeddings and text_embeddings use textEmbed().", fg = "green")
@@ -726,7 +825,7 @@ textEmbedLayerAggregation <- function(word_embeddings_layers,
 
     # Check that the right number of levels are selected
     if ((length(setdiff(layers, number_of_layers)) > 0) == TRUE) {
-      stop(cat(
+      stop(message(
         colourise("You are trying to aggregate layers that were not extracted.", fg = "red"),
         colourise("For example, in textEmbed the layers option needs to include all the
                   layers used in context_layers.", fg = "green")
@@ -832,7 +931,7 @@ textEmbedLayerAggregation <- function(word_embeddings_layers,
                        sep = ""
     )
 
-    cat(colourise(loop_text, "blue"))
+    message(colourise(loop_text, "blue"))
   }
 
   names(selected_layers_aggregated_tibble) <- names(word_embeddings_layers)
@@ -933,7 +1032,9 @@ generate_placement_vector <- function(raw_layers,
 }
 
 
-#' Extract layers and aggregate them to word embeddings, for all character variables in a given dataframe.
+#' Embed text
+#'
+#' textEmbed() extracts layers and aggregate them to word embeddings, for all character variables in a given dataframe.
 #' @param texts A character variable or a tibble/dataframe with at least one character variable.
 #' @param model Character string specifying pre-trained language model (default 'bert-base-uncased').
 #'  For full list of options see pretrained models at
@@ -963,6 +1064,7 @@ generate_placement_vector <- function(raw_layers,
 #'  is preserved). (default = NULL).
 #' @param keep_token_embeddings (boolean) Whether to also keep token embeddings when using texts or word
 #' types aggregation.
+#' @param remove_non_ascii (bolean) TRUE warns and removes non-ascii (using textFindNonASCII()).
 #' @param tokens_select Option to select word embeddings linked to specific tokens
 #' such as [CLS] and [SEP] for the context embeddings.
 #' @param tokens_deselect Option to deselect embeddings linked to specific tokens
@@ -1026,6 +1128,7 @@ textEmbed <- function(texts,
                       aggregation_from_tokens_to_texts = "mean",
                       aggregation_from_tokens_to_word_types = NULL,
                       keep_token_embeddings = TRUE,
+                      remove_non_ascii = TRUE,
                       tokens_select = NULL,
                       tokens_deselect = NULL,
                       decontextualize = FALSE,
@@ -1054,7 +1157,7 @@ textEmbed <- function(texts,
     (decontextualize == TRUE && is.null(aggregation_from_tokens_to_texts)) ||
     (decontextualize == TRUE && is.null(aggregation_from_tokens_to_word_types)) ||
     (decontextualize == TRUE && is.null(aggregation_from_layers_to_tokens))) {
-    stop(cat(
+    stop(message(
       colourise("When using decontextualize = TRUE, it is required to set aggregation_from_tokens_to_texts,
                 aggregation_from_tokens_to_word_types as well as aggregation_from_tokens_to_word_types",
                 fg = "red"
@@ -1075,8 +1178,37 @@ textEmbed <- function(texts,
 
   # Select all character variables and make them UTF-8 coded (e.g., BERT wants it that way).
   data_character_variables <- select_character_v_utf8(texts)
-  outcome_list <- list()
 
+  # Check fro ASCII characters
+  problematic_texts <- textFindNonASCII(data_character_variables)
+
+  # Clean
+  # Give information about ACII characters
+  if(nrow(problematic_texts)>0){
+
+    # Combine column_name and row_number for each row
+    combined_texts <- apply(problematic_texts[c("column_name", "row_number")], 1, function(x) {
+      paste(x, collapse = " ")
+    })
+
+    # Merge all combined texts into a single string, separated by ";"
+    final_string <- paste(combined_texts, collapse = "; ")
+
+    warning_ascii <- paste("Warning: non-ascii characters were found in:",
+                final_string, "Many large laguage models cannot handle them. \n")
+
+    message(colourise(warning_ascii, "brown"))
+    message(colourise("To examine thise text cases use the textNonASCII() function. \n", "green"))
+
+    # remove non-ASCII characters
+    if(remove_non_ascii){
+      data_character_variables <- textCleanNonASCII(data_character_variables)
+      message(colourise("Non-ASCII characters has been removed. \n", "green"))
+    }
+
+  }
+
+  outcome_list <- list()
   for (text_i in 1:ncol(data_character_variables)) {
     texts <- data_character_variables[text_i]
     # Get hidden states/layers for output 1 and/or output 2 or decontextualsied;
@@ -1147,7 +1279,7 @@ textEmbed <- function(texts,
                                      "\n",
                                      sep = ""
         )
-        cat(colourise(single_context_text, "purple"))
+        message(colourise(single_context_text, "purple"))
 
         ##############################################################################
         # These are the word_type embeddings with duplicates #########################
@@ -1162,7 +1294,7 @@ textEmbed <- function(texts,
                                      "\n",
                                      sep = ""
         )
-        cat(colourise(single_context_text, "purple"))
+        message(colourise(single_context_text, "purple"))
 
         individual_word_embeddings_layers <- all_wanted_layers$decontext$word_type
         individual_words <- all_wanted_layers$decontext$single_words
@@ -1223,7 +1355,7 @@ textEmbed <- function(texts,
       individual_word_embeddings_words <- list(individual_word_embeddings_words)
       names(individual_word_embeddings_words) <- colnames(texts)
       output$word_types <- individual_word_embeddings_words
-      cat(colourise("Done! \n", "purple"))
+      message(colourise("Done! \n", "purple"))
     }
 
 
@@ -1310,7 +1442,9 @@ textEmbed <- function(texts,
 }
 
 
-#' Change the names of the dimensions in the word embeddings.
+#' Change dimension names
+#'
+#' textDimName() changes the names of the dimensions in the word embeddings.
 #' @param word_embeddings List of word embeddings
 #' @param dim_names (boolean) If TRUE the word embedding name will be attached to the name of each dimension;
 #' is FALSE, the attached part of the name will be removed.

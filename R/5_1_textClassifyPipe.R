@@ -1,3 +1,4 @@
+
 #' Predict label and probability of a text using a pretrained classifier language model. (experimental)
 #' @param x (string)  A character variable or a tibble/dataframe with at least one character variable.
 #' @param model (string)  Specification of a pre-trained classifier language model.
@@ -8,14 +9,13 @@
 #' @param tokenizer_parallelism (boolean)  If TRUE this will turn on tokenizer parallelism.
 #' @param logging_level (string)  Set the logging level.
 #' Options (ordered from less logging to more logging): critical, error, warning, info, debug
-#' @param return_incorrect_results (boolean)  Stop returning some incorrectly formatted/structured results.
-#' This setting does CANOT evaluate the actual results (whether or not they make sense, exist, etc.).
+#' @param force_return_results (boolean)  Stop returning some incorrectly formatted/structured results.
+#' This setting CANNOT evaluate the actual results (whether or not they make sense, exist, etc.).
 #' All it does is to ensure the returned results are formatted correctly (e.g., does the question-answering
 #' dictionary contain the key "answer", is sentiments from textClassify containing the labels "positive"
 #'  and "negative").
 #' @param return_all_scores (boolean)  Whether to return all prediction scores or just the one of the predicted class.
 #' @param function_to_apply (string)  The function to apply to the model outputs to retrieve the scores.
-#' @param set_seed (Integer) Set seed.
 #' There are four different values:
 #' "default": if the model has a single label, will apply the sigmoid function on the output.
 #' If the model has several labels,
@@ -23,6 +23,7 @@
 #' "sigmoid": Applies the sigmoid function on the output.
 #' "softmax": Applies the softmax function on the output.
 #' "none": Does not apply any function on the output.
+#' @param set_seed (Integer) Set seed.
 #' @return A tibble with predicted labels and scores for each text variable.
 #' The comment of the object show the model-name and computation time.
 #' @examples
@@ -31,20 +32,23 @@
 #' # classifications
 #' # comment(classifications)
 #' }
-#' @seealso see \code{\link{textGeneration}}, \code{\link{textNER}},
+#' @seealso see \code{\link{textClassify}}, \code{\link{textGeneration}}, \code{\link{textNER}},
 #'  \code{\link{textSum}}, \code{\link{textQA}}, \code{\link{textTranslate}}
 #' @importFrom reticulate source_python
 #' @importFrom dplyr bind_cols bind_rows
-#' @export
-textClassify <- function(x,
-                         model = "distilbert-base-uncased-finetuned-sst-2-english",
-                         device = "cpu",
-                         tokenizer_parallelism = FALSE,
-                         logging_level = "error",
-                         return_incorrect_results = FALSE,
-                         return_all_scores = FALSE,
-                         function_to_apply = "none",
-                         set_seed = 202208) {
+#' @importFrom purrr map
+#' @noRd
+textClassifyPipe <- function(
+    x,
+    model = "distilbert-base-uncased-finetuned-sst-2-english",
+    device = "cpu",
+    tokenizer_parallelism = FALSE,
+    logging_level = "error",
+    force_return_results = TRUE,
+    return_all_scores = FALSE,
+    function_to_apply = NULL,
+    set_seed = 202208) {
+
   T1_textSentiment <- Sys.time()
 
   # Run python file with HunggingFace interface to state-of-the-art transformers
@@ -57,6 +61,9 @@ textClassify <- function(x,
   # Select all character variables and make them UTF-8 coded (e.g., BERT wants it that way).
   data_character_variables <- select_character_v_utf8(x)
 
+#  # check whether models name exist in a predefined list
+#  registered_true_false <- registered_model_name(model)
+
   ALL_sentiments <- list()
   # Loop over all character variables; i_variables = 1
   for (i_variables in seq_len(length(data_character_variables))) {
@@ -68,14 +75,14 @@ textClassify <- function(x,
       device = device,
       tokenizer_parallelism = tokenizer_parallelism,
       logging_level = logging_level,
-      return_incorrect_results = return_incorrect_results,
+      force_return_results = force_return_results,
       return_all_scores = return_all_scores,
       function_to_apply = function_to_apply,
       set_seed = set_seed
     )
 
     # Sort output into tidy-format
-    output1 <- map(hg_sentiments, dplyr::bind_cols) %>%
+    output1 <- purrr::map(hg_sentiments, dplyr::bind_cols) %>%
       dplyr::bind_rows()
 
     # Add the text variable name to variable names
@@ -101,7 +108,7 @@ textClassify <- function(x,
       sep = " "
     )
 
-    cat(colourise(loop_text, "green"))
+    message(colourise(loop_text, "green"))
   }
 
   ALL_sentiments1 <- dplyr::bind_cols(ALL_sentiments)

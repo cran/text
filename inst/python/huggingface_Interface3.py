@@ -4,14 +4,15 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import torch
 import huggingface_hub
+import transformers
 from transformers import AutoConfig, AutoModel, AutoTokenizer
+from transformers import pipeline
 try:
     from transformers.utils import logging
 except ImportError:
     print("Warning: Unable to importing transformers.utils logging")
-from transformers import pipeline
-import numpy as np
 
+import numpy as np
 import nltk
 try:
     nltk.data.find('tokenizers/punkt/PY3/english.pickle')
@@ -21,21 +22,6 @@ except:
 from nltk.tokenize import sent_tokenize
 
 import os, sys
-
-ACCEPTED_TASKS = ["text-classification", "sentiment-analysis", "question-answering", "translation", 
-    "summarization", "token-classification", "ner", "text-generation", "zero-shot-classification"]
-
-PIPELINE_RESULTS_BY_TASK = {
-    "text-classification": ["POSITIVE", "NEGATIVE"], 
-    "sentiment-analysis": ["POSITIVE", "NEGATIVE"], 
-    "question-answering": ["answer"], 
-    "translation": ["translation_text"], 
-    "summarization": ["summary_text"], 
-    "token-classification": ["entity"], 
-    "ner": ["entity"], 
-    "text-generation": ["generated_text", "generated_token_ids"], 
-    "zero-shot-classification": ["scores"], 
-}
 
 def set_hg_gated_access(access_token):
     """
@@ -167,7 +153,7 @@ def get_device(device):
 
     return device, device_num
 
-def get_model(model, tokenizer_only=False, config_only=False, hg_gated=False, hg_token=""):
+def get_model(model, tokenizer_only=False, config_only=False, hg_gated=False, hg_token="", trust_remote_code=False):
     """
     Get model and tokenizer from model string
 
@@ -215,9 +201,6 @@ def get_model(model, tokenizer_only=False, config_only=False, hg_gated=False, hg
             tokenizer = BloomTokenizerFast.from_pretrained(model)
             transformer_model = BloomModel.from_pretrained(model, config=config)
     else:
-        #print("I am in get_model function now!!!!")
-        #print(f"!!!!hg_gated: {hg_gated} !!!")
-        #print(f"!!!!hg_token: {hg_token} !!!")
         if hg_gated:
             set_hg_gated_access(access_token=hg_token)
         else: 
@@ -225,7 +208,7 @@ def get_model(model, tokenizer_only=False, config_only=False, hg_gated=False, hg
         config = AutoConfig.from_pretrained(model, output_hidden_states=True)
         if not config_only:
             tokenizer = AutoTokenizer.from_pretrained(model)
-            transformer_model = AutoModel.from_pretrained(model, config=config)
+            transformer_model = AutoModel.from_pretrained(model, config=config, trust_remote_code=trust_remote_code)
             
     if config_only:
         return config
@@ -245,13 +228,13 @@ def get_model(model, tokenizer_only=False, config_only=False, hg_gated=False, hg
         #    tokenizer.pad_token_id = tokenizer.eos_token_id        
         return config, tokenizer, transformer_model
 
-def get_number_of_hidden_layers(model, logging_level = "error", hg_gated=False, hg_token=""):
+def get_number_of_hidden_layers(model, logging_level = "error", hg_gated = False, hg_token = "", trust_remote_code = False):
     """
     Return the number of hidden layers for a given model.
     Returns -1 if the model's config doesn't have the num_hidden_layers parameter
     """
     set_logging_level(logging_level)
-    config = get_model(model, config_only=True, hg_gated=hg_gated, hg_token=hg_token)
+    config = get_model(model, config_only=True, hg_gated=hg_gated, hg_token=hg_token, trust_remote_code=trust_remote_code)
     number_of_hidden_layers = -1
     try:
         number_of_hidden_layers = config.num_hidden_layers
@@ -267,9 +250,10 @@ def hgTransformerGetPipeline(text_strings,
                             device = 'cpu',
                             tokenizer_parallelism = False,
                             logging_level = 'warning',
-                            return_incorrect_results = False,
+                            force_return_results = False,
                             hg_gated = False,
                             hg_token = "",
+                            trust_remote_code = False,
                             set_seed = None,
                             **kwargs):
     """
@@ -292,12 +276,14 @@ def hgTransformerGetPipeline(text_strings,
         something
     logging_level : str
         set logging level, options: critical, error, warning, info, debug
-    return_incorrect_results : bool
+    force_return_results : bool
         return results if they are not properly formatted for the task
     hg_gated : bool
         Set to True if the accessed model is gated
     hg_token: str
         The token needed to access the gated model, gen in huggingface website 
+    trust_remote_code : bool
+        use a model with custom code on the Huggingface Hub
     set_seed : int
         integer value for manually setting seed
     kwargs : dict
@@ -309,9 +295,6 @@ def hgTransformerGetPipeline(text_strings,
         list of dictionaries with sentiment scores and labels
     """
 
-    if not (task in ACCEPTED_TASKS or task.startswith("translation")):
-        print("Task {t} is not recognized".format(t=task))
-        return []
     if isinstance(set_seed, int):
         torch.manual_seed(set_seed)
     set_logging_level(logging_level)
@@ -321,8 +304,9 @@ def hgTransformerGetPipeline(text_strings,
     # check and adjust input types
     if not isinstance(text_strings, list):
         text_strings = [text_strings]
+    
     if model:
-        config, tokenizer, transformer_model = get_model(model,hg_gated=hg_gated, hg_token=hg_token)
+        config, tokenizer, transformer_model = get_model(model,hg_gated=hg_gated, hg_token=hg_token, trust_remote_code=trust_remote_code)
         if device_num >= 0:
             task_pipeline = pipeline(task, model=model, tokenizer=tokenizer, device=device_num)
         else:
@@ -332,44 +316,21 @@ def hgTransformerGetPipeline(text_strings,
             task_pipeline = pipeline(task, device=device_num)
         else:
             task_pipeline = pipeline(task)
+
+    if transformers.__version__ >= "4.20" and "return_all_scores" in kwargs:
+        return_all_scores = kwargs["return_all_scores"]
+        if return_all_scores == True:
+            kwargs["top_k"] = None
+        else:
+            kwargs["top_k"] = 1
+        del kwargs["return_all_scores"]
     
     task_scores = []
     if task in ['question-answering', 'zero-shot-classification']:
         task_scores = task_pipeline(**kwargs)
     else:
         task_scores = task_pipeline(text_strings, **kwargs)
-
-    if len(task_scores) == 0 or (isinstance(task_scores, list) and len(task_scores[0]) == 0):
-        return task_scores
     
-    results_check = {}
-    if isinstance(task_scores, dict):
-        results_check = task_scores
-        task_scores = [task_scores]
-    elif isinstance(task_scores[0], dict):
-        results_check = task_scores[0]
-    elif isinstance(task_scores[0][0], dict):
-        results_check = task_scores[0][0]
-        task_scores = task_scores[0]
-   
-    if task.startswith("translation"):
-        default_result_keys = PIPELINE_RESULTS_BY_TASK["translation"]
-    else:
-        default_result_keys = PIPELINE_RESULTS_BY_TASK[task]
-    
-    print_warning = False
-    if task in ["text-classification", "sentiment-analysis"]:
-        if results_check['label'] not in default_result_keys:
-            print_warning = True
-    elif len(task_scores) > 0 and not any(k in default_result_keys for k in list(results_check.keys())):
-        print_warning = True
-    if print_warning:
-        print("WARNING: Results do not match the defaults for the task")
-        print("\tBy default, one of the following should be in the results for this task: {t}".format(t=", ".join(PIPELINE_RESULTS_BY_TASK[task])))
-        print("\tYou may want to try a different model or the default model for the task")
-        # todo add list of defaults and print the task default in warning
-        if not return_incorrect_results:
-            task_scores = []
     return task_scores
 
 
@@ -378,7 +339,7 @@ def hgTransformerGetTextGeneration(text_strings,
                             device = 'cpu',
                             tokenizer_parallelism = False,
                             logging_level = 'warning',
-                            return_incorrect_results = False,
+                            force_return_results = False,
                             set_seed = None,
                             return_tensors = False,
                             #return_text = True,
@@ -397,7 +358,7 @@ def hgTransformerGetTextGeneration(text_strings,
                             device = device,
                             tokenizer_parallelism = tokenizer_parallelism,
                             logging_level = logging_level,
-                            return_incorrect_results = return_incorrect_results,
+                            force_return_results = force_return_results,
                             set_seed = set_seed,
                             return_tensors = return_tensors, 
                             clean_up_tokenization_spaces = clean_up_tokenization_spaces, 
@@ -410,7 +371,7 @@ def hgTransformerGetTextGeneration(text_strings,
                             device = device,
                             tokenizer_parallelism = tokenizer_parallelism,
                             logging_level = logging_level,
-                            return_incorrect_results = return_incorrect_results,
+                            force_return_results = force_return_results,
                             set_seed = set_seed,
                             #return_tensors = return_tensors, 
                             #return_text = return_text, 
@@ -425,7 +386,7 @@ def hgTransformerGetNER(text_strings,
                             device = 'cpu',
                             tokenizer_parallelism = False,
                             logging_level = 'warning',
-                            return_incorrect_results = False,
+                            force_return_results = False,
                             set_seed = None):
     ner_scores = hgTransformerGetPipeline(text_strings = text_strings,
                             task = 'ner',
@@ -433,7 +394,7 @@ def hgTransformerGetNER(text_strings,
                             device = device,
                             tokenizer_parallelism = tokenizer_parallelism,
                             logging_level = logging_level,
-                            return_incorrect_results = return_incorrect_results,
+                            force_return_results = force_return_results,
                             set_seed = set_seed)
     return ner_scores
 
@@ -443,7 +404,7 @@ def hgTransformerGetZeroShot(sequences,
                             device = 'cpu',
                             tokenizer_parallelism = False,
                             logging_level = 'warning',
-                            return_incorrect_results = False,
+                            force_return_results = False,
                             set_seed = None,
                             hypothesis_template = "This example is {}.",
                             multi_label = False):
@@ -453,7 +414,7 @@ def hgTransformerGetZeroShot(sequences,
                             device = device,
                             tokenizer_parallelism = tokenizer_parallelism,
                             logging_level = logging_level,
-                            return_incorrect_results = return_incorrect_results,
+                            force_return_results = force_return_results,
                             set_seed = set_seed,
                             sequences = sequences,
                             candidate_labels = candidate_labels,
@@ -466,17 +427,17 @@ def hgTransformerGetSentiment(text_strings,
                             device = 'cpu',
                             tokenizer_parallelism = False,
                             logging_level = 'warning',
-                            return_incorrect_results = False,
+                            force_return_results = False,
                             set_seed = None,
                             return_all_scores = False,
-                            function_to_apply = "none"):
+                            function_to_apply = None):
     sentiment_scores = hgTransformerGetPipeline(text_strings = text_strings,
                             task = 'sentiment-analysis',
                             model = model,
                             device = device,
                             tokenizer_parallelism = tokenizer_parallelism,
                             logging_level = logging_level,
-                            return_incorrect_results = return_incorrect_results,
+                            force_return_results = force_return_results,
                             set_seed = set_seed,
                             return_all_scores = return_all_scores,
                             function_to_apply = function_to_apply)
@@ -487,7 +448,7 @@ def hgTransformerGetSummarization(text_strings,
                             device = 'cpu',
                             tokenizer_parallelism = False,
                             logging_level = 'warning',
-                            return_incorrect_results = False,
+                            force_return_results = False,
                             set_seed = None,
                             return_text = True,
                             return_tensors = False,
@@ -500,7 +461,7 @@ def hgTransformerGetSummarization(text_strings,
                             device = device,
                             tokenizer_parallelism = tokenizer_parallelism,
                             logging_level = logging_level,
-                            return_incorrect_results = return_incorrect_results,
+                            force_return_results = force_return_results,
                             set_seed = set_seed,
                             return_text = return_text, 
                             return_tensors = return_tensors, 
@@ -515,7 +476,7 @@ def hgTransformerGetQA(question,
                         device = 'cpu',
                         tokenizer_parallelism = False,
                         logging_level = 'warning',
-                        return_incorrect_results = False,
+                        force_return_results = False,
                         set_seed = None,
                         top_k = 1,
                         doc_stride = 128,
@@ -529,7 +490,7 @@ def hgTransformerGetQA(question,
                             device = device,
                             tokenizer_parallelism = tokenizer_parallelism,
                             logging_level = logging_level,
-                            return_incorrect_results = return_incorrect_results,
+                            force_return_results = force_return_results,
                             set_seed = set_seed,
                             question = question, 
                             context = context, 
@@ -546,7 +507,7 @@ def hgTransformerGetTranslation(text_strings,
                             device = 'cpu',
                             tokenizer_parallelism = False,
                             logging_level = 'warning',
-                            return_incorrect_results = False,
+                            force_return_results = False,
                             set_seed = None,
                             source_lang = '',
                             target_lang = '',
@@ -563,7 +524,7 @@ def hgTransformerGetTranslation(text_strings,
                             device = device,
                             tokenizer_parallelism = tokenizer_parallelism,
                             logging_level = logging_level,
-                            return_incorrect_results = return_incorrect_results,
+                            force_return_results = force_return_results,
                             set_seed = set_seed,
                             src_lang = source_lang,
                             tgt_lang = target_lang,
@@ -583,7 +544,9 @@ def hgTransformerGetEmbedding(text_strings,
                               model_max_length = None,
                               hg_gated = False,
                               hg_token = "",
-                              logging_level = 'warning'):
+                              trust_remote_code = False,
+                              logging_level = 'warning',
+                              sentence_tokenize = True):
     """
     Simple Python method for embedding text with pretained Hugging Face models
 
@@ -611,8 +574,12 @@ def hgTransformerGetEmbedding(text_strings,
         Whether the accessed model is gated
     hg_token: str
         The token generated in huggingface website
+    trust_remote_code : bool
+        use a model with custom code on the Huggingface Hub
     logging_level : str
         set logging level, options: critical, error, warning, info, debug
+    sentence_tokenize : bool
+        tokenize long documents into sentences before embedding
 
     Returns
     -------
@@ -629,7 +596,7 @@ def hgTransformerGetEmbedding(text_strings,
     set_tokenizer_parallelism(tokenizer_parallelism)
     device, device_num = get_device(device)
 
-    config, tokenizer, transformer_model = get_model(model, hg_gated=hg_gated, hg_token=hg_token)
+    config, tokenizer, transformer_model = get_model(model, hg_gated=hg_gated, hg_token=hg_token, trust_remote_code=trust_remote_code)
 
     if device != 'cpu':
         transformer_model.to(device)
@@ -651,7 +618,7 @@ def hgTransformerGetEmbedding(text_strings,
     for text_string in text_strings:
         # if length of text_string is > max_token_to_sentence*4
         # embedd each sentence separately
-        if len(text_string) > max_token_to_sentence*4:
+        if len(text_string) > max_token_to_sentence*4 and sentence_tokenize:
             sentence_batch = [s for s in sent_tokenize(text_string)]
             if model_max_length is None:
                 batch = tokenizer(sentence_batch, padding=True, truncation=True, add_special_tokens=True)
@@ -718,6 +685,7 @@ def hgTokenizerGetTokens(text_strings,
                               model_max_length = None,
                               hg_gated = False,
                               hg_token = "",
+                              trust_remote_code = False,
                               logging_level = 'warning'):
     """
     Simple Python method for embedding text with pretained Hugging Face models
@@ -742,6 +710,8 @@ def hgTokenizerGetTokens(text_strings,
         Set to True if the accessed model is gated
     hg_token: str
         The token to access the gated model gen in hg website
+    trust_remote_code : bool
+        use a model with custom code on the Huggingface Hub
     logging_level : str
         set logging level, options: critical, error, warning, info, debug
 
@@ -759,7 +729,7 @@ def hgTokenizerGetTokens(text_strings,
     set_tokenizer_parallelism(tokenizer_parallelism)
     device, device_num = get_device(device)
 
-    tokenizer = get_model(model, tokenizer_only=True, hg_gated=hg_gated, hg_token=hg_token)
+    tokenizer = get_model(model, tokenizer_only=True, hg_gated=hg_gated, hg_token=hg_token, trust_remote_code=trust_remote_code)
 
     if device != 'cpu':
         tokenizer.to(device)

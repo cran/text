@@ -2,38 +2,33 @@
 % Please edit documentation in R/7_2_textTopicsAnalysis.R
 \name{textTopicsWordcloud}
 \alias{textTopicsWordcloud}
-\title{This functions plots wordclouds of topics from a Topic Model based on their significance
-determined by a linear or binary regression}
+\title{Plot word clouds}
 \usage{
 textTopicsWordcloud(
-  model,
-  test,
-  color_negative_cor = ggplot2::scale_color_gradient(low = "darkred", high = "red"),
-  color_positive_cor = ggplot2::scale_color_gradient(low = "darkgreen", high = "green"),
-  scale_size = FALSE,
-  plot_topics_idx = NULL,
-  p_threshold = 0.05
+  model = NULL,
+  ngrams = NULL,
+  test = NULL,
+  save_dir,
+  seed = 2024,
+  ...
 )
 }
 \arguments{
-\item{model}{(data.frame) The model returned from textTopics().}
+\item{model}{(list) A trained topics model. For examples from topicsModel(). Should be NULL if plotting ngrams.}
 
-\item{test}{(data.frame) the test returned from textTopicTest()}
+\item{ngrams}{(list) The output from the the topicsGram() function . Should be NULL if plotting topics.}
 
-\item{color_negative_cor}{(ggplot2::scale_color_gradient()) color gradient of topic cloud
-with negative correlation}
+\item{test}{(list) The test results; if plotting according to dimension(s) include the object from topicsTest() function.}
 
-\item{color_positive_cor}{(ggplot2::scale_color_gradient) color gradient of topic cloud
-with positive correlation}
+\item{save_dir}{(string) The directory to save the plots.}
 
-\item{scale_size}{(bool) if True, then the size of the topic cloud is scaled by the
-prevalence of the topic}
+\item{seed}{(integer) The seed to set for reproducibility; need to be the same seed number as in in}
 
-\item{plot_topics_idx}{(list) if specified, then only the specified topics are plotted}
-
-\item{p_threshold}{(float) set significance threshold which determines which topics are plotted}
+\item{...}{Parameters from the topicsPlot() function in the topics pacakge.}
+}
+\value{
+The function saves figures in the save_dir.
 }
 \description{
-This functions plots wordclouds of topics from a Topic Model based on their significance
-determined by a linear or binary regression
+This function create word clouds and topic fugures
 }
