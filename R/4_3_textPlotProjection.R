@@ -59,21 +59,22 @@
 #' @importFrom stats median sd setNames complete.cases
 #' @importFrom purrr as_vector
 #' @export
-textProjection <- function(words,
-                           word_embeddings,
-                           word_types_embeddings, # = word_types_embeddings_df
-                           x,
-                           y = NULL,
-                           pca = NULL,
-                           aggregation = "mean",
-                           split = "quartile",
-                           word_weight_power = 1,
-                           min_freq_words_test = 0,
-                           mean_centering = FALSE,
-                           mean_centering2 = FALSE,
-                           Npermutations = 10000,
-                           n_per_split = 50000,
-                           seed = 1003) {
+textProjection <- function(
+    words,
+    word_embeddings,
+    word_types_embeddings, # = word_types_embeddings_df
+    x,
+    y = NULL,
+    pca = NULL,
+    aggregation = "mean",
+    split = "quartile",
+    word_weight_power = 1,
+    min_freq_words_test = 0,
+    mean_centering = FALSE,
+    mean_centering2 = FALSE,
+    Npermutations = 10000,
+    n_per_split = 50000,
+    seed = 1003) {
   # This avoids breaking the Psych Method tutorial code
   # If there only is one word_types in a list, get it:
   if (length(word_types_embeddings) == 1) {
@@ -349,7 +350,7 @@ textProjection <- function(words,
 
     # Position words in relation to Group 2 (High)
     all_unique_words_freq <- unique_freq_words(x2$words)
-    # Get word embeddings for each word (applysemrep function is created in 1_1_textEmbedd).
+    # Get word embeddings for each word.
     all_unique_words_we <- lapply(all_unique_words_freq$words, applysemrep, word_types_embeddings)
     all_unique_words_we_b <- dplyr::bind_rows(all_unique_words_we)
 
@@ -384,9 +385,14 @@ textProjection <- function(words,
 
 
     # Computing the dot product projection for the aggregated and projected embeddings
+    # 1 Mars 2025 -- Anchoring aggregated word embeddings
+    Aggregated_word_embedding_group1_anchoured <- Aggregated_word_embedding_group1 - embedding_to_anchour_with[1,]
+    Aggregated_word_embedding_group2_anchoured <- Aggregated_word_embedding_group2 - embedding_to_anchour_with[1,]
+
     all_aggregated <- dplyr::bind_rows(
-      Aggregated_word_embedding_group1,
-      Aggregated_word_embedding_group2, projected_embedding
+      Aggregated_word_embedding_group1_anchoured,
+      Aggregated_word_embedding_group2_anchoured,
+      projected_embedding
     )
 
     projected_embedding_a <- tibble::as_tibble_row(projected_embedding) %>%
@@ -579,7 +585,17 @@ textProjection <- function(words,
   }
 
 
-  # }
+  ###### Adding Cohen's D #####
+  mean_null_x <- mean(aggregated_embeddings_dot_null_distribution[[1]]$dot_null_distribution.x$value, na.rm = T)
+  sd_null_x <- sd(aggregated_embeddings_dot_null_distribution[[1]]$dot_null_distribution.x$value, na.rm = T)
+  word_data_tibble$cohens_d.x <- (word_data_tibble$dot.x - mean_null_x)/sd_null_x
+
+  if(!is.null(y)){
+    mean_null_y <- mean(aggregated_embeddings_dot_null_distribution[[2]]$dot_null_distribution.y$value, na.rm = T)
+    sd_null_y <- sd(aggregated_embeddings_dot_null_distribution[[2]]$dot_null_distribution.y$value, na.rm = T)
+    word_data_tibble$cohens_d.y <- (word_data_tibble$dot.y - mean_null_y)/sd_null_y
+
+  }
 
   word_data_tibble1 <- list(aggregated_embeddings_dot_null_distribution, word_data_tibble)
   names(word_data_tibble1) <- c("background", "word_data")
@@ -588,6 +604,7 @@ textProjection <- function(words,
 
   return(word_data_tibble1)
 }
+
 
 
 #' Plot Supervised Dimension Projection
@@ -611,6 +628,7 @@ textProjection <- function(words,
 #' (i.e., even if not significant).
 #' @param plot_n_words_middle Number of words plotted that are in the middle in Supervised
 #' Dimension Projection score (i.e., even if not significant;  per dimensions, where duplicates are removed).
+#' @param plot_n_word_random (numeric) select random words to plot.
 #' @param title_top Title (default "  ")
 #' @param titles_color Color for all the titles (default: "#61605e")
 # @param x_axes If TRUE, plotting on the x_axes.
@@ -621,6 +639,7 @@ textProjection <- function(words,
 #' @param overlapping (boolean) Allow overlapping (TRUE) or disallow (FALSE) (default = TRUE).
 #' @param p_adjust_method Method to adjust/correct p-values for multiple comparisons
 #' (default = "holm"; see also "none", "hochberg", "hommel", "bonferroni", "BH", "BY",  "fdr").
+#' @param projection_metric (character) Metric to plot according to; "dot_product" or "cohens_d".
 #' @param x_axes_label Label on the x-axes.
 #' @param y_axes_label Label on the y-axes.
 #' @param scale_x_axes_lim Manually set the length of the x-axes (default = NULL, which uses
@@ -652,6 +671,7 @@ textProjection <- function(words,
 #' @param legend_w_size Width of the color legend (default 0.15).
 #' @param legend_title_size Font size (default: 7).
 #' @param legend_number_size Font size of the values in the legend (default: 2).
+#' @param legend_number_colour (string) Colour of the numbers in the box legend.
 #' @param group_embeddings1 Shows a point representing the aggregated word embedding for group 1 (default = FALSE).
 #' @param group_embeddings2 Shows a point representing the aggregated word embedding for group 2 (default = FALSE).
 #' @param projection_embedding Shows a point representing the aggregated direction embedding (default = FALSE).
@@ -717,65 +737,70 @@ textProjection <- function(words,
 #' @importFrom purrr as_vector
 #' @importFrom stringi stri_split_boundaries
 #' @export
-textProjectionPlot <- function(word_data,
-                               k_n_words_to_test = FALSE,
-                               min_freq_words_test = 1,
-                               min_freq_words_plot = 1,
-                               plot_n_words_square = 3,
-                               plot_n_words_p = 5,
-                               plot_n_word_extreme = 5,
-                               plot_n_word_frequency = 5,
-                               plot_n_words_middle = 5,
-                               titles_color = "#61605e",
-                               y_axes = FALSE,
-                               p_alpha = 0.05,
-                               overlapping = TRUE,
-                               p_adjust_method = "none",
-                               title_top = "Supervised Dimension Projection",
-                               x_axes_label = "Supervised Dimension Projection (SDP)",
-                               y_axes_label = "Supervised Dimension Projection (SDP)",
-                               scale_x_axes_lim = NULL,
-                               scale_y_axes_lim = NULL,
-                               word_font = NULL,
-                               bivariate_color_codes = c(
-                                 "#398CF9", "#60A1F7", "#5dc688",
-                                 "#e07f6a", "#EAEAEA", "#40DD52",
-                                 "#FF0000", "#EA7467", "#85DB8E"
-                               ),
-                               word_size_range = c(3, 8),
-                               position_jitter_hight = .0,
-                               position_jitter_width = .03,
-                               point_size = 0.5,
-                               arrow_transparency = 0.1,
-                               points_without_words_size = 0.2,
-                               points_without_words_alpha = 0.2,
-                               legend_title = "SDP",
-                               legend_x_axes_label = "x",
-                               legend_y_axes_label = "y",
-                               legend_x_position = 0.02,
-                               legend_y_position = 0.02,
-                               legend_h_size = 0.2,
-                               legend_w_size = 0.2,
-                               legend_title_size = 7,
-                               legend_number_size = 2,
-                               group_embeddings1 = FALSE,
-                               group_embeddings2 = FALSE,
-                               projection_embedding = FALSE,
-                               aggregated_point_size = 0.8,
-                               aggregated_shape = 8,
-                               aggregated_color_G1 = "black",
-                               aggregated_color_G2 = "black",
-                               projection_color = "blue",
-                               seed = 1005,
-                               explore_words = NULL,
-                               explore_words_color = "#ad42f5",
-                               explore_words_point = "ALL_1",
-                               explore_words_aggregation = "mean",
-                               remove_words = NULL,
-                               n_contrast_group_color = NULL,
-                               n_contrast_group_remove = FALSE,
-                               space = NULL,
-                               scaling = FALSE) {
+textProjectionPlot <- function(
+    word_data,
+    k_n_words_to_test = FALSE,
+    min_freq_words_test = 1,
+    min_freq_words_plot = 1,
+    plot_n_words_square = 3,
+    plot_n_words_p = 5,
+    plot_n_word_extreme = 5,
+    plot_n_word_frequency = 5,
+    plot_n_words_middle = 5,
+    plot_n_word_random = 0,
+    titles_color = "#61605e",
+    y_axes = FALSE,
+    p_alpha = 0.05,
+    overlapping = TRUE,
+    p_adjust_method = "none",
+    projection_metric = "dot_product",
+    title_top = "Supervised Dimension Projection",
+    x_axes_label = "Supervised Dimension Projection (SDP)",
+    y_axes_label = "Supervised Dimension Projection (SDP)",
+    scale_x_axes_lim = NULL,
+    scale_y_axes_lim = NULL,
+    word_font = NULL,
+    bivariate_color_codes = c(
+      "#398CF9", "#60A1F7", "#5dc688",
+      "#e07f6a", "#EAEAEA", "#40DD52",
+      "#FF0000", "#EA7467", "#85DB8E"
+    ),
+    word_size_range = c(3, 8),
+    position_jitter_hight = .0,
+    position_jitter_width = .03,
+    point_size = 0.5,
+    arrow_transparency = 0.1,
+    points_without_words_size = 0.2,
+    points_without_words_alpha = 0.2,
+    legend_title = "SDP",
+    legend_x_axes_label = "x",
+    legend_y_axes_label = "y",
+    legend_x_position = 0.02,
+    legend_y_position = 0.02,
+    legend_h_size = 0.2,
+    legend_w_size = 0.2,
+    legend_title_size = 7,
+    legend_number_size = 2,
+    legend_number_colour = "white",
+    group_embeddings1 = FALSE,
+    group_embeddings2 = FALSE,
+    projection_embedding = FALSE,
+    aggregated_point_size = 0.8,
+    aggregated_shape = 8,
+    aggregated_color_G1 = "black",
+    aggregated_color_G2 = "black",
+    projection_color = "blue",
+    seed = 1005,
+    explore_words = NULL,
+    explore_words_color = "#ad42f5",
+    explore_words_point = "ALL_1",
+    explore_words_aggregation = "mean",
+    remove_words = NULL,
+    n_contrast_group_color = NULL,
+    n_contrast_group_remove = FALSE,
+    space = NULL,
+    scaling = FALSE) {
+
   plot <- textPlot(
     word_data = word_data,
     k_n_words_to_test = k_n_words_to_test,
@@ -786,11 +811,13 @@ textProjectionPlot <- function(word_data,
     plot_n_word_extreme = plot_n_word_extreme,
     plot_n_word_frequency = plot_n_word_frequency,
     plot_n_words_middle = plot_n_words_middle,
+    plot_n_word_random = plot_n_word_random,
     titles_color = titles_color,
     y_axes = y_axes,
     p_alpha = p_alpha,
     overlapping = overlapping,
     p_adjust_method = p_adjust_method,
+    projection_metric = projection_metric,
     title_top = title_top,
     x_axes_label = x_axes_label,
     y_axes_label = y_axes_label,
@@ -814,6 +841,7 @@ textProjectionPlot <- function(word_data,
     legend_w_size = legend_w_size,
     legend_title_size = legend_title_size,
     legend_number_size = legend_number_size,
+    legend_number_colour = legend_number_colour,
     group_embeddings1 = group_embeddings1,
     group_embeddings2 = group_embeddings2,
     projection_embedding = projection_embedding,

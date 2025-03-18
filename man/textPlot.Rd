@@ -12,13 +12,16 @@ textPlot(
   plot_n_words_square = 3,
   plot_n_words_p = 5,
   plot_n_word_extreme = 5,
+  plot_n_word_extreme_xy = 0,
   plot_n_word_frequency = 5,
   plot_n_words_middle = 5,
+  plot_n_word_random = 0,
   titles_color = "#61605e",
   y_axes = FALSE,
   p_alpha = 0.05,
   overlapping = TRUE,
   p_adjust_method = "none",
+  projection_metric = "dot_product",
   title_top = "Supervised Dimension Projection",
   x_axes_label = "Supervised Dimension Projection (SDP)",
   y_axes_label = "Supervised Dimension Projection (SDP)",
@@ -43,6 +46,7 @@ textPlot(
   legend_w_size = 0.2,
   legend_title_size = 7,
   legend_number_size = 2,
+  legend_number_colour = "white",
   group_embeddings1 = FALSE,
   group_embeddings2 = FALSE,
   projection_embedding = FALSE,
@@ -85,8 +89,14 @@ selects first according to lowest p-value and then according to frequency (defau
 dimensional plot it is possible that plot_n_words_p = 1 yield 4 words.}
 
 \item{plot_n_word_extreme}{Number of words that are extreme on Supervised Dimension
-Projection per dimension (default = 5). (i.e., even if not significant; per dimensions,
+Projection per dimension. (i.e., even if not significant; per dimension,
 where duplicates are removed).}
+
+\item{plot_n_word_extreme_xy}{Number of words that are extreme in both x and y dimensions,
+considering overall distance from the origin in the Supervised Dimension Projection space.
+This selects words based on their combined extremity score, calculated as
+the Euclidean distance from (0,0). Ensures balance across all nine squares by selecting
+at least one extreme word per square if available.}
 
 \item{plot_n_word_frequency}{Number of words based on being most frequent (default = 5).
 (i.e., even if not significant).}
@@ -94,6 +104,8 @@ where duplicates are removed).}
 \item{plot_n_words_middle}{Number of words plotted that are in the middle in Supervised
 Dimension Projection score (default = 5). (i.e., even if not significant;  per dimensions,
 where duplicates are removed).}
+
+\item{plot_n_word_random}{(numeric) select random words to plot.}
 
 \item{titles_color}{Color for all the titles (default: "#61605e").}
 
@@ -107,6 +119,8 @@ textProjection function has to have had a variable on the y-axes.}
 
 \item{p_adjust_method}{(character) Method to adjust/correct p-values for multiple comparisons
 (default = "none"; see also "holm", "hochberg", "hommel", "bonferroni", "BH", "BY",  "fdr").}
+
+\item{projection_metric}{(character) Metric to plot according to; "dot_product" or "cohens_d".}
 
 \item{title_top}{Title (default "  ").}
 
@@ -162,6 +176,8 @@ ggplot2::scale_y_continuous(limits = scale_y_axes_lim); change e.g., by trying c
 \item{legend_title_size}{Font size (default: 7).}
 
 \item{legend_number_size}{Font size of the values in the legend (default: 2).}
+
+\item{legend_number_colour}{(string) Colour of the numbers in the box legend.}
 
 \item{group_embeddings1}{(boolean) Shows a point representing the aggregated word embedding
 for group 1 (default = FALSE).}

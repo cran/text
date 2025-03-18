@@ -14,11 +14,13 @@ textProjectionPlot(
   plot_n_word_extreme = 5,
   plot_n_word_frequency = 5,
   plot_n_words_middle = 5,
+  plot_n_word_random = 0,
   titles_color = "#61605e",
   y_axes = FALSE,
   p_alpha = 0.05,
   overlapping = TRUE,
   p_adjust_method = "none",
+  projection_metric = "dot_product",
   title_top = "Supervised Dimension Projection",
   x_axes_label = "Supervised Dimension Projection (SDP)",
   y_axes_label = "Supervised Dimension Projection (SDP)",
@@ -43,6 +45,7 @@ textProjectionPlot(
   legend_w_size = 0.2,
   legend_title_size = 7,
   legend_number_size = 2,
+  legend_number_colour = "white",
   group_embeddings1 = FALSE,
   group_embeddings2 = FALSE,
   projection_embedding = FALSE,
@@ -91,6 +94,8 @@ plot_n_words_p = 1 yield 4 words.}
 \item{plot_n_words_middle}{Number of words plotted that are in the middle in Supervised
 Dimension Projection score (i.e., even if not significant;  per dimensions, where duplicates are removed).}
 
+\item{plot_n_word_random}{(numeric) select random words to plot.}
+
 \item{titles_color}{Color for all the titles (default: "#61605e")}
 
 \item{y_axes}{If TRUE, also plotting on the y-axes (default is FALSE). Also plotting on
@@ -103,6 +108,8 @@ have had a variable on the y-axes.}
 
 \item{p_adjust_method}{Method to adjust/correct p-values for multiple comparisons
 (default = "holm"; see also "none", "hochberg", "hommel", "bonferroni", "BH", "BY",  "fdr").}
+
+\item{projection_metric}{(character) Metric to plot according to; "dot_product" or "cohens_d".}
 
 \item{title_top}{Title (default "  ")}
 
@@ -158,6 +165,8 @@ squares of the legend will then be aggregated (and show the same, incorrect  val
 \item{legend_title_size}{Font size (default: 7).}
 
 \item{legend_number_size}{Font size of the values in the legend (default: 2).}
+
+\item{legend_number_colour}{(string) Colour of the numbers in the box legend.}
 
 \item{group_embeddings1}{Shows a point representing the aggregated word embedding for group 1 (default = FALSE).}
 

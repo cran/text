@@ -7,6 +7,12 @@ library(ggplot2)
 #
 # .rs.restartR()
 #help(textrpp_initialize)
+#textrpp_install()
+#text::textrpp_initialize()
+#text::textrpp_initialize(
+#  save_profile = TRUE,
+#  condaenv = "textrpp_condaenv",
+#  refresh_settings = TRUE)
 #textrpp_initialize(
 #  condaenv = "berttopic2",
 #  refresh_settings = TRUE
@@ -39,7 +45,7 @@ test_that("Bertopic", {
                            embedding_model = "distilroberta",
                            min_df = 2,
                            set_seed = 42,
-                           save_dir= save_dir_temp)
+                           save_dir = save_dir_temp)
 
   testthat::expect_equal(bert_model$preds$t_1[2],
                          .1115696,
@@ -59,7 +65,7 @@ test_that("Bertopic", {
 #  Testing  how individual topics are associated with "score"
   test2 <- text::textTopicsTest(
     model = bert_model,
-    pred_var_x = "score",
+    x_variable = "score",
     test_method = "linear_regression"
     )
 
@@ -67,14 +73,6 @@ test_that("Bertopic", {
 #                         .1056764,
 #                         tolerance = 0.0001)
 
-  plots <- text::textTopicsWordcloud(
-    model = bert_model,
-    test = test2,
-   # p_alpha = 0.05,
-    figure_format = "png",
-   seed = 42,
-    save_dir = save_dir_temp
-  )
 
   plots <- text::textTopicsWordcloud(
     model = bert_model,
@@ -82,6 +80,17 @@ test_that("Bertopic", {
     figure_format = "png",
     seed = 42,
   )
+
+#  plots <- text::textTopicsWordcloud(
+#    model = bert_model,
+#    test = test2,
+#   # p_alpha = 0.05,
+#    figure_format = "png",
+#   seed = 42,
+#    save_dir = save_dir_temp
+#  )
+
+
 
   }
 })

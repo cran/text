@@ -2,6 +2,27 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+# text 1.4
+- adding `cv_method` = "group_cv" in the `textTrainRegression()``` function. 
+
+# text 1.3.6
+- fixing python dependency (aiohappyeyeballs)
+- adding parameter `plot_n_word_random` and `legend_number_colour` in textPlot. 
+- removed `nltk` warning when running the functions requiring pyhon.
+- anchouring group word embeddings in the `textProjection()` function.
+- adding cohen's d to the output of the `textProjection()` function
+
+# text 1.3.4
+- harmonizing wordclouds with topics-package
+- implementing `textTrainExamples()`
+- updating legend plots.
+
+## Result change
+- # Result change: Updating the workflows package from version "1.1.4"  to "1.2.0" result in changes in the random forest function tests.
+
+# text 1.3.1
+- included parameter `highest_parameter` and `lowest_parameter` when parameters are tied. 
+
 # text 1.3.0
 - Alias function: `textPredict()`, `textAssess()` and `textClassify()`.
 - LBAM integration with `textLBAM()`.

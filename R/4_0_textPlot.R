@@ -3,38 +3,39 @@
 #' Creates the plot object (except for the legend).
 #' @return A plot object.
 #' @noRd
-textPlotting <- function(word_data_all = word_data_all,
-                         word_data_all_yadjusted = word_data_all_yadjusted,
-                         only_x_dimension = only_x_dimension,
-                         x_axes_1 = x_axes_1,
-                         y_axes_1 = y_axes_1,
-                         group_embeddings1 = group_embeddings1,
-                         group_embeddings2 = group_embeddings2,
-                         projection_embedding = projection_embedding,
-                         label = words,
-                         points_without_words_size = points_without_words_size,
-                         points_without_words_alpha = points_without_words_alpha,
-                         colour_categories = colour_categories,
-                         arrow_transparency = arrow_transparency,
-                         scale_x_axes_lim = scale_x_axes_lim,
-                         scale_y_axes_lim = scale_y_axes_lim,
-                         position_jitter_hight = position_jitter_hight,
-                         position_jitter_width = position_jitter_width,
-                         word_font = word_font,
-                         point_size = point_size,
-                         aggregated_embeddings_data = aggregated_embeddings_data,
-                         aggregated_point_size = aggregated_point_size,
-                         aggregated_shape = aggregated_shape,
-                         aggregated_color_G1 = aggregated_color_G1,
-                         aggregated_color_G2 = aggregated_color_G2,
-                         projection_color = projection_color,
-                         word_size_range = word_size_range,
-                         # titles
-                         title_top = title_top,
-                         titles_color = titles_color,
-                         x_axes_label = x_axes_label,
-                         y_axes_label = y_axes_label,
-                         y_axes_values = y_axes_values) {
+textPlotting <- function(
+    word_data_all = word_data_all,
+    word_data_all_yadjusted = word_data_all_yadjusted,
+    only_x_dimension = only_x_dimension,
+    x_axes_1 = x_axes_1,
+    y_axes_1 = y_axes_1,
+    group_embeddings1 = group_embeddings1,
+    group_embeddings2 = group_embeddings2,
+    projection_embedding = projection_embedding,
+    label = words,
+    points_without_words_size = points_without_words_size,
+    points_without_words_alpha = points_without_words_alpha,
+    colour_categories = colour_categories,
+    arrow_transparency = arrow_transparency,
+    scale_x_axes_lim = scale_x_axes_lim,
+    scale_y_axes_lim = scale_y_axes_lim,
+    position_jitter_hight = position_jitter_hight,
+    position_jitter_width = position_jitter_width,
+    word_font = word_font,
+    point_size = point_size,
+    aggregated_embeddings_data = aggregated_embeddings_data,
+    aggregated_point_size = aggregated_point_size,
+    aggregated_shape = aggregated_shape,
+    aggregated_color_G1 = aggregated_color_G1,
+    aggregated_color_G2 = aggregated_color_G2,
+    projection_color = projection_color,
+    word_size_range = word_size_range,
+    # titles
+    title_top = title_top,
+    titles_color = titles_color,
+    x_axes_label = x_axes_label,
+    y_axes_label = y_axes_label,
+    y_axes_values = y_axes_values) {
   plot <-
     # construct ggplot; the !!sym( ) is to  turn the strings into symbols.
     ggplot2::ggplot(data = word_data_all, ggplot2::aes(!!rlang::sym(x_axes_1), !!rlang::sym(y_axes_1), label = words)) +
@@ -136,16 +137,19 @@ textPlotting <- function(word_data_all = word_data_all,
 #' Creates the legend for the plot.
 #' @return A legend object that can be combined with the plot object.
 #' @noRd
-textLegend <- function(bivariate_color_codes = bivariate_color_codes,
-                       y_axes_1 = y_axes_1,
-                       fill = fill,
-                       legend_title = legend_title,
-                       legend_title_size = legend_title_size,
-                       legend_x_axes_label = legend_x_axes_label,
-                       legend_y_axes_label = legend_y_axes_label,
-                       word_data_all = word_data_all,
-                       legend_number_size = legend_number_size,
-                       titles_color = titles_color) {
+textLegend <- function(
+    bivariate_color_codes = bivariate_color_codes,
+    y_axes_1 = y_axes_1,
+    fill = fill,
+    legend_title = legend_title,
+    legend_title_size = legend_title_size,
+    legend_x_axes_label = legend_x_axes_label,
+    legend_y_axes_label = legend_y_axes_label,
+    word_data_all = word_data_all,
+    legend_number_size = legend_number_size,
+    legend_number_colour = legend_number_colour,
+    titles_color = titles_color) {
+
   bivariate_color_data <- tibble::tibble(
     "1 - 3" = "#XXXXXX", "2 - 3" = "#XXXXXX", "3 - 3" = "#XXXXXX",
     "1 - 2" = "#XXXXXX", "2 - 2" = "#XXXXXX", "3 - 2" = "#XXXXXX",
@@ -187,7 +191,7 @@ textLegend <- function(bivariate_color_codes = bivariate_color_codes,
           geom = "text", x = 1, y = 3, label = sum(word_data_all$colour_categories == bivariate_color_codes[1],
             na.rm = TRUE
           ),
-          color = titles_color, size = legend_number_size
+          color = legend_number_colour, size = legend_number_size
         )
       }
     } +
@@ -197,7 +201,7 @@ textLegend <- function(bivariate_color_codes = bivariate_color_codes,
           geom = "text", x = 2, y = 3, label = sum(word_data_all$colour_categories == bivariate_color_codes[2],
             na.rm = TRUE
           ),
-          color = titles_color, size = legend_number_size
+          color = legend_number_colour, size = legend_number_size
         )
       }
     } +
@@ -207,7 +211,7 @@ textLegend <- function(bivariate_color_codes = bivariate_color_codes,
           geom = "text", x = 3, y = 3, label = sum(word_data_all$colour_categories == bivariate_color_codes[3],
             na.rm = TRUE
           ),
-          color = titles_color, size = legend_number_size
+          color = legend_number_colour, size = legend_number_size
         )
       }
     } +
@@ -215,19 +219,19 @@ textLegend <- function(bivariate_color_codes = bivariate_color_codes,
       geom = "text", x = 1, y = 2, label = sum(word_data_all$colour_categories == bivariate_color_codes[4],
         na.rm = TRUE
       ),
-      color = titles_color, size = legend_number_size
+      color = legend_number_colour, size = legend_number_size
     ) +
     ggplot2::annotate(
       geom = "text", x = 2, y = 2, label = sum(word_data_all$colour_categories == bivariate_color_codes[5],
         na.rm = TRUE
       ),
-      color = titles_color, size = legend_number_size
+      color = legend_number_colour, size = legend_number_size
     ) +
     ggplot2::annotate(
       geom = "text", x = 3, y = 2, label = sum(word_data_all$colour_categories == bivariate_color_codes[6],
         na.rm = TRUE
       ),
-      color = titles_color, size = legend_number_size
+      color = legend_number_colour, size = legend_number_size
     ) +
     {
       if (y_axes_1 != "only_x_dimension") {
@@ -235,7 +239,7 @@ textLegend <- function(bivariate_color_codes = bivariate_color_codes,
           geom = "text", x = 1, y = 1, label = sum(word_data_all$colour_categories == bivariate_color_codes[7],
             na.rm = TRUE
           ),
-          color = titles_color, size = legend_number_size
+          color = legend_number_colour, size = legend_number_size
         )
       }
     } +
@@ -245,7 +249,7 @@ textLegend <- function(bivariate_color_codes = bivariate_color_codes,
           geom = "text", x = 2, y = 1, label = sum(word_data_all$colour_categories == bivariate_color_codes[8],
             na.rm = TRUE
           ),
-          color = titles_color, size = legend_number_size
+          color = legend_number_colour, size = legend_number_size
         )
       }
     } +
@@ -255,7 +259,7 @@ textLegend <- function(bivariate_color_codes = bivariate_color_codes,
           geom = "text", x = 3, y = 1, label = sum(word_data_all$colour_categories == bivariate_color_codes[9],
             na.rm = TRUE
           ),
-          color = titles_color, size = legend_number_size
+          color = legend_number_colour, size = legend_number_size
         )
       }
     } +
@@ -314,7 +318,8 @@ textOwnWordsProjection <- function(word_data = word_data,
       aggregation_word_text <- sub(".*aggregation_from_tokens_to_word_types =  ", "", text_plot_comment)
       aggregation_word_type <- sub("  ; decontextualize.*", "", aggregation_word_text)
 
-      explore_words_embeddings <- textEmbed(explore_words[i_add_w],
+      explore_words_embeddings <- text_embed(
+        explore_words[i_add_w],
         model = model_name,
         layers = as.numeric(layers_number_split[[1]]),
         aggregation_from_layers_to_tokens = aggregate_layers_type,
@@ -508,7 +513,8 @@ textOwnWordPrediction <- function(word_data = word_data,
       aggregation_word_text <- sub(".*aggregation_from_tokens_to_word_types =  ", "", text_plot_comment)
       aggregation_word_type <- sub("  ; decontextualize.*", "", aggregation_word_text)
 
-      explore_words_embeddings <- textEmbed(explore_words[i_add_w],
+      explore_words_embeddings <- text_embed(
+        explore_words[i_add_w],
         model = model_name,
         layers = as.numeric(layers_number_split[[1]]),
         aggregation_from_layers_to_tokens = aggregate_layers_type,
@@ -584,8 +590,11 @@ textOwnWordPrediction <- function(word_data = word_data,
 #' Find out plot type to be plotted and adjust word_data columns accordingly.
 #' @return word_data with generically called columns that can run in textPlot.
 #' @noRd
-adjust_for_plot_type <- function(word_data,
-                                 y_axes) {
+adjust_for_plot_type <- function(
+    word_data,
+    y_axes,
+    projection_metric = NULL
+    ) {
   type_text <- sub(".*type = ", "", comment(word_data))
   type_name <- sub(" .*", "", type_text)
 
@@ -602,10 +611,22 @@ adjust_for_plot_type <- function(word_data,
 
   if (type_name == "textProjection") {
     colnames(word_data$word_data)[which(names(word_data$word_data) == "p_values_dot.x")] <- "p_values_x"
-    colnames(word_data$word_data)[which(names(word_data$word_data) == "dot.x")] <- "x_plotted"
+
+    if (projection_metric == "dot_product"){
+      colnames(word_data$word_data)[which(names(word_data$word_data) == "dot.x")] <- "x_plotted"
+    } else if (projection_metric == "cohens_d"){
+      colnames(word_data$word_data)[which(names(word_data$word_data) == "cohens_d.x")] <- "x_plotted"
+    }
+
     if (y_axes) {
       colnames(word_data$word_data)[which(names(word_data$word_data) == "p_values_dot.y")] <- "p_values_y"
-      colnames(word_data$word_data)[which(names(word_data$word_data) == "dot.y")] <- "y_plotted"
+
+      if (projection_metric == "dot_product"){
+        colnames(word_data$word_data)[which(names(word_data$word_data) == "dot.y")] <- "y_plotted"
+      } else if (projection_metric == "cohens_d"){
+        colnames(word_data$word_data)[which(names(word_data$word_data) == "cohens_d.y")] <- "y_plotted"
+      }
+
     }
   }
   return(word_data)
@@ -630,13 +651,19 @@ adjust_for_plot_type <- function(word_data,
 #' selects first according to lowest p-value and then according to frequency (default = 5). Hence, on a two
 #' dimensional plot it is possible that plot_n_words_p = 1 yield 4 words.
 #' @param plot_n_word_extreme Number of words that are extreme on Supervised Dimension
-#' Projection per dimension (default = 5). (i.e., even if not significant; per dimensions,
+#' Projection per dimension. (i.e., even if not significant; per dimension,
 #' where duplicates are removed).
+#' @param plot_n_word_extreme_xy Number of words that are extreme in both x and y dimensions,
+#' considering overall distance from the origin in the Supervised Dimension Projection space.
+#' This selects words based on their combined extremity score, calculated as
+#' the Euclidean distance from (0,0). Ensures balance across all nine squares by selecting
+#' at least one extreme word per square if available.
 #' @param plot_n_word_frequency Number of words based on being most frequent (default = 5).
 #' (i.e., even if not significant).
 #' @param plot_n_words_middle Number of words plotted that are in the middle in Supervised
 #' Dimension Projection score (default = 5). (i.e., even if not significant;  per dimensions,
 #' where duplicates are removed).
+#' @param plot_n_word_random (numeric) select random words to plot.
 #' @param title_top Title (default "  ").
 #' @param titles_color Color for all the titles (default: "#61605e").
 # @param x_axes If TRUE, plotting on the x_axes.
@@ -647,6 +674,7 @@ adjust_for_plot_type <- function(word_data,
 #' @param overlapping (boolean) Allow overlapping (TRUE) or disallow (FALSE) (default = TRUE).
 #' @param p_adjust_method (character) Method to adjust/correct p-values for multiple comparisons
 #' (default = "none"; see also "holm", "hochberg", "hommel", "bonferroni", "BH", "BY",  "fdr").
+#' @param projection_metric (character) Metric to plot according to; "dot_product" or "cohens_d".
 #' @param x_axes_label (character) Label on the x-axes (default = "Supervised Dimension Projection (SDP)").
 #' @param y_axes_label (character) Label on the y-axes (default = "Supervised Dimension Projection (SDP)").
 #' @param scale_x_axes_lim Manually set the length of the x-axes (default = NULL, which uses
@@ -678,6 +706,7 @@ adjust_for_plot_type <- function(word_data,
 #' @param legend_w_size Width of the color legend (default 0.15).
 #' @param legend_title_size Font size (default: 7).
 #' @param legend_number_size Font size of the values in the legend (default: 2).
+#' @param legend_number_colour (string) Colour of the numbers in the box legend.
 #' @param group_embeddings1 (boolean) Shows a point representing the aggregated word embedding
 #' for group 1 (default = FALSE).
 #' @param group_embeddings2 (boolean) Shows a point representing the aggregated word embedding
@@ -745,65 +774,71 @@ adjust_for_plot_type <- function(word_data,
 #' @importFrom purrr as_vector
 #' @importFrom stringi stri_split_boundaries
 #' @export
-textPlot <- function(word_data,
-                     k_n_words_to_test = FALSE,
-                     min_freq_words_test = 1,
-                     min_freq_words_plot = 1,
-                     plot_n_words_square = 3,
-                     plot_n_words_p = 5,
-                     plot_n_word_extreme = 5,
-                     plot_n_word_frequency = 5,
-                     plot_n_words_middle = 5,
-                     titles_color = "#61605e",
-                     y_axes = FALSE,
-                     p_alpha = 0.05,
-                     overlapping = TRUE,
-                     p_adjust_method = "none",
-                     title_top = "Supervised Dimension Projection",
-                     x_axes_label = "Supervised Dimension Projection (SDP)",
-                     y_axes_label = "Supervised Dimension Projection (SDP)",
-                     scale_x_axes_lim = NULL,
-                     scale_y_axes_lim = NULL,
-                     word_font = NULL,
-                     bivariate_color_codes = c(
-                       "#398CF9", "#60A1F7", "#5dc688",
-                       "#e07f6a", "#EAEAEA", "#40DD52",
-                       "#FF0000", "#EA7467", "#85DB8E"
-                     ),
-                     word_size_range = c(3, 8),
-                     position_jitter_hight = .0,
-                     position_jitter_width = .03,
-                     point_size = 0.5,
-                     arrow_transparency = 0.1,
-                     points_without_words_size = 0.2,
-                     points_without_words_alpha = 0.2,
-                     legend_title = "SDP",
-                     legend_x_axes_label = "x",
-                     legend_y_axes_label = "y",
-                     legend_x_position = 0.02,
-                     legend_y_position = 0.02,
-                     legend_h_size = 0.2,
-                     legend_w_size = 0.2,
-                     legend_title_size = 7,
-                     legend_number_size = 2,
-                     group_embeddings1 = FALSE,
-                     group_embeddings2 = FALSE,
-                     projection_embedding = FALSE,
-                     aggregated_point_size = 0.8,
-                     aggregated_shape = 8,
-                     aggregated_color_G1 = "black",
-                     aggregated_color_G2 = "black",
-                     projection_color = "blue",
-                     seed = 1005,
-                     explore_words = NULL,
-                     explore_words_color = "#ad42f5",
-                     explore_words_point = "ALL_1",
-                     explore_words_aggregation = "mean",
-                     remove_words = NULL,
-                     n_contrast_group_color = NULL,
-                     n_contrast_group_remove = FALSE,
-                     space = NULL,
-                     scaling = FALSE) {
+textPlot <- function(
+    word_data,
+    k_n_words_to_test = FALSE,
+    min_freq_words_test = 1,
+    min_freq_words_plot = 1,
+    plot_n_words_square = 3,
+    plot_n_words_p = 5,
+    plot_n_word_extreme = 5,
+    plot_n_word_extreme_xy = 0,
+    plot_n_word_frequency = 5,
+    plot_n_words_middle = 5,
+    plot_n_word_random = 0,
+    titles_color = "#61605e",
+    y_axes = FALSE,
+    p_alpha = 0.05,
+    overlapping = TRUE,
+    p_adjust_method = "none",
+    projection_metric = "dot_product",
+    title_top = "Supervised Dimension Projection",
+    x_axes_label = "Supervised Dimension Projection (SDP)",
+    y_axes_label = "Supervised Dimension Projection (SDP)",
+    scale_x_axes_lim = NULL,
+    scale_y_axes_lim = NULL,
+    word_font = NULL,
+    bivariate_color_codes = c(
+      "#398CF9", "#60A1F7", "#5dc688",
+      "#e07f6a", "#EAEAEA", "#40DD52",
+      "#FF0000", "#EA7467", "#85DB8E"
+    ),
+    word_size_range = c(3, 8),
+    position_jitter_hight = .0,
+    position_jitter_width = .03,
+    point_size = 0.5,
+    arrow_transparency = 0.1,
+    points_without_words_size = 0.2,
+    points_without_words_alpha = 0.2,
+    legend_title = "SDP",
+    legend_x_axes_label = "x",
+    legend_y_axes_label = "y",
+    legend_x_position = 0.02,
+    legend_y_position = 0.02,
+    legend_h_size = 0.2,
+    legend_w_size = 0.2,
+    legend_title_size = 7,
+    legend_number_size = 2,
+    legend_number_colour = "white",
+    group_embeddings1 = FALSE,
+    group_embeddings2 = FALSE,
+    projection_embedding = FALSE,
+    aggregated_point_size = 0.8,
+    aggregated_shape = 8,
+    aggregated_color_G1 = "black",
+    aggregated_color_G2 = "black",
+    projection_color = "blue",
+    seed = 1005,
+    explore_words = NULL,
+    explore_words_color = "#ad42f5",
+    explore_words_point = "ALL_1",
+    explore_words_aggregation = "mean",
+    remove_words = NULL,
+    n_contrast_group_color = NULL,
+    n_contrast_group_remove = FALSE,
+    space = NULL,
+    scaling = FALSE) {
+
   ##### Comment to be saved ####
   text_plot_comment <- paste(
     "INFORMATION ABOUT THE PROJECTION",
@@ -821,7 +856,8 @@ textPlot <- function(word_data,
     "y_axes =", y_axes,
     "p_alpha =", p_alpha,
     "overlapping", overlapping,
-    "p_adjust_method =", p_adjust_method,
+    "p_adjust_method = ", p_adjust_method,
+    "projection_metric = ", projection_metric,
     "bivariate_color_codes =", paste(bivariate_color_codes, collapse = " "),
     "word_size_range =", paste(word_size_range, sep = "-", collapse = " - "),
     "position_jitter_hight =", position_jitter_hight,
@@ -835,7 +871,8 @@ textPlot <- function(word_data,
     "legend_h_size =", legend_h_size,
     "legend_w_size =", legend_w_size,
     "legend_title_size =", legend_title_size,
-    "legend_number_size =", legend_number_size
+    "legend_number_size =", legend_number_size,
+    "legend_number_colour =", legend_number_colour
   )
 
   set.seed(seed)
@@ -846,15 +883,28 @@ textPlot <- function(word_data,
   # Renaming column names from different types of word_data
   word_data <- adjust_for_plot_type(
     word_data = word_data,
-    y_axes = y_axes
+    y_axes = y_axes,
+    projection_metric = projection_metric
   )
+
+  # Set Metric to use for plotting
   x_axes_1 <- "x_plotted"
+#  if(projection_metric == "cohens_d"){
+#    x_axes_1 <- "cohens_d.x"
+#  }
+
   p_values_x <- "p_values_x"
 
   if (y_axes == TRUE) {
+
     y_axes_1 <- "y_plotted"
+#    if(projection_metric == "cohens_d"){
+#      y_axes_1 <- "cohens_d.y"
+#    }
+
     p_values_y <- "p_values_y"
     y_axes_values_hide <- FALSE
+
   } else if (y_axes == FALSE) {
     y_axes_1 <- NULL
     p_values_y <- NULL
@@ -1003,6 +1053,20 @@ textPlot <- function(word_data,
     dplyr::arrange(-n) %>%
     dplyr::slice(0:plot_n_word_frequency)
 
+  # 2025 7 Mars Add random set of words plot_n_word_random = 10
+  # Identify all selected words
+  selected_words_x <- dplyr::bind_rows(
+    data_p_x_neg, data_p_x_pos,
+    word_data1_extrem_max_x, word_data1_extrem_min_x,
+    word_data1_frequency_x
+  ) %>%
+    dplyr::distinct(words)
+
+  # Exclude selected words and sample random words from the remaining
+  word_data1_random_x <- word_data1 %>%
+    dplyr::anti_join(selected_words_x, by = "words") %>%  # Exclude words already selected
+    dplyr::sample_n(min(plot_n_word_random, n()))  # Ensure it does not exceed available words
+
   # Select the middle range, order according to frequency and then select the plot_n_words_middle = 5
   mean_m_sd_x <- mean(word_data1$x_plotted, na.rm = TRUE) - (sd(word_data1$x_plotted, na.rm = TRUE) / 10)
   mean_p_sd_x <- mean(word_data1$x_plotted, na.rm = TRUE) + (sd(word_data1$x_plotted, na.rm = TRUE) / 10)
@@ -1026,9 +1090,11 @@ textPlot <- function(word_data,
                        dplyr::transmute(words, check_extreme_frequency_x = 1), by = "words") %>%
     dplyr::left_join(word_data1_middle_x %>%
                        dplyr::transmute(words, check_middle_x = 1), by = "words") %>%
+    dplyr::left_join(word_data1_random_x %>%
+                       dplyr::transmute(words, check_random_x = 1), by = "words") %>%  # Adding the random selection
     dplyr::mutate(extremes_all_x = rowSums(cbind(
       check_p_square, check_p_x_neg, check_p_x_pos, check_extreme_max_x, check_extreme_min_x,
-      check_extreme_frequency_x, check_middle_x
+      check_extreme_frequency_x, check_middle_x, check_random_x
     ), na.rm = TRUE))
 
 
@@ -1055,9 +1121,46 @@ textPlot <- function(word_data,
       dplyr::arrange(y_plotted) %>%
       dplyr::slice(0:plot_n_word_extreme)
 
+
+
+    ##### Extreme x and y #######
+#    if (plot_n_word_extreme_xy > 0) {
+      # Compute combined extremity score
+      word_data1 <- word_data1 %>%
+        dplyr::mutate(extremity_score = sqrt(x_plotted^2 + y_plotted^2))
+
+
+    # Ensure selection from all nine squares (if available)
+    word_data1_extreme_xy <- word_data1 %>%
+      dplyr::group_by(square_categories) %>%
+      dplyr::arrange(dplyr::if_else(square_categories == 5, extremity_score, -extremity_score)) %>%  # Flip sorting for category 5
+      dplyr::slice_head(n = plot_n_word_extreme_xy) %>%  # Ensure spread across squares
+      dplyr::ungroup()
+
+      # Combine extreme selections
+      word_data1_extreme_xy <- dplyr::bind_rows(word_data1_extreme_xy) %>%
+        dplyr::distinct(words, .keep_all = TRUE)  # Remove duplicates
+#    }
+
+    ################
     word_data1_frequency_y <- word_data1 %>%
       dplyr::arrange(-n) %>%
       dplyr::slice(0:plot_n_word_frequency)
+
+    # 2025 7 Mars Add random set of words plot_n_word_random = 10
+    # Identify all selected words
+    selected_words <- dplyr::bind_rows(
+      word_data1_x,
+      data_p_y_neg, data_p_y_pos,
+      word_data1_extrem_max_y, word_data1_extrem_min_y,
+      word_data1_frequency_y
+    ) %>%
+      dplyr::distinct(words)
+
+    # Exclude selected words and sample random words from the remaining
+    word_data1_random_y <- word_data1 %>%
+      dplyr::anti_join(selected_words, by = "words") %>%  # Exclude words already selected
+      dplyr::sample_n(min(plot_n_word_random, n()))  # Ensure it does not exceed available words
 
     # Select the middle range, order according to frequency and then select the plot_n_words_middle =5
     mean_m_sd_y <- mean(word_data1$y_plotted, na.rm = TRUE) - (sd(word_data1$y_plotted, na.rm = TRUE) / 10)
@@ -1076,15 +1179,20 @@ textPlot <- function(word_data,
                          dplyr::transmute(words, check_extreme_max_y = 1), by = "words") %>%
       dplyr::left_join(word_data1_extrem_min_y %>%
                          dplyr::transmute(words, check_extreme_min_y = 1), by = "words") %>%
+      dplyr::left_join(word_data1_extreme_xy %>%
+                         dplyr::transmute(words, check_extreme_xy = 1), by = "words") %>%
       dplyr::left_join(word_data1_frequency_y %>%
                          dplyr::transmute(words, check_extreme_frequency_y = 1), by = "words") %>%
       dplyr::left_join(word_data1_middle_y %>%
                          dplyr::transmute(words, check_middle_y = 1), by = "words") %>%
+      dplyr::left_join(word_data1_random_y %>%
+                         dplyr::transmute(words, check_random_y = 1), by = "words") %>%  # Adding the random selection
       dplyr::mutate(extremes_all_y = rowSums(cbind(
-        check_p_y_neg, check_p_y_pos, check_extreme_max_y, check_extreme_min_y,
-        check_extreme_frequency_y, check_middle_y
+        check_p_y_neg, check_p_y_pos, check_extreme_max_y, check_extreme_min_y, check_extreme_xy,
+        check_extreme_frequency_y, check_middle_y, check_random_y
       ), na.rm = TRUE)) %>%
       dplyr::mutate(extremes_all = rowSums(cbind(extremes_all_x, extremes_all_y), na.rm = TRUE))
+
 
 
     # Categorize words to apply specific color
@@ -1258,6 +1366,7 @@ textPlot <- function(word_data,
     legend_y_axes_label = legend_y_axes_label,
     word_data_all = word_data_all,
     legend_number_size = legend_number_size,
+    legend_number_colour = legend_number_colour,
     titles_color = titles_color
   )
   # legend

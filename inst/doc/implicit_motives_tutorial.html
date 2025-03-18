@@ -611,19 +611,21 @@ padding-top: 0px;
 <span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="fu">library</span>(text)</span>
 <span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a></span>
 <span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="do">#### 1: Load data. The following data serves as an example:  </span></span>
-<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>data <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">.data =</span> Language_based_assessment_data_8, <span class="at">participant_id =</span> dplyr<span class="sc">::</span><span class="fu">row_number</span>()) </span>
-<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="do">#### 2: Retrieve sentence- and person-level predictions. Choose between our three motives: power, achievement, or affiliation.</span></span>
-<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>predictions <span class="ot">&lt;-</span> <span class="fu">textPredict</span>(</span>
-<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>  <span class="at">texts =</span> data<span class="sc">$</span>satisfactiontexts,</span>
-<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>  <span class="at">model_info =</span> <span class="st">&quot;implicitpower_roberta23_nilsson2024&quot;</span>,</span>
-<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>  <span class="at">participant_id =</span> data<span class="sc">$</span>participant_id,</span>
-<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>  <span class="at">dataset_to_merge_predictions =</span> data)</span>
-<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a></span>
-<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="do">#### 3: Examine sentence- and person-level predictions. </span></span>
-<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>predictions<span class="sc">$</span>sentence_predictions</span>
-<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>predictions<span class="sc">$</span>person_predictions</span>
-<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>predictions<span class="sc">$</span>dataset </span></code></pre></div>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>im_example <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>  <span class="at">.data =</span> Language_based_assessment_data_8,</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>  <span class="at">story =</span> harmonytexts,</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>  <span class="at">participant_id =</span> dplyr<span class="sc">::</span><span class="fu">row_number</span>()) </span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="do">#### 2: Retrieve sentence- and person-level predictions. Choose between our three motives: power, achievement, or affiliation.</span></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>predictions <span class="ot">&lt;-</span> <span class="fu">textPredict</span>(</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>  <span class="at">texts =</span> im_example<span class="sc">$</span>story,</span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>  <span class="at">model_info =</span> <span class="st">&quot;implicitpower_roberta23_nilsson2024&quot;</span>,</span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>  <span class="at">participant_id =</span> im_example<span class="sc">$</span>participant_id,</span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>  <span class="at">dataset_to_merge_predictions =</span> im_example)</span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="do">#### 3: Examine sentence- and person-level predictions. </span></span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>predictions<span class="sc">$</span>sentence_assessments</span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>predictions<span class="sc">$</span>person_assessments</span></code></pre></div>
 
 </body>
 </html>

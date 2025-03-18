@@ -1,7 +1,8 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+<!-- -->
 
-# text <img src="man/figures/text_logo_animation.gif" align="right" alt="" width="330" />
+# text <a href="https://r-text.org"><img src="man/figures/logo.png" align="right" height="138" alt="text website" /></a>
 
 <!-- badges: start -->
 
@@ -17,42 +18,44 @@ maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://lif
 [![CRAN
 Downloads](https://cranlogs.r-pkg.org/badges/grand-total/text)](https://CRAN.R-project.org/package=text)
 [![codecov](https://codecov.io/gh/oscarkjell/text/branch/master/graph/badge.svg?)](https://app.codecov.io/gh/oscarkjell/text)
-
 <!-- badges: end -->
 
-An R-package for analyzing natural language with transformers from
-HuggingFace using Natural Language Processing and Machine Learning.
+<!--#![Modular and End-to-End #Solution](man/figures/modular_end_solution.png){width=85%}
+ -->
 
-The *text*-package has two main objectives:
+## Overview
 
-- First, to serve R-users as a *point solution* for transforming text to
-  state-of-the-art word embeddings that are ready to be used for
-  downstream tasks. The package provides a user-friendly link to
-  language models based on transformers from [Hugging
-  Face](https://huggingface.co/).
+An R-package for analyzing natural language with transformers-based
+large language models. The `text` package is part of the *R Language
+Analysis Suite*, including `talk`, `text` and `topics`.
 
-- Second, to serve as an *end-to-end solution* that provides
-  state-of-the-art AI techniques tailored for social and behavioral
-  scientists.
+- [`talk`](https://www.r-talk.org/) transforms voice recordings into
+  text, audio features, or embeddings.<br> <br>
+- [`text`](https://www.r-text.org/) provides many language tasks such as
+  converting digital text into word embeddings.<br> <br> `talk` and
+  `text` offer access to Large Language Models from Hugging Face.<br>
+  <br>
+- [`topics`](https://www.r-topics.org/) visualizes language patterns
+  into topics to generate psychological insights.<br> <br>
 
-<figure>
-<img src="man/figures/modular_end_solution.png" style="width:85.0%"
-alt="Modular and End-to-End Solution" />
-<figcaption aria-hidden="true">Modular and End-to-End
-Solution</figcaption>
-</figure>
+<img src="man/figures/talk_text_topics.svg" style="width:50.0%" />
 
-*Text* is created through a collaboration between psychology and
-computer science to address research needs and ensure state-of-the-art
-techniques. It provides powerful functions tailored to test research
-hypotheses in social and behavior sciences for both relatively small and
-large datasets. *Text* is continuously tested on Ubuntu, Mac OS and
-Windows using the latest stable R version.
+<br> The *R Language Analysis Suite* is created through a collaboration
+between psychology and computer science to address research needs and
+ensure state-of-the-art techniques. The suite is continuously tested on
+Ubuntu, Mac OS and Windows using the latest stable R version.
 
-Please reference our tutorial article when using the package: [The
-text-package: An R-package for Analyzing and Visualizing Human Language
-Using Natural Language Processing and Deep
-Learning](https://osf.io/preprints/psyarxiv/293kt/).
+The *text*-package has two main objectives: <br> \* First, to serve
+R-users as a *point solution* for transforming text to state-of-the-art
+word embeddings that are ready to be used for downstream tasks. The
+package provides a user-friendly link to language models based on
+transformers from [Hugging Face](https://huggingface.co/). <br> \*
+Second, to serve as an *end-to-end solution* that provides
+state-of-the-art AI techniques tailored for social and behavioral
+scientists. <br> Please reference our tutorial article when using the
+`text` package: [The text-package: An R-package for Analyzing and
+Visualizing Human Language Using Natural Language Processing and Deep
+Learning](https://pubmed.ncbi.nlm.nih.gov/37126041/). <br>
 
 ### Short installation guide
 
@@ -109,13 +112,13 @@ multilingual BERT comprises *104 different languages*.
 
 *Table 1. Some of the available language models*
 
-| Models                         | References                                               | Layers | Dimensions | Language                                                                             |
-|:-------------------------------|:---------------------------------------------------------|:-------|:-----------|:-------------------------------------------------------------------------------------|
-| ‘bert-base-uncased’            | [Devlin et al. 2019](https://aclanthology.org/N19-1423/) | 12     | 768        | English                                                                              |
-| ‘roberta-base’                 | [Liu et al. 2019](https://arxiv.org/abs/1907.11692)      | 12     | 768        | English                                                                              |
-| ‘distilbert-base-cased’        | [Sahn et al., 2019](https://arxiv.org/abs/1910.01108)    | 6      | 768        | English                                                                              |
-| ‘bert-base-multilingual-cased’ | [Devlin et al. 2019](https://aclanthology.org/N19-1423/) | 12     | 768        | [104 top languages at Wikipedia](https://meta.wikimedia.org/wiki/List_of_Wikipedias) |
-| ‘xlm-roberta-large’            | [Liu et al](https://arxiv.org/pdf/1907.11692)            | 24     | 1024       | [100 language](https://huggingface.co/docs/transformers/multilingual)                |
+| Models | References | Layers | Dimensions | Language |
+|:---|:---|:---|:---|:---|
+| ‘bert-base-uncased’ | [Devlin et al. 2019](https://aclanthology.org/N19-1423/) | 12 | 768 | English |
+| ‘roberta-base’ | [Liu et al. 2019](https://arxiv.org/abs/1907.11692) | 12 | 768 | English |
+| ‘distilbert-base-cased’ | [Sahn et al., 2019](https://arxiv.org/abs/1910.01108) | 6 | 768 | English |
+| ‘bert-base-multilingual-cased’ | [Devlin et al. 2019](https://aclanthology.org/N19-1423/) | 12 | 768 | [104 top languages at Wikipedia](https://meta.wikimedia.org/wiki/List_of_Wikipedias) |
+| ‘xlm-roberta-large’ | [Liu et al](https://arxiv.org/pdf/1907.11692) | 24 | 1024 | [100 language](https://huggingface.co/docs/transformers/multilingual) |
 
 See [HuggingFace](https://huggingface.co/models/) for a more
 comprehensive list of models.
@@ -183,7 +186,25 @@ plot_projection <- textProjectionPlot(
 plot_projection$final_plot
 ```
 
-<img src="man/figures/README-DPP_plot-1.png" width="100%" alt="Wordcloud example figure" />
+![](man/figures/README-DPP_plot-1.png)<!-- -->
 
-<a rel="me" href="https://mastodon.online/@oscarkjell">M</a>
-<link rel="me" href="https://mastodon.online/@oscarkjell" M />
+### Featured Bluesky Post
+
+<blockquote class="bluesky-embed" data-bluesky-uri="at://did:plc:tiigom2z6lcqsibxsgjdfea4/app.bsky.feed.post/3lduzt3lob22q" data-bluesky-cid="bafyreifgniodm6xkwh6g5ha4xe2663ohau56fy7nxulnkkhsouxkgq7q3y">
+<p lang="en">
+
+Version 1.3 of the \#r-text package is now available from \#CRAN.
+
+This new version makes it easier to apply pre-trained language
+assessments from the \#LBAM-library (r-text.org/articles/LBA…).
+
+\#mlsky \#PsychSciSky \#Statistics \#PsychSciSky \#StatsSky
+\#NLP<br><br><a href="https://bsky.app/profile/did:plc:tiigom2z6lcqsibxsgjdfea4/post/3lduzt3lob22q?ref_src=embed">\[image
+or embed\]</a>
+</p>
+— Oscar Kjell
+(<a href="https://bsky.app/profile/did:plc:tiigom2z6lcqsibxsgjdfea4?ref_src=embed">@oscarkjell.bsky.social</a>)
+<a href="https://bsky.app/profile/did:plc:tiigom2z6lcqsibxsgjdfea4/post/3lduzt3lob22q?ref_src=embed">Dec
+22, 2024 at 9:48</a>
+</blockquote>
+<script async src="https://embed.bsky.app/static/embed.js" charset="utf-8"></script>
