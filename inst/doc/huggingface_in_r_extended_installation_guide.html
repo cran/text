@@ -368,6 +368,19 @@ initialize it.</p>
 <span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="co"># Test so that the text package work.</span></span>
 <span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="fu">textEmbed</span>(<span class="st">&quot;hello&quot;</span>)</span></code></pre></div>
 </div>
+<div id="system-level-set-up-and-github-actions" class="section level2">
+<h2>System-level set up and Github actions</h2>
+<p>Because the text package requires some system-level setup,
+installation is automatically verified on Windows, macOS, and Ubuntu
+through our <a href="https://github.com/OscarKjell/text/actions">GitHub
+Actions</a>. If you encounter any issues, please review the tests and
+check the workflow file for details on system-specific
+installations.</p>
+<p>To view the workflow file, select the three-dot menu on the right
+side of any GitHub Action run and choose <b>View workflow file</b>. This
+file specifies the operating systems, R versions, and additional
+libraries being tested.</p>
+</div>
 <div id="solving-omp-errors-and-rrstudio-crashes" class="section level2">
 <h2>Solving OMP errors and R/Rstudio crashes</h2>
 <p>Recently some text users (mainly on Mac), have experienced OMP errors
@@ -424,6 +437,12 @@ details can be seen at <a href="https://github.com/OscarKjell/text/actions">gith
 (look at workflow runs called System specific installation NoPy).</p>
 <p>The table below show various combination of python and package
 versions that have worked (it is not an exhaustive list).</p>
+<pre><code>#&gt; Warning in attr(x, &quot;align&quot;): &#39;xfun::attr()&#39; is deprecated.
+#&gt; Use &#39;xfun::attr2()&#39; instead.
+#&gt; See help(&quot;Deprecated&quot;)
+#&gt; Warning in attr(x, &quot;format&quot;): &#39;xfun::attr()&#39; is deprecated.
+#&gt; Use &#39;xfun::attr2()&#39; instead.
+#&gt; See help(&quot;Deprecated&quot;)</code></pre>
 <table>
 <colgroup>
 <col width="12%" />
@@ -555,22 +574,28 @@ versions that have worked (it is not an exhaustive list).</p>
 <h2>Virtual environments</h2>
 <p>It is also possible to use virtual environments (although it is
 currently only tested on MacOS).</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Create a virtual environment with text required python packages.</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co"># Note that you have to provide a python path.</span></span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_install_virtualenv</span>(<span class="at">rpp_version =</span> <span class="fu">c</span>(<span class="st">&quot;torch==1.7.1&quot;</span>, <span class="st">&quot;transformers==4.12.5&quot;</span>, <span class="st">&quot;numpy&quot;</span>, <span class="st">&quot;nltk&quot;</span>),</span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>                                 <span class="at">python_path =</span> <span class="st">&quot;/usr/local/bin/python3.9&quot;</span>,</span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>                                 <span class="at">envname =</span> <span class="st">&quot;textrpp_virtualenv&quot;</span>)</span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co"># Initialize the virtual environment.</span></span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_initialize</span>(<span class="at">virtualenv =</span> <span class="st">&quot;textrpp_virtualenv&quot;</span>,</span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>                         <span class="at">condaenv =</span> <span class="cn">NULL</span>,</span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>                         <span class="at">save_profile =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Create a virtual environment with text required python packages.</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co"># Note that you have to provide a python path.</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_install_virtualenv</span>(<span class="at">rpp_version =</span> <span class="fu">c</span>(<span class="st">&quot;torch==1.7.1&quot;</span>, <span class="st">&quot;transformers==4.12.5&quot;</span>, <span class="st">&quot;numpy&quot;</span>, <span class="st">&quot;nltk&quot;</span>),</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>                                 <span class="at">python_path =</span> <span class="st">&quot;/usr/local/bin/python3.9&quot;</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>                                 <span class="at">envname =</span> <span class="st">&quot;textrpp_virtualenv&quot;</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co"># Initialize the virtual environment.</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_initialize</span>(<span class="at">virtualenv =</span> <span class="st">&quot;textrpp_virtualenv&quot;</span>,</span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>                         <span class="at">condaenv =</span> <span class="cn">NULL</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>                         <span class="at">save_profile =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 </div>
 <div id="versions-tested-for-virtual-environment" class="section level2">
 <h2>Versions tested for virtual environment</h2>
 <p>Virtual environments works for MacOS, whereas github actions does not
 currently work for Linux and Windows. At <a href="https://github.com/OscarKjell/text/actions">gihub actions</a> look
 for a workflow run called: Virtual environment for more information.</p>
+<pre><code>#&gt; Warning in attr(x, &quot;align&quot;): &#39;xfun::attr()&#39; is deprecated.
+#&gt; Use &#39;xfun::attr2()&#39; instead.
+#&gt; See help(&quot;Deprecated&quot;)
+#&gt; Warning in attr(x, &quot;format&quot;): &#39;xfun::attr()&#39; is deprecated.
+#&gt; Use &#39;xfun::attr2()&#39; instead.
+#&gt; See help(&quot;Deprecated&quot;)</code></pre>
 <table>
 <colgroup>
 <col width="13%" />
@@ -632,29 +657,29 @@ for a workflow run called: Virtual environment for more information.</p>
 <p>Below is the instructions for installing earlier versions of text
 (0.9.10 and before); these should work for newer versions of text as
 long as a correct versions of python and required packages are used.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co"># To install the python packages torch, transformers, numpy and nltk through R, run: </span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="fu">install_miniconda</span>()</span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="fu">conda_install</span>(<span class="at">envname =</span> <span class="st">&#39;r-reticulate&#39;</span>, <span class="fu">c</span>(<span class="st">&#39;torch==0.4.1&#39;</span>, <span class="st">&#39;transformers==3.3.1&#39;</span>, <span class="st">&#39;numpy&#39;</span>, <span class="st">&#39;nltk&#39;</span>), <span class="at">pip =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co"># Windows 10</span></span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="fu">conda_install</span>(<span class="at">envname =</span> <span class="st">&#39;r-reticulate&#39;</span>, <span class="fu">c</span>(<span class="st">&#39;torch==0.4.1&#39;</span>, <span class="st">&#39;transformers==3.3.1&#39;</span>, <span class="st">&#39;numpy&#39;</span>, <span class="st">&#39;nltk&#39;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="co"># To install the python packages torch, transformers, numpy and nltk through R, run: </span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="fu">install_miniconda</span>()</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="fu">conda_install</span>(<span class="at">envname =</span> <span class="st">&#39;r-reticulate&#39;</span>, <span class="fu">c</span>(<span class="st">&#39;torch==0.4.1&#39;</span>, <span class="st">&#39;transformers==3.3.1&#39;</span>, <span class="st">&#39;numpy&#39;</span>, <span class="st">&#39;nltk&#39;</span>), <span class="at">pip =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co"># Windows 10</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="fu">conda_install</span>(<span class="at">envname =</span> <span class="st">&#39;r-reticulate&#39;</span>, <span class="fu">c</span>(<span class="st">&#39;torch==0.4.1&#39;</span>, <span class="st">&#39;transformers==3.3.1&#39;</span>, <span class="st">&#39;numpy&#39;</span>, <span class="st">&#39;nltk&#39;</span>))</span></code></pre></div>
 </div>
 <div id="checking-your-versions" class="section level2">
 <h2>Checking your versions</h2>
 <p>If something isn’t working right, it is a good start to examine what
 is installed and running on your system. For example to make sure that
 you have R and Python versions that are up to date.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co"># First check R-version and which packages that are attached and loaded.  </span></span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co"># Second check out python version; and make sure you at least have version 3.6.10</span></span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="fu">py_config</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co"># First check R-version and which packages that are attached and loaded.  </span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co"># Second check out python version; and make sure you at least have version 3.6.10</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="fu">py_config</span>()</span></code></pre></div>
 <div id="issue-rstudio-craches-during-textembed" class="section level3">
 <h3>Issue: RStudio craches during textEmbed</h3>
 <p>After a new install/update of <em>text</em>, RStudio crashed (Abort
@@ -672,19 +697,19 @@ uninstall and install r-miniconda.</p>
 visible go to Finder and the path Users/YOUR_USER_NAME/ and press the
 three keys: <code>COMMAND + SHIFT + .</code> . Then the Library-folder
 should appear, and you can find and remove r-miniconda.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="co"># To re-install packages start with a fresh session by restarting R and RStudio</span></span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a></span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co"># Install development of reticulate (might not be necessary)</span></span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;rstudio/reticulate&quot;</span>)</span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a></span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co"># After having manually removed the r-miniconda folder, install it again: </span></span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="fu">install_miniconda</span>()</span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a></span>
-<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co"># Subsequently re-install torch, transformers, numpy and nltk by running: </span></span>
-<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="fu">conda_install</span>(<span class="at">envname =</span> <span class="st">&#39;r-reticulate&#39;</span>, <span class="fu">c</span>(<span class="st">&#39;torch==0.4.1&#39;</span>, <span class="st">&#39;transformers==3.3.1&#39;</span>, <span class="st">&#39;numpy&#39;</span>, <span class="st">&#39;nltk&#39;</span>), <span class="at">pip =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co"># To re-install packages start with a fresh session by restarting R and RStudio</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co"># Install development of reticulate (might not be necessary)</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;rstudio/reticulate&quot;</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co"># After having manually removed the r-miniconda folder, install it again: </span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="fu">install_miniconda</span>()</span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co"># Subsequently re-install torch, transformers, numpy and nltk by running: </span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="fu">conda_install</span>(<span class="at">envname =</span> <span class="st">&#39;r-reticulate&#39;</span>, <span class="fu">c</span>(<span class="st">&#39;torch==0.4.1&#39;</span>, <span class="st">&#39;transformers==3.3.1&#39;</span>, <span class="st">&#39;numpy&#39;</span>, <span class="st">&#39;nltk&#39;</span>), <span class="at">pip =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <p>The exact way to install these packages may differ across systems.
 Please see:<br />
 <a href="https://www.python.org/">Python</a><br />
@@ -696,8 +721,7 @@ Please see:<br />
 <h2>Share advise</h2>
 <p><em>If you find a good solution please feel free to email oscar [ d_o
 t] kjell [a_t] psy [DOT] lu [d_o_t]se so that we can update above
-instructions.</em> &gt;&gt;&gt;&gt;&gt;&gt;&gt; e368e8b (documentation
-updates)</p>
+instructions.</em></p>
 </div>
 
 

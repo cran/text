@@ -38,6 +38,15 @@ test_that("textTrain with strata settings", {
     mixture = c(0)
     )
 
+  saveSize <- function(object) {
+    tf <- tempfile(fileext = ".rds")
+    on.exit(unlink(tf))
+    saveRDS(object, tf)
+    file.info(tf)$size
+  }
+
+  testthat::expect_equal(saveSize(group_strata1$final_model), 1397393, tolerance = 10000)
+
   testthat::expect_equal(group_strata1$results[[4]][[1]], .6277968, tolerance = 0.0001)
 
   #### cv_group WITH strat
@@ -265,13 +274,7 @@ test_that("textTrain with strata settings", {
 
   trained_rf_gender
 
-  if (Sys.info()["sysname"] == "Darwin" | Sys.info()["sysname"] == "Windows") {
-    testthat::expect_equal(trained_rf_gender$results[[3]][[1]], .375, tolerance = 0.0001)
-  }
-  if (Sys.info()["sysname"] == "Linux" ) {
-    testthat::expect_equal(trained_rf_gender$results[[3]][[1]], .35, tolerance = 0.0001)
-  }
-
+  testthat::expect_equal(trained_rf_gender$results[[3]][[1]], .375, tolerance = 0.0001)
 
 
 })

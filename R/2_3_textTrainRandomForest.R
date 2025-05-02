@@ -64,10 +64,11 @@ select_eval_measure_val <- function(eval_measure = "bal_accuracy",
 #' @importFrom  yardstick accuracy bal_accuracy sens spec precision kap f_meas roc_auc rmse rsq
 #' @importFrom  ggplot2 autoplot
 #' @noRd
-classification_results <- function(outputlist_results_outer,
-                                   id_nr = NA,
-                                   simulate.p.value = simulate.p.value,
-                                   ...) {
+classification_results <- function(
+    outputlist_results_outer,
+    id_nr = NA,
+    simulate.p.value,
+    ...) {
   # Unnest predictions and y
   predy_y <- tibble::tibble(
     tidyr::unnest(outputlist_results_outer$truth, cols = c(truth)),
@@ -85,25 +86,37 @@ classification_results <- function(outputlist_results_outer,
   # Correlate predictions and observed help(all_of)
   chisq <- suppressWarnings(chisq.test(table(predy_y$truth, predy_y$estimate)))
 
-  fisher <- stats::fisher.test(predy_y$truth,
-    predy_y$estimate,
-    simulate.p.value = simulate.p.value
-  )
+  if(is.logical(simulate.p.value)){
+    fisher <- stats::fisher.test(
+      predy_y$truth,
+      predy_y$estimate,
+      simulate.p.value = simulate.p.value
+    )
+  } else if (simulate.p.value == "turn_off"){
+    fisher <- "The fisher test was turned off."
+  }
 
 
-  accuracy <- yardstick::accuracy(predy_y, truth, estimate, ...
+  accuracy <- yardstick::accuracy(predy_y, truth, estimate
+                                  , ...
                                   )
-  bal_accuracy <- yardstick::bal_accuracy(predy_y, truth, estimate, ...
+  bal_accuracy <- yardstick::bal_accuracy(predy_y, truth, estimate
+                                          , ...
                                           )
-  sens <- yardstick::sens(predy_y, truth, estimate, ...
+  sens <- yardstick::sens(predy_y, truth, estimate
+                          , ...
                           )
-  spec <- yardstick::spec(predy_y, truth, estimate, ...
+  spec <- yardstick::spec(predy_y, truth, estimate
+                          , ...
                           )
-  precision <- yardstick::precision(predy_y, truth, estimate, ...
+  precision <- yardstick::precision(predy_y, truth, estimate
+                                    , ...
                                     )
-  kappa <- yardstick::kap(predy_y, truth, estimate, ...
+  kappa <- yardstick::kap(predy_y, truth, estimate
+                          , ...
                           )
-  f_measure <- yardstick::f_meas(predy_y, truth, estimate, ...
+  f_measure <- yardstick::f_meas(predy_y, truth, estimate
+                                 , ...
                                  )
 
   roc_auc <- yardstick::roc_auc(predy_y, truth, colnames(predy_y[3]))
@@ -124,7 +137,21 @@ classification_results <- function(outputlist_results_outer,
 
   output <- list(predy_y, roc_curve_data, roc_curve_plot, fisher, chisq, results_collected)
   names(output) <- c("predy_y", "roc_curve_data", "roc_curve_plot", "fisher", "chisq", "results_collected")
-  output
+
+  remove(predy_y)
+  remove(results_collected)
+  remove(roc_curve_plot)
+  remove(accuracy)
+  remove(bal_accuracy)
+  remove(sens)
+  remove(spec)
+  remove(precision)
+  remove(kappa)
+  remove(f_measure)
+  remove(roc_curve_data)
+  remove(roc_auc)
+
+  return(output)
 }
 
 #' Select evaluation measure and compute it (also used in logistic regression)
@@ -164,11 +191,14 @@ classification_results_multi <- function(outputlist_results_outer,
 
   chisq <- suppressWarnings(chisq.test(table(predy_y$truth, predy_y$estimate)))
 
-  fisher <- stats::fisher.test(predy_y$truth,
-    predy_y$estimate,
-    simulate.p.value = simulate.p.value
-  )
-
+  if(is.logical(simulate.p.value)){
+    fisher <- stats::fisher.test(predy_y$truth,
+                                 predy_y$estimate,
+                                 simulate.p.value = simulate.p.value
+    )
+  } else if (simulate.p.value == "turn_off"){
+    fisher <- "The fisher test was turned off."
+  }
 
   accuracy <- yardstick::accuracy(predy_y, truth, estimate, ...
                                   )
@@ -645,6 +675,81 @@ summarize_tune_results_rf <- function(object,
 }
 
 
+#' Create a manual nested cross-validation object using initial validation splits
+#'
+#' This function mimics `rsample::nested_cv()` but allows for the use of
+#' `initial_validation_split()` as the inner resampling method, which is not natively
+#' supported in `nested_cv()`. It performs stratified outer v-fold cross-validation,
+#' and within each outer fold it applies a training/validation split using
+#' `initial_validation_split()`, wrapped in `validation_set()` to ensure compatibility with tuning functions.
+#'
+#' @param data A data frame or tibble to be split.
+#' @param outside_folds Integer specifying the number of outer folds (default = 5).
+#' @param inside_prop A numeric scalar (e.g., 0.75) or a two-element vector (e.g., c(0.6, 0.2))
+#'        specifying the proportion of data to allocate to training and validation within each outer fold.
+#'        The sum must be < 1 (remaining is used for an optional test set).
+#' @param outside_strata Optional variable name (unquoted) used for stratification in the outer folds.
+#' @param inside_strata Optional variable name (unquoted) used for stratification within the inner validation splits.
+#' @param outside_breaks Optional number of quantile bins to discretize `outside_strata` if it is continuous.
+#' @param inside_breaks Optional number of quantile bins to discretize `inside_strata` if it is continuous.
+#' @param seed Optional integer for reproducibility.
+#'
+#' @return A tibble of class `nested_cv` with outer resampling splits and corresponding
+#'         inner validation resamples (as `v_splt` objects inside `inner_resamples` column).
+#'
+#' @importFrom rsample vfold_cv initial_validation_split validation_set
+#' @importFrom purrr map
+#' @noRd
+create_manual_nested_cv_rf <- function(
+    data,
+    outside_folds = 5,
+    inside_prop = c(0.75, 0.25),
+    outside_strata = NULL,
+    inside_strata = NULL,
+    outside_breaks = NULL,
+    inside_breaks = NULL,
+    seed = 2020) {
+
+  set.seed(seed)
+
+  # Automatically adjust inside_prop if sum == 1
+  if (length(inside_prop) == 2 && sum(inside_prop) >= 1) {
+  # message_sf_1 <- c("Sum of inside_prop equals 1 — reducing second value slightly to avoid error.")
+  #  message(colourise(message_sf_1, "blue"))
+    inside_prop[2] <- inside_prop[2] - 1e-8
+  }
+
+  # Convert string column names to symbols for tidyselect
+  strata_outside <- if (!is.null(outside_strata)) rlang::sym(outside_strata) else NULL
+  strata_inside <- if (!is.null(inside_strata)) rlang::sym(inside_strata) else NULL
+
+  # Outer folds using vfold_cv()
+  outer_folds <- rsample::vfold_cv(
+    data,
+    v = outside_folds,
+    strata = !!strata_outside,
+    breaks = outside_breaks
+  )
+
+  # Manually assign inner validation resamples in the correct v_splt format
+  outer_folds$inner_resamples <- purrr::map(outer_folds$splits, function(split) {
+    training_data <- rsample::analysis(split)
+
+    three_way_split <- rsample::initial_validation_split(
+      training_data,
+      prop = inside_prop,
+      strata = !!strata_inside,
+      breaks = inside_breaks
+    )
+
+    rsample::validation_set(three_way_split) %>%
+      structure(class = c("v_splt", class(.)))
+  })
+
+  outer_folds
+}
+
+
 #' Trains word embeddings usig random forest
 #'
 #' textTrainRandomForest() trains word embeddings to a categorical variable using random forest.
@@ -704,7 +809,7 @@ summarize_tune_results_rf <- function(object,
 #' @param save_output (character) Option not to save all output; default "all". See also "only_results" and
 #' "only_results_predictions".
 #' @param simulate.p.value (Boolean) From fisher.test: a logical indicating whether to compute p-values
-#' by Monte Carlo simulation, in larger than 2 × 2 tables.
+#' by Monte Carlo simulation, in larger than 2 × 2 tables.  The test can be turned off if set to "turn_off".
 #' @param seed (numeric) Set different seed (default = 2020).
 #' @param ... For example settings in yardstick::accuracy to set event_level (e.g., event_level = "second").
 #' @return A list with roc_curve_data, roc_curve_plot, truth and predictions, preprocessing_recipe,
@@ -736,7 +841,7 @@ summarize_tune_results_rf <- function(object,
 #' @importFrom dplyr select bind_cols starts_with filter arrange rename
 #' @importFrom tibble as_tibble
 #' @importFrom recipes recipe step_naomit step_center step_scale step_pca
-#' @importFrom rsample vfold_cv
+#' @importFrom rsample vfold_cv initial_validation_split
 #' @importFrom parsnip linear_reg set_engine rand_forest
 #' @importFrom tune control_grid tune_grid select_best collect_predictions control_resamples
 #' @importFrom workflows workflow add_model add_recipe
@@ -798,7 +903,8 @@ textTrainRandomForest <- function(
   variables_and_names <- sorting_xs_and_x_append(
     x = x,
     x_append = x_append,
-    append_first = append_first, ...
+    append_first = append_first
+    , ...
   )
   x1 <- variables_and_names$x1
   x_name <- variables_and_names$x_name
@@ -867,24 +973,25 @@ textTrainRandomForest <- function(
         breaks = !!inside_breaks
       )
     ))
-  }
-  if (cv_method == "validation_split") {
-    results_nested_resampling <- rlang::expr(rsample::nested_cv(xy,
-      outside = rsample::vfold_cv(
-        v = !!outside_folds,
-        repeats = 1,
-        strata = !!outside_strata_y,
-        breaks = !!outside_breaks
-      ), #
-      inside = rsample::validation_split(
-        prop = !!inside_folds,
-        strata = !!inside_strata_y,
-        breaks = !!inside_breaks
-      )
-    ))
+    results_nested_resampling <- rlang::eval_tidy(results_nested_resampling)
   }
 
-  results_nested_resampling <- rlang::eval_tidy(results_nested_resampling)
+  if (cv_method == "validation_split") {
+
+    # inside_prop requires two digits (but we want to keep so only one is requried)
+    inside_folds <- c(inside_folds, (1-inside_folds))
+
+    results_nested_resampling <- create_manual_nested_cv_rf(
+      data = xy,
+      outside_folds = outside_folds,
+      inside_prop = inside_folds,
+      outside_strata = outside_strata_y,
+      inside_strata = inside_strata_y,
+      outside_breaks = outside_breaks,
+      inside_breaks = inside_breaks,
+      seed = seed
+    )
+  }
 
   # Deciding whether to use multicorese depending on system and settings.
   if (multi_cores == "multi_cores_sys_default") {

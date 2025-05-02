@@ -35,7 +35,7 @@ textReturnModel<- function(
       saveRDS(loaded_model, model_name)
 
       # display message to user
-      loaded_model_confirm <- paste0(c("The model:", model_name, "has been loaded and saved in:", getwd()), sep = "")
+      loaded_model_confirm <- paste0(c("The model: ", model_name, " has been loaded and saved in:", getwd()), sep = "")
       message(colourise(loaded_model_confirm, fg = "green"))
       #message("\n")
     } else if (grepl("github.com/", model_info) && isFALSE(model_exists) && isFALSE(save_model)) {
@@ -43,7 +43,7 @@ textReturnModel<- function(
       loaded_model <- readRDS(url(model_info))
 
       # display message to user
-      loaded_model_confirm <- paste0(c("The model:", model_name, "has been loaded from:", model_info), sep = "")
+      loaded_model_confirm <- paste0(c("The model: ", model_name, " has been loaded from: ", model_info), sep = "")
       message(colourise(loaded_model_confirm, fg = "green"))
       #message("\n")
     } else if (grepl("github.com/", model_info) && isTRUE(model_exists)) {
@@ -51,7 +51,7 @@ textReturnModel<- function(
       loaded_model <- readRDS(model_name)
 
       # display message to user
-      loaded_model_confirm <- paste0(c("The model:", model_name, "has been loaded from:", getwd()), sep = "")
+      loaded_model_confirm <- paste0(c("The model: ", model_name, " has been loaded from: ", getwd()), sep = "")
       message(colourise(loaded_model_confirm, fg = "green"))
       #message("\n")
     } else if (grepl("osf.io", model_info)){
@@ -139,6 +139,8 @@ textReturnModel<- function(
 #' (default = "textPredict").
 #' @param previous_sentence If set to TRUE, word-embeddings will be averaged over the current and previous
 #' sentence per story-id. For this, both participant-id and story-id must be specified.
+#' @param implementation NULL or "dlatk".
+#' @param ... Parameters in textEmbed.
 #' @noRd
 textReturnEmbedding <- function(
     texts = NULL,
@@ -151,7 +153,10 @@ textReturnEmbedding <- function(
     save_embeddings = TRUE,
     save_dir = "wd",
     save_name = "textPredict",
-    previous_sentence = FALSE) {
+    previous_sentence = FALSE,
+    implementation = NULL,
+    ...
+    ) {
   # extend the timeout time for larger models.
   options(timeout = 5 * 60)
 
@@ -215,17 +220,12 @@ textReturnEmbedding <- function(
     # and aggregation_from_tokens_to_texts from the model.
     input_string <- loaded_model$model_description[new_line_number]
 
-    max_token_to_sentence <- as.numeric(sub(".*max_token_to_sentence: (\\d+).*", "\\1", input_string))
-
     aggregation_from_layers_to_tokens <- sub(".*aggregation_from_layers_to_tokens = (\\S+).*", "\\1", input_string)
 
     aggregation_from_tokens_to_texts <- sub(".*aggregation_from_tokens_to_texts = (\\S+).*", "\\1", input_string)
 
-    # Check if the variables match input_string and assign the default values
-    if (max_token_to_sentence == input_string) {
-      max_token_to_sentence <- default_max_token_to_sentence
-    }
 
+    # Check if the variables match input_string (i.e., nothing was retrieved above); so we have to assign the default values
     if (aggregation_from_layers_to_tokens == input_string) {
       aggregation_from_layers_to_tokens <- default_aggregation_from_layers_to_tokens
     }
@@ -233,6 +233,29 @@ textReturnEmbedding <- function(
     if (aggregation_from_tokens_to_texts == input_string) {
       aggregation_from_tokens_to_texts <- default_aggregation_from_tokens_to_texts
     }
+
+    if (is.null(implementation)){
+      if(grepl("implementation:", input_string)){
+        implementation_comment <- extract_comment(
+          input_string,
+          part = "implementation_method")
+      } else {
+        implementation_comment <- "original"
+      }
+    }
+
+    if(!is.null(implementation)){
+      implementation_comment <- implementation
+    }
+
+
+    if (grepl("max_token_to_sentence: \\d+", input_string)) {
+      max_token_to_sentence <- as.numeric(sub(".*max_token_to_sentence: (\\d+).*", "\\1", input_string))
+    } else {
+      max_token_to_sentence <- default_max_token_to_sentence
+    }
+
+
     # Create embeddings based on the extracted information from the model.
     embeddings <- textEmbed(
       texts = texts,
@@ -242,7 +265,9 @@ textReturnEmbedding <- function(
       aggregation_from_layers_to_tokens = aggregation_from_layers_to_tokens,
       aggregation_from_tokens_to_texts = aggregation_from_tokens_to_texts,
       device = device,
-      keep_token_embeddings = FALSE
+      keep_token_embeddings = FALSE,
+      implementation = implementation_comment,
+      ...
     )
 
     # save embeddings if save_embeddings is set to true
@@ -302,6 +327,102 @@ textReturnEmbedding <- function(
   return(emb_and_model)
 }
 
+
+
+#' Extract the string after the first underscore in required predictor names
+#'
+#' @param model A trained workflow
+#' @return A character vector with the extracted parts after the first underscore.
+#' @noRd
+extract_required_suffix <- function(model) {
+  if (!inherits(model, "workflow")) {
+    stop("The provided object is not a workflow.")
+  }
+
+  # Extract predictor names
+  predictor_names <- names(model$pre$mold$blueprint$ptypes$predictors)
+
+  # Check if any predictor has an underscore
+  if (!any(grepl("_", predictor_names))) {
+    return(NULL)
+  }
+
+  # Extract the part after the first underscore
+  suffixes <- sub("^[^_]+_", "", predictor_names)
+
+  suffix <- unique(suffixes)
+  return(suffix)
+}
+
+
+#' Extract embedding model type flexibly
+#'
+#' @param word_embeddings A list or a tibble containing word embeddings
+#' @return The extracted model type, or NULL if no comment found
+#' @noRd
+extract_emb_type <- function(word_embeddings) {
+  # Try extracting the comment from the first element
+  emb_comment <- comment(word_embeddings[[1]])
+
+  # If no comment found, try from the list/tibble itself
+  if (is.null(emb_comment) || identical(emb_comment, "")) {
+    emb_comment <- comment(word_embeddings)
+  }
+
+  return(emb_comment)
+}
+
+
+
+
+#' Check that word embedding descriptions match the model's embedding setup
+#'
+#' @param word_embeddings A word_embeddings object with comment.
+#' @param loaded_model A model object with `model_description` attribute including a comment.
+#' @return NULL (stops with informative message if mismatch is found)
+#' @noRd
+word_embedding_check <- function(word_embeddings, loaded_model) {
+  embedding_comment <- extract_emb_type(word_embeddings)
+
+  parts_to_check <- c("model", "layers", "aggregation_from_layers_to_tokens", "aggregation_from_tokens_to_texts")
+
+  model_comment <- paste(loaded_model$model_description, collapse = " ")
+
+  differences <- list()
+  #part = 1
+  for (part in parts_to_check) {
+    emb_val <- extract_comment(comment = embedding_comment, part = part)
+    mod_val <- extract_comment(comment = model_comment, part = part)
+
+    if (is.numeric(emb_val) && is.numeric(mod_val)) {
+      match <- all(emb_val == mod_val)
+    } else {
+      match <- identical(emb_val, mod_val)
+    }
+
+    if (!match) {
+      differences[[part]] <- list(model = mod_val, embedding = emb_val)
+    }
+  }
+
+  if (length(differences) > 0) {
+    msg_lines <- c("Word embedding settings do not match the model:")
+    for (part in names(differences)) {
+      model_val <- paste(differences[[part]]$model, collapse = " ")
+      embed_val <- paste(differences[[part]]$embedding, collapse = " ")
+      msg_lines <- c(
+        msg_lines,
+        paste0("- ", part, ": model = ", model_val, "; embedding = ", embed_val)
+      )
+    }
+
+    msg_lines <- c(msg_lines, "To ignore this, set `check_matching_word_embeddings = FALSE`.")
+    stop(colourise(paste(msg_lines, collapse = "\n"), "brown"))
+  }
+
+  return(invisible(NULL))
+}
+
 #' Trained models created by e.g., textTrain() or stored on e.g., github can be used to predict
 #' new scores or classes from embeddings or text using textPredict.
 #' @param model_info (character or r-object) model_info has four options. 1: R model object
@@ -323,6 +444,8 @@ textReturnEmbedding <- function(
 #' @param dim_names (boolean) Specifies how to handle word embedding names. If TRUE, it uses specific
 #' word embedding names, and if FALSE word embeddings are changed to their generic names (Dim1, Dim2, etc).
 #' If set to FALSE, the model must have been trained on word embeddings created with dim_names FALSE.
+#' @param check_matching_word_embeddings (boolean) If `TRUE`, the function will check whether the word embeddings (model type and layer) match
+#' the requirement of the trained model - if a mis-match is found the function till stop. If `FALSE`, the function will not verify.
 #' @param language_distribution (Character column) If you provide the raw language data used for making the embeddings used for assessment,
 #' the language distribution (i.e., a word and frequency table) will be compared with saved one in the model object (if one exists).
 #' This enables calculating similarity scores.
@@ -348,7 +471,7 @@ textReturnEmbedding <- function(
 #' sentence per story-id. For this, both participant-id and story-id must be specified.
 #' @param device Name of device to use: 'cpu', 'gpu', 'gpu:k' or 'mps'/'mps:k' for MacOS, where k is a
 #' specific device number such as 'mps:1'.
-#' @param ...  Setting from stats::predict can be called.
+#' @param ...  Setting from textEmbed() (and stats::predict) can be called.
 #' @return Predictions from word-embedding or text input.
 #' @examples
 #' \dontrun{
@@ -427,6 +550,7 @@ textPredictTextTrained <- function(
     append_first = TRUE,
     threshold = NULL,
     dim_names = TRUE,
+    check_matching_word_embeddings = TRUE,
     language_distribution = NULL,
     language_distribution_min_words = "trained_distribution_min_words",
     save_model = TRUE,
@@ -439,6 +563,7 @@ textPredictTextTrained <- function(
     dataset_to_merge_assessments = NULL,
     previous_sentence = FALSE,
     device = "cpu",
+    implementation = NULL,
     ...) {
 
   use_row_id_name = FALSE
@@ -474,7 +599,9 @@ textPredictTextTrained <- function(
       save_embeddings = save_embeddings,
       save_dir = save_dir,
       save_name = save_name,
-      previous_sentence = previous_sentence
+      previous_sentence = previous_sentence,
+      implementation = implementation
+      ,  ...
     )
     # retrieve model from emb_and_mod object
     loaded_model <- emb_and_mod$loaded_model
@@ -484,9 +611,7 @@ textPredictTextTrained <- function(
 
     # retrieve classes in case of logistic regression
     classes <- emb_and_mod$classes
-  } #else {
-    #loaded_model <- model_info
-#  }
+  }
 
   # "regression" or "classification"
   mod_type <- loaded_model$final_model$fit$actions$model$spec[[3]]
@@ -524,13 +649,40 @@ textPredictTextTrained <- function(
 
     # Select the word embeddings
     word_embeddings <- word_embeddings[word_embeddings_names]
-  } else {
+
+    if(is.null(word_embeddings[[1]])){
+      message_emb <- c("Could not find the required dimensions. You may set dim_names = FALSE, but ensure that this is appropriate for your data and intended use.")
+      message(colourise(message_emb, "brown"))
+    }
+  }
+
+  if (dim_names == FALSE) {
+
+    #emb_for_now_test <- word_embeddings
     # Remove specific names in the word embeddings
     word_embeddings <- textDimName(word_embeddings,
                                    dim_names = FALSE
     )
     word_embeddings_names <- "word_embeddings"
+
+    #model_4_now <- loaded_model$final_model
+    new_name <- extract_required_suffix(model = loaded_model$final_model)
+
+    if(!is.null(new_name)){
+
+      word_embeddings <- textDimName(word_embeddings,
+                                       dim_names = TRUE,
+                                       name = new_name)
+    }
   }
+
+
+  #### Checking word_embedding and model specifications
+  if(check_matching_word_embeddings &
+     length(word_embeddings) > 0){
+    word_embedding_check(word_embeddings, loaded_model)
+  }
+
 
   if (!is.null(x_append)) {
     ### Sort a_append: select all Dim0 (i.e., x_append variables)
@@ -869,7 +1021,7 @@ textPredictTest <- function(y1,
                             ...) {
 
   if (!requireNamespace("overlapping", quietly = TRUE)) {
-    msg <- c("ggwordcloud is required for this test.\nPlease install it using install.packages('ggwordcloud').")
+    msg <- c("overlapping is required for this test.\nPlease install it using install.packages('overlapping').")
 
     message(colourise(msg, "brown"))
   }

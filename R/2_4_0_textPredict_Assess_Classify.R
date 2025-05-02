@@ -27,6 +27,8 @@
 #' @param dim_names (boolean; only for "text-trained"-models) Account for specific dimension names from textEmbed()
 #' (rather than generic names including Dim1, Dim2 etc.). If FALSE the models need to have been trained on
 #' word embeddings created with dim_names FALSE, so that embeddings were only called Dim1, Dim2 etc.
+#' @param check_matching_word_embeddings (boolean) If `TRUE`, the function will check whether the word embeddings (model type and layer) match
+#' the requirement of the trained model - if a mis-match is found the function till stop. If `FALSE`, the function will not verify.
 #' @param language_distribution (character column; only for "text-trained" models) If you provide the raw language data used for making the embeddings used for assessment,
 #' the language distribution (i.e., a word and frequency table) will be compared with saved one in the model object (if one exists).
 #' This enables calculating similarity scores.
@@ -146,8 +148,9 @@ textPredict <- function(
     ## text-trained model specific parameters ##
     word_embeddings = NULL,
     x_append = NULL,
-    append_first = NULL,
+    append_first = TRUE,
     dim_names = TRUE,
+    check_matching_word_embeddings = TRUE,
     language_distribution = NULL,
     language_distribution_min_words = "trained_distribution_min_words",
     save_model = TRUE,
@@ -259,6 +262,7 @@ textPredict <- function(
         x_append = x_append,
         append_first = append_first,
         dim_names = dim_names,
+        check_matching_word_embeddings = check_matching_word_embeddings,
         language_distribution = language_distribution,
         language_distribution_min_words = language_distribution_min_words,
         save_model = save_model,
@@ -325,7 +329,11 @@ textPredict <- function(
   }
 
   # display message to user
-  message(colourise("Assessments are ready!", fg = "green"))
+  results
+  message_ready <- paste0("Assessments are ready!\nNote that models may not ",
+                          "generalize across contexts, so please review model details and ",
+                          "recommendations at r-text.org/articles/LBAM.html.")
+  message(colourise(message_ready, fg = "green"))
   message("\n")
   return(results)
 
@@ -342,11 +350,12 @@ textAssess <- textPredict
 #' @export
 textClassify <- textPredict
 
-#returns the lbam library
+# returns the lbam library
 #' The LBAM library
 #'
 #' Retrieve the Language-Based Assessment Models library (LBAM).
 #' @param columns (string) Select which columns to retrieve e.g., c("Name", "Path")
+#' @param construct_start (string) Select which constructs concepts and/or behaviors to retrieve.
 #' @param lbam_update (boolean) TRUE downloads a new copy of the LBAM file
 #' @return Data frame containing information about the Language-based assessment models library (LBAM).
 #' @examples
@@ -368,8 +377,9 @@ textClassify <- textPredict
 #' @export
 textLBAM <- function(
     columns = NULL,
+    construct_start = NULL,
     lbam_update = FALSE
-    ) {
+) {
 
   if(lbam_update){
     # download file
@@ -393,10 +403,13 @@ textLBAM <- function(
                 package = "text"), skip = 3)
 
   if (!is.null(columns)){
+    lbam <- lbam[,columns]
+  }
+
+  if (!is.null(construct_start)){
     lbam <- lbam %>%
-      dplyr::select(columns)
+      filter(startsWith(Construct_Concept_Behaviours, construct_start))
   }
 
   return(lbam)
 }
-

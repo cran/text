@@ -143,11 +143,12 @@ can set to "spearman" or "kendall").}
 (i.e., only on unix, not windows). Hence it makes the analyses considerably faster to run. Default is
 "multi_cores_sys_default", where it automatically uses TRUE for Mac and Linux and FALSE for Windows.}
 
-\item{save_output}{(character) Option not to save all output; default = "all". see also "only_results"
-and "only_results_predictions".}
+\item{save_output}{(character) Option not to save all output; default = "all". see also "no_plot", "only_results",
+and "only_results_predictions". Note that "no_plot" is good when wanting to save a logistic or multnomial regression,
+since the lot makes the saved object bloated when being saved.}
 
-\item{simulate.p.value}{(Boolean) From fisher.test: a logical indicating whether to compute p-values by
-Monte Carlo simulation, in larger than 2 * 2 tables.}
+\item{simulate.p.value}{(Boolean or string) From fisher.test: a logical indicating whether to compute p-values by
+Monte Carlo simulation, in larger than 2 * 2 tables. The test can be turned off if set to "turn_off".}
 
 \item{seed}{(numeric) Set different seed (default = 2020).}
 

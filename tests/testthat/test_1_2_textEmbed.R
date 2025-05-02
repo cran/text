@@ -22,15 +22,16 @@ test_that("textEmbed handling NAs", {
   skip_on_cran()
 
   # testing NA and empty strings
-  embeddings_with_NA <- textEmbed(c("hej",
-                                    NA,
-                                    "hej jag heter na",
-                                    "",
-                                    " ",
-                                    "    ",
-                                    "NA",
-                                    "Im NA"
-                                    ))
+  embeddings_with_NA <- text::textEmbed(texts = c(
+    "hej",
+    NA,
+    "hej jag heter na",
+    "",
+    " ",
+    "    ",
+    "NA",
+    "Im NA"
+    ))
 
   testthat::expect_equal(embeddings_with_NA$texts$texts[1][[1]][1], -0.04640419, tolerance = 0.0001)
   testthat::expect_equal(embeddings_with_NA$texts$texts[1][[1]][2], NaN)
@@ -40,6 +41,19 @@ test_that("textEmbed handling NAs", {
   testthat::expect_equal(embeddings_with_NA$texts$texts[1][[1]][6], NaN)
   testthat::expect_equal(embeddings_with_NA$texts$texts[1][[1]][7], NaN)
   testthat::expect_equal(embeddings_with_NA$texts$texts[1][[1]][8], -0.4003294, tolerance = 0.0001)
+
+
+  dlatk_embeddings_with_NA <- text::textEmbed(texts = c("hej",
+                                                  NA,
+                                                  "hej jag heter na",
+                                                  "",
+                                                  " ",
+                                                  "    ",
+                                                  "NA",
+                                                  "Im NA"
+  ),
+  implementation = "dlatk")
+
 
   })
 
@@ -253,12 +267,18 @@ test_that("textDimName", {
 
   w_e_F <- textDimName(w_e_T, dim_names = TRUE)
   expect_equal(colnames(w_e_F$harmonywords)[1], "Dim1_harmonywords")
+
+  w_e_T_names <- textDimName(w_e_T, dim_names = TRUE, name = "test")
+  expect_equal(colnames(w_e_T_names$harmonywords)[1], "Dim1_test")
+
 })
 
 
 test_that("textTokenize", {
   skip_on_cran()
 
-  tokens <- textTokenize("hello are you?")
+  tokens <- textTokenize("hello are you?", model = "bert-base-uncased")
   expect_equal(tokens[[1]]$tokens[2], "hello")
+
+  textModelsRemove("bert-base-uncased")
 })

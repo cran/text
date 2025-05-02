@@ -1,9 +1,35 @@
 # text (development versions)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+# text 1.4.9
+- added `save_output` = "no_plot" in `textTrainRegression()` for  "logistic" and "multinomial" to reduce model size of saved objects.
+
+# text 1.4.8
+- fixing bug in textAssess() for implicit motives where the participant id was incorrect. 
+
+# text 1.4.7
+- Added checks for matching `word_embeddings` and `model` requirements in the `textPredict()` function. 
+This is controlled via the new `check_matching_word_embeddings` parameter, which validates compatibility of model type, layers, and aggregation settings.
+-	Added a name parameter to the `textDimName()` function, allowing users to specify or change the name suffix for word embedding dimensions.
+- Improved the `dim_names` = `FALSE` behavior in the `textDimName()` function to also ignore model-required dimension suffixes. 
+Now includes clearer and more informative warnings when dimension mismatches occur.
+
+# text 1.4.6
+- updating from the depracated `rsample::function validation_split()` to `initial_validation_split()`. However, 
+this changes some results in `textTrainRegression()` and `textTrainRandomForrest()`.
+- updating `textLBAM()` to take `construct_start` parameter.
+
+# text 1.4.5
+- removing objects in the environment of `textTrainRegression()` to reduce saved model sizes.
+
+# text 1.4.2
+- fixing bug in layer selection in `textEmbedRawLayers()` (when using default -2, layer 11 was selected even for large models). This was never a problem in `textEmbed()`.
+
+# text 1.4.1
+- adding the `dlatk_method` to the `textEmbed()` function.  
 
 # text 1.4
-- adding `cv_method` = "group_cv" in the `textTrainRegression()``` function. 
+- adding `cv_method` = "group_cv" in the `textTrainRegression()` function. 
 
 # text 1.3.6
 - fixing python dependency (aiohappyeyeballs)
