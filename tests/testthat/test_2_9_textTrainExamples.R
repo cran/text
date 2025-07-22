@@ -8,19 +8,27 @@ library(vdiffr)
 context("Testing tasks")
 
 
-test_that("textTrainExamples tests", {
+test_that("textExamples tests", {
   testthat::skip_on_os(c("linux", "windows"))  # Skip on Ubuntu (Linux) and Windows
   skip_on_cran()
+
+  if (Sys.getenv("GITHUB_ACTIONS") == "true") {
+    multi_cores = FALSE
+  } else {
+    multi_cores = "multi_cores_sys_default"
+  }
 
   # Train word embeddings to assess depression
   # Examine the relationship between the embeddings and the depression scores
   hil_model <- text::textTrain(
     x = word_embeddings_4$texts["harmonytexts"],      # text embeddings as predictor
-    y = Language_based_assessment_data_8["hilstotal"])  # depression scores as target
+    y = Language_based_assessment_data_8["hilstotal"],
+    multi_cores = multi_cores
+    )  # depression scores as target
 
 
   # One-dimensional plot
-  examples_1d <- text::textTrainExamples(
+  examples_1d <- text::textExamples(
     text = Language_based_assessment_data_8["harmonytexts"],
     x_variable = hil_model$predictions$predictions,
     y_variable = NULL,
@@ -41,14 +49,21 @@ test_that("textTrainExamples tests", {
 
 
   testthat::expect_equal(examples_1d$examples$x_variable[1:5],
-                         c(18.42818, 19.31093, 20.62074, 20.67785, 20.94722), tolerance = 0.0001)
+                         c(18.42818, 19.31093, 20.62074, 20.67785, 20.94722),
+                       #  c(21.73246, 21.67444, 21.62215, 21.41840, 21.03447),
+                         tolerance = 0.0001)
   testthat::expect_equal(examples_1d$examples$x_variable_grouped[1:10],
                          c(1, 1, 1, 1, 1, 3, 3, 3, 3, 3), tolerance = 1)
   testthat::expect_equal(examples_1d$examples$harmonytexts[1],
-                         "My thoughts feel scattered, contrived, and contradictory. Nothing in my life makes sense together anymore. I feel like I'm trying to put a puzzle together, but all the pieces come from different sets.")
+                       #  "I have always been very centred in life. I'm a libra and although I don't believe in that stuff I feel like scales represent me very well. I am balanced. I am hard to anger. At the same time it is hard for me to find joy in things. Its ok though. I am always calm. I am a rock and am hard to move.", #"My thoughts feel scattered, contrived, and contradictory. Nothing in my life makes sense  together anymore. I feel like I'm trying to put a puzzle together, but all the pieces come from different sets."
+                         "My thoughts feel scattered, contrived, and contradictory. Nothing in my life makes sense together anymore. I feel like I'm trying to put a puzzle together, but all the pieces come from different sets."
+                         )
+
+
+
 
   # Two-dimensional plot
-  examples_2d <- text::textTrainExamples(
+  examples_2d <- text::textExamples(
     text = Language_based_assessment_data_8["harmonytexts"],
     x_variable = hil_model$predictions$predictions,
     y_variable = hil_model$predictions$y,
@@ -78,7 +93,7 @@ test_that("textTrainExamples tests", {
                          "While in harmony with other people, I don't feel in harmony in my own life or with myself. I feel conflicted about listening to what my body needs. I don't know what direction to go with my life or how to get there. I feel completely overwhelmed with trying to figure that out. Part of me wants to give up, and part of me wants to keep going just to prove the people who think I can't do it wrong.")
 
   # Error plot
-  examples_error <- text::textTrainExamples(
+  examples_error <- text::textExamples(
     text = Language_based_assessment_data_8$harmonytexts, #Language_based_assessment_data_8["harmonytexts"],
     x_variable = hil_model$predictions["predictions"],
     y_variable = hil_model$predictions["y"],

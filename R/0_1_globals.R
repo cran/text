@@ -35,11 +35,12 @@ utils::globalVariables(c(
   "data_prepared_with_recipe",
   "bestParametersFunction", "eval_result",
   "fold", "fold_prop", "overall_n", "overall_prop",
+  "weights_in_text",
 
   # textTrainNPlot
   "sample_size", "percent", "std", "ymin", "ymax",
 
-  # textTrainExamples
+  # textExamples
   "category", "distance_to_mean", "error", "language", "topic",
   "height", "save_dir", "width", "y_axes_1",
   "check_random_x", "check_random_y", "color_categories", "ranking_criteria",
@@ -47,7 +48,7 @@ utils::globalVariables(c(
 
 
   # textPredcitTest
-  "stats_on_bootstrap",
+  "stats_on_bootstrap", "auc_diff", 'auc_stats', "cor_diff", "cor_stats", "quantile",
 
   # textPredict
   ":=", "predicted_class", "osf_download", "osf_retrieve_file",
@@ -103,6 +104,9 @@ utils::globalVariables(c(
   "get_topic_tree",
 
   ## L-BAM table
-  "Model_Type", "Name", "Path"
+  "Model_Type", "Name", "Path",
+
+  ## textTopics
+  "preds", "train_data"
 
 ))

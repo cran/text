@@ -340,36 +340,82 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<p><em>Text</em> enables users access to HuggingFace Transformers in R
-through the R-package <a href="https://rstudio.github.io/reticulate/">reticulate</a> as an
-interface to <a href="https://www.python.org/">Python</a>, and the
-python packages <a href="https://pytorch.org/">torch</a> and <a href="https://huggingface.co/docs/transformers/index">transformers</a>.
-So it’s important to install both the text-package and a python
-environment with the text required python packages that the text-package
-can use. </br></br> The recommended way is to use
-<code>textrpp_install()</code> to install a conda environment with text
-required python packages, and <code>textrpp_initialize</code> to
-initialize it.</p>
-<div id="conda-environment" class="section level2">
-<h2>Conda environment</h2>
+<p>The <em>text</em>-package provides users access to HuggingFace
+Transformers in R through <a href="https://rstudio.github.io/reticulate/">reticulate</a>, which
+interfaces with <a href="https://www.python.org/">Python</a>. It relies
+on Python packages such as <a href="https://pytorch.org/">torch</a> and
+<a href="https://huggingface.co/docs/transformers/index">transformers</a>.
+</br></br> To use these features, you need to install: • The text
+package in R • A Python environment with the required packages
+</br></br> The easiest way is to use <code>textrpp_install()</code> to
+install a preconfigured Conda environment and then initialize it with
+<code>textrpp_initialize()</code>.</p>
+<div id="set-up-a-python-environment-for-the-text-package" class="section level2">
+<h2>Set up a python environment for the text-package</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Install text required python packages in a conda environment (with defaults).</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Install text-required Python packages in a Conda environment</span></span>
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_install</span>()</span>
 <span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co"># Show available conda environments.</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co"># Show available Conda environments</span></span>
 <span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>reticulate<span class="sc">::</span><span class="fu">conda_list</span>()</span>
 <span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co"># Initialize the installed conda environment.</span></span>
-<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co"># save_profile = TRUE saves the settings so that you don&#39;t have to run textrpp_initialize() after restarting R. </span></span>
-<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_initialize</span>(<span class="at">save_profile =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="co"># Test so that the text package work.</span></span>
-<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="fu">textEmbed</span>(<span class="st">&quot;hello&quot;</span>)</span></code></pre></div>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co"># Initialize the installed Conda environment</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_initialize</span>(<span class="at">save_profile =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="co"># Test that textEmbed works</span></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="fu">textEmbed</span>(<span class="st">&quot;hello&quot;</span>)</span></code></pre></div>
 </div>
-<div id="system-level-set-up-and-github-actions" class="section level2">
-<h2>System-level set up and Github actions</h2>
+<div id="troubleshooting" class="section level2">
+<h2>Troubleshooting</h2>
+<div id="check-if-you-have-install-permissions" class="section level3">
+<h3>1. Check if you have install permissions</h3>
+<p>Can you install an R package like dplyr?</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;dplyr&quot;</span>)</span></code></pre></div>
+<p>Can you install system-level tools like Python/miniconda?</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>reticulate<span class="sc">::</span><span class="fu">install_miniconda</span>()</span></code></pre></div>
+<p>If you do not have premissions, please contact your administrator for
+advice.</p>
+</div>
+<div id="remembered-to-initialize-the-python-environment." class="section level3">
+<h3>2. Remembered to initialize the python environment.</h3>
+<p>After restarting R, functions like textEmbed() can stop working
+again.</p>
+<p>Solution: Persist the initialization in your R profile:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_initialize</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="at">condaenv =</span> <span class="st">&quot;textrpp_condaenv&quot;</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">refresh_settings =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">save_profile =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>) </span></code></pre></div>
+</div>
+<div id="install-the-development-version-from-github." class="section level3">
+<h3>3. Install the development version from GitHub.</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># install.packages(&quot;devtools&quot;)</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;oscarkjell/text&quot;</span>)</span></code></pre></div>
+</div>
+<div id="force-reinstallation-of-the-environment" class="section level3">
+<h3>4. Force reinstallation of the environment</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_install</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">update_conda =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">force_conda =</span> <span class="cn">TRUE</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="install-the-python-environment-using-reticulate" class="section level3">
+<h3>5. Install the python environment using reticulate</h3>
+<p>See the article <a href="https://www.r-text.org/articles/reticulate.html">Installing and
+Managing Python Environments with <code>reticulate</code></a>, for
+detailed information.</p>
+</div>
+<div id="inspect-diagnostic-information" class="section level3">
+<h3>6. Inspect diagnostic information</h3>
+<p>If something isn’t working right, it is a good start to examine what
+is installed and running on your system.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>log <span class="ot">&lt;-</span> text<span class="sc">::</span><span class="fu">textDiagnostics</span>()</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>log </span></code></pre></div>
 <p>Because the text package requires some system-level setup,
 installation is automatically verified on Windows, macOS, and Ubuntu
 through our <a href="https://github.com/OscarKjell/text/actions">GitHub
@@ -381,194 +427,6 @@ side of any GitHub Action run and choose <b>View workflow file</b>. This
 file specifies the operating systems, R versions, and additional
 libraries being tested.</p>
 </div>
-<div id="solving-omp-errors-and-rrstudio-crashes" class="section level2">
-<h2>Solving OMP errors and R/Rstudio crashes</h2>
-<p>Recently some text users (mainly on Mac), have experienced OMP errors
-- and that RStudio and R crashes. When this is happening we have found
-the following solutions for now:</p>
-<pre><code>Sys.setenv(OMP_NUM_THREADS = &quot;1&quot;) #Limit the number of threads to prevent conflicts.
-
-Sys.setenv(OMP_MAX_ACTIVE_LEVELS = &quot;1&quot;) 
-
-# Also might have to restart R
-.rs.restartR()
-
-# If above does not work, you can also try this; although this solution might have some risks assocaited with it (for more information see https://github.com/dmlc/xgboost/issues/1715)
-Sys.setenv(KMP_DUPLICATE_LIB_OK = &quot;TRUE&quot;) #Temporarily allows execution despite duplicate OpenMP libraries.
-
-### This is how you can unset the settings
-Sys.unsetenv(&quot;OMP_NUM_THREADS&quot;)
-Sys.unsetenv(&quot;OMP_MAX_ACTIVE_LEVELS&quot;)
-Sys.unsetenv(&quot;KMP_DUPLICATE_LIB_OK&quot;)
-
-# This is how you can verify the settings
-print(Sys.getenv(&quot;DYLD_LIBRARY_PATH&quot;))
-
-
-# Please let us know if you find any other solutions. </code></pre>
-</div>
-<div id="solving-mac-os-errors" class="section level2">
-<h2>Solving Mac OS errors</h2>
-<div id="failed-to-build-tokenizers" class="section level3">
-<h3>Failed to build tokenizers</h3>
-<p>if running: textrpp_install()</p>
-<p>results in this error:</p>
-<pre><code>Failed to build tokenizers
-ERROR: Could not build wheels for tokenizers, which is required to install pyproject.toml-based projects</code></pre>
-<p>In the terminal run:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>curl <span class="sc">--</span>proto <span class="st">&#39;=https&#39;</span> <span class="sc">--</span>tlsv1<span class="fl">.2</span> <span class="sc">-</span>sSf https<span class="sc">:</span><span class="er">//</span>sh.rustup.rs <span class="sc">|</span> sh</span></code></pre></div>
-</div>
-<div id="rust-compiler" class="section level3">
-<h3>Rust compiler</h3>
-<p>Error:</p>
-<pre><code>&quot;Error: Error installing package(s): ...&quot; 
-including: &quot;error: can&#39;t find Rust compiler&quot;</code></pre>
-<p>In the terminal run:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>brew install rust</span></code></pre></div>
-</div>
-</div>
-<div id="recommended-versions-for-conda" class="section level2">
-<h2>Recommended versions for conda</h2>
-<p>The success of the installation is dependent on using conda, python
-and package versions that work together. The installation of the
-text-package with text required python packages is tested on Linux, Mac
-OS, and Windows using github actions. The installation procedure and
-details can be seen at <a href="https://github.com/OscarKjell/text/actions">github actions</a>
-(look at workflow runs called System specific installation NoPy).</p>
-<p>The table below show various combination of python and package
-versions that have worked (it is not an exhaustive list).</p>
-<pre><code>#&gt; Warning in attr(x, &quot;align&quot;): &#39;xfun::attr()&#39; is deprecated.
-#&gt; Use &#39;xfun::attr2()&#39; instead.
-#&gt; See help(&quot;Deprecated&quot;)
-#&gt; Warning in attr(x, &quot;format&quot;): &#39;xfun::attr()&#39; is deprecated.
-#&gt; Use &#39;xfun::attr2()&#39; instead.
-#&gt; See help(&quot;Deprecated&quot;)</code></pre>
-<table>
-<colgroup>
-<col width="12%" />
-<col width="14%" />
-<col width="11%" />
-<col width="20%" />
-<col width="29%" />
-<col width="10%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="left">os</th>
-<th align="left">mini_conda</th>
-<th align="left">python</th>
-<th align="left">torch</th>
-<th align="left">transformers</th>
-<th align="left">success</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">‘Mac OS’</td>
-<td align="left">‘-’</td>
-<td align="left">‘3.9.0’</td>
-<td align="left">‘torch==1.11.0’</td>
-<td align="left">‘transformers==4.19.2’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="even">
-<td align="left">‘Linux’</td>
-<td align="left">‘-’</td>
-<td align="left">‘3.9.0’</td>
-<td align="left">‘torch==1.11.0’</td>
-<td align="left">‘transformers==4.19.2’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="odd">
-<td align="left">‘Windows’</td>
-<td align="left">‘-’</td>
-<td align="left">‘3.9.0’</td>
-<td align="left">‘torch==1.11.0’</td>
-<td align="left">‘transformers==4.19.2’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="even">
-<td align="left">‘Windows’</td>
-<td align="left">‘4.10.1’</td>
-<td align="left">‘3.9.0’</td>
-<td align="left">‘torch==1.7.1’</td>
-<td align="left">‘transformers==4.12.5’</td>
-<td align="left">FAIL</td>
-</tr>
-<tr class="odd">
-<td align="left">‘Mac OS’</td>
-<td align="left">‘4.10.3’</td>
-<td align="left">‘3.9.0’</td>
-<td align="left">‘torch==1.7.1’</td>
-<td align="left">‘transformers==4.12.5’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="even">
-<td align="left">‘Linux’</td>
-<td align="left">‘4.10.3’</td>
-<td align="left">‘3.9.0’</td>
-<td align="left">‘torch==1.7.1’</td>
-<td align="left">‘transformers==4.12.5’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="odd">
-<td align="left">‘Windows’</td>
-<td align="left">‘4.10.3’</td>
-<td align="left">‘3.9.0’</td>
-<td align="left">‘torch==1.7.1’</td>
-<td align="left">‘transformers==4.12.5’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="even">
-<td align="left">‘Mac OS’</td>
-<td align="left">‘4.10.3’</td>
-<td align="left">‘3.8.10’</td>
-<td align="left">‘torch==1.7.1’</td>
-<td align="left">‘transformers==4.12.5’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="odd">
-<td align="left">‘Linux’</td>
-<td align="left">‘4.10.3’</td>
-<td align="left">‘3.8.10’</td>
-<td align="left">‘torch==1.7.1’</td>
-<td align="left">‘transformers==4.12.5’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="even">
-<td align="left">‘Windows’</td>
-<td align="left">‘4.10.3’</td>
-<td align="left">‘3.8.10’</td>
-<td align="left">‘torch==1.7.1’</td>
-<td align="left">‘transformers==4.12.5’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="odd">
-<td align="left">‘Mac OS’</td>
-<td align="left">‘4.10.3’</td>
-<td align="left">‘3.7.0’</td>
-<td align="left">‘torch==0.4.1’</td>
-<td align="left">‘transformers==3.3.1’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="even">
-<td align="left">‘Linux’</td>
-<td align="left">‘4.10.3’</td>
-<td align="left">‘3.7.0’</td>
-<td align="left">‘torch==0.4.1’</td>
-<td align="left">‘transformers==3.3.1’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="odd">
-<td align="left">‘Windows’</td>
-<td align="left">‘4.10.3’</td>
-<td align="left">‘3.6.13’</td>
-<td align="left">‘torch==1.10’</td>
-<td align="left">‘transformers==3.3.1’</td>
-<td align="left">Pass</td>
-</tr>
-</tbody>
-</table>
 </div>
 <div id="virtual-environments" class="section level2">
 <h2>Virtual environments</h2>
@@ -585,137 +443,35 @@ currently only tested on MacOS).</p>
 <span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>                         <span class="at">condaenv =</span> <span class="cn">NULL</span>,</span>
 <span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>                         <span class="at">save_profile =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 </div>
-<div id="versions-tested-for-virtual-environment" class="section level2">
-<h2>Versions tested for virtual environment</h2>
-<p>Virtual environments works for MacOS, whereas github actions does not
-currently work for Linux and Windows. At <a href="https://github.com/OscarKjell/text/actions">gihub actions</a> look
-for a workflow run called: Virtual environment for more information.</p>
-<pre><code>#&gt; Warning in attr(x, &quot;align&quot;): &#39;xfun::attr()&#39; is deprecated.
-#&gt; Use &#39;xfun::attr2()&#39; instead.
-#&gt; See help(&quot;Deprecated&quot;)
-#&gt; Warning in attr(x, &quot;format&quot;): &#39;xfun::attr()&#39; is deprecated.
-#&gt; Use &#39;xfun::attr2()&#39; instead.
-#&gt; See help(&quot;Deprecated&quot;)</code></pre>
-<table>
-<colgroup>
-<col width="13%" />
-<col width="20%" />
-<col width="22%" />
-<col width="31%" />
-<col width="11%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="left">OS</th>
-<th align="left">Python_version</th>
-<th align="left">torch</th>
-<th align="left">transformers</th>
-<th align="left">Success</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">‘Mac OS’</td>
-<td align="left">‘3.9.8’</td>
-<td align="left">‘torch==1.11.0’</td>
-<td align="left">‘transformers==4.19.2’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="even">
-<td align="left">‘Linux’</td>
-<td align="left">‘3.9.8’</td>
-<td align="left">‘torch==1.11.0’</td>
-<td align="left">‘transformers==4.19.2’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="odd">
-<td align="left">‘Mac OS’</td>
-<td align="left">‘3.9.8’</td>
-<td align="left">‘torch==1.7.1’</td>
-<td align="left">‘transformers==4.12.5’</td>
-<td align="left">Pass</td>
-</tr>
-<tr class="even">
-<td align="left">‘Linux’</td>
-<td align="left">-</td>
-<td align="left">-</td>
-<td align="left">-</td>
-<td align="left">-</td>
-</tr>
-<tr class="odd">
-<td align="left">‘Windows’</td>
-<td align="left">-</td>
-<td align="left">-</td>
-<td align="left">-</td>
-<td align="left">-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="installation-instructions-for-text-0.9.10" class="section level2">
-<h2>Installation instructions for text 0.9.10</h2>
-<p>Below is the instructions for installing earlier versions of text
-(0.9.10 and before); these should work for newer versions of text as
-long as a correct versions of python and required packages are used.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="co"># To install the python packages torch, transformers, numpy and nltk through R, run: </span></span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="fu">install_miniconda</span>()</span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="fu">conda_install</span>(<span class="at">envname =</span> <span class="st">&#39;r-reticulate&#39;</span>, <span class="fu">c</span>(<span class="st">&#39;torch==0.4.1&#39;</span>, <span class="st">&#39;transformers==3.3.1&#39;</span>, <span class="st">&#39;numpy&#39;</span>, <span class="st">&#39;nltk&#39;</span>), <span class="at">pip =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a></span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co"># Windows 10</span></span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="fu">conda_install</span>(<span class="at">envname =</span> <span class="st">&#39;r-reticulate&#39;</span>, <span class="fu">c</span>(<span class="st">&#39;torch==0.4.1&#39;</span>, <span class="st">&#39;transformers==3.3.1&#39;</span>, <span class="st">&#39;numpy&#39;</span>, <span class="st">&#39;nltk&#39;</span>))</span></code></pre></div>
-</div>
-<div id="checking-your-versions" class="section level2">
-<h2>Checking your versions</h2>
-<p>If something isn’t working right, it is a good start to examine what
-is installed and running on your system. For example to make sure that
-you have R and Python versions that are up to date.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a></span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co"># First check R-version and which packages that are attached and loaded.  </span></span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co"># Second check out python version; and make sure you at least have version 3.6.10</span></span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="fu">py_config</span>()</span></code></pre></div>
-<div id="issue-rstudio-craches-during-textembed" class="section level3">
-<h3>Issue: RStudio craches during textEmbed</h3>
-<p>After a new install/update of <em>text</em>, RStudio crashed (Abort
-session) when running functions that fetches word embeddings (i.e.,
-<code>textEmbedLayersOutput</code> or <code>textEmbed</code>).</p>
-</div>
-<div id="solution-reinstall-reticulate-and-r-miniconda" class="section level3">
-<h3>Solution: Reinstall reticulate and r-miniconda</h3>
-<p>To solve the issue re-install reticulate (development version) and
-uninstall and install r-miniconda.</p>
-<p>Uninstall r-miniconda by removing its entire folder (which by default
-[in Mac] is at
-<code>Users/YOUR_USER_NAME/Library/r-miniconda</code>).</p>
-<p>(Note that [in Mac] the Library folder is hidden, so to make it
-visible go to Finder and the path Users/YOUR_USER_NAME/ and press the
-three keys: <code>COMMAND + SHIFT + .</code> . Then the Library-folder
-should appear, and you can find and remove r-miniconda.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co"># To re-install packages start with a fresh session by restarting R and RStudio</span></span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a></span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co"># Install development of reticulate (might not be necessary)</span></span>
-<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;rstudio/reticulate&quot;</span>)</span>
-<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a></span>
-<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co"># After having manually removed the r-miniconda folder, install it again: </span></span>
-<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
-<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="fu">install_miniconda</span>()</span>
-<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a></span>
-<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co"># Subsequently re-install torch, transformers, numpy and nltk by running: </span></span>
-<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="fu">conda_install</span>(<span class="at">envname =</span> <span class="st">&#39;r-reticulate&#39;</span>, <span class="fu">c</span>(<span class="st">&#39;torch==0.4.1&#39;</span>, <span class="st">&#39;transformers==3.3.1&#39;</span>, <span class="st">&#39;numpy&#39;</span>, <span class="st">&#39;nltk&#39;</span>), <span class="at">pip =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div id="solving-omp-errors-and-rrstudio-crashes" class="section level2">
+<h2>Solving OMP errors and R/Rstudio crashes</h2>
+<p>Some macOS users may experience a crash when running functions like
+textEmbed() from the text package. This is due to a known conflict
+between multiple OpenMP libraries (e.g., libomp.dylib and
+libiomp5.dylib) used by Python packages such as torch and
+transformers.</p>
+<p>Workaround (Automatically Applied) To prevent this crash, the package
+sets the following environment variables when running on macOS:</p>
+<pre><code>Sys.setenv(OMP_NUM_THREADS = &quot;1&quot;)
+Sys.setenv(OMP_MAX_ACTIVE_LEVELS = &quot;1&quot;)
+Sys.setenv(KMP_DUPLICATE_LIB_OK = &quot;TRUE&quot;)</code></pre>
+<p>These settings: - Limit the number of OpenMP threads - Avoid nested
+threading issues - Instruct macOS to ignore duplicate OpenMP
+libraries</p>
+<p>This workaround is safe for most users and enables smooth
+functionality, but note that: - It may slightly reduce parallel
+processing performance. - It bypasses a system-level issue rather than
+solving it permanently.</p>
+<p>The text package sets OpenMP-related environment variables for
+compatibility with PyTorch to avoid crashes due to libomp.dylib
+conflicts. You can skip this behavior by setting:</p>
+<pre><code>Sys.setenv(TEXT_SKIP_OMP_PATCH = &quot;TRUE&quot;)
+library(text)</code></pre>
 <p>The exact way to install these packages may differ across systems.
 Please see:<br />
 <a href="https://www.python.org/">Python</a><br />
 <a href="https://pytorch.org/">torch</a><br />
 <a href="https://huggingface.co/docs/transformers/index">transformers</a></p>
-</div>
 </div>
 <div id="share-advise" class="section level2">
 <h2>Share advise</h2>

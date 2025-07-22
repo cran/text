@@ -9,6 +9,11 @@ test_that("Testing textEmbed as well as train", {
 
 #  textrpp_initialize(refresh_settings = T,
 #                     save_profile = T)
+  if (Sys.getenv("GITHUB_ACTIONS") == "true") {
+    multi_cores = FALSE
+  } else {
+    multi_cores = "multi_cores_sys_default"
+  }
 
   harmony_word_embeddings <- text::textEmbed(
     texts = Language_based_assessment_data_8[1:20, 1:2],
@@ -54,6 +59,7 @@ test_that("Testing textEmbed as well as train", {
     x = harmony_word_embeddings$texts$satisfactiontexts,
     y = Language_based_assessment_data_8$hilstotal[1:20],
     penalty = 1e-16,
+    multi_cores = multi_cores
   )
 
   # Function to examine the size of an object when saved.
@@ -68,6 +74,26 @@ test_that("Testing textEmbed as well as train", {
   testthat::expect_equal(saved_size[[1]], 2778186, tolerance = 1000)
 
 
+  # WEIGHTS random weights
+  set.seed(1)
+  text_train_results1 <- text::textTrainRegression(
+    x = harmony_word_embeddings$texts["satisfactiontexts"],
+    y = Language_based_assessment_data_8["hilstotal"][1:20, ],
+    weights = runif(20),
+    cv_method = "cv_folds",
+    outside_folds = 2,
+    inside_folds = 2,
+    outside_strata_y = NULL,
+    inside_strata_y = NULL,
+    # preprocess_PCA = c(0.20),
+    preprocess_PCA = NA,
+    penalty = 1e-16,
+    multi_cores = multi_cores
+  )
+
+  expect_equal(text_train_results1$results[[2]][[1]], -0.1468962, tolerance = 0.00001)
+  expect_equal(text_train_results1$results[[2]][[2]], 0.5931698, tolerance = 0.00001)
+  expect_equal(text_train_results1$results[[1]]$estimate[[1]], -0.1154135, tolerance = 0.00001)
 
   text_train_results1 <- text::textTrainRegression(
     x = harmony_word_embeddings$texts["satisfactiontexts"],
@@ -80,7 +106,7 @@ test_that("Testing textEmbed as well as train", {
     # preprocess_PCA = c(0.20),
     preprocess_PCA = NA,
     penalty = 1e-16,
-    multi_cores = "multi_cores_sys_default"
+    multi_cores = multi_cores
   )
 
   expect_that(text_train_results1$results$estimate[1], is_a("numeric"))
@@ -114,7 +140,7 @@ test_that("Testing textEmbed as well as train", {
     # preprocess_PCA = c(0.20),
     preprocess_PCA = NA,
     penalty = 1e-16,
-    multi_cores = "multi_cores_sys_default"
+    multi_cores = multi_cores
   )
   expect_that(train_x_append$language_distribution, is_a("tbl_df"))
 
@@ -195,7 +221,8 @@ test_that("Testing textEmbed as well as train", {
     y = Language_based_assessment_data_8["gender"][1:20, ],
     penalty = 1e-16,
     model = "logistic",
-    save_output = "no_plot"
+    save_output = "no_plot",
+    multi_cores = multi_cores
   )
 
   saved_size2 <- saveSize(train_log)
@@ -267,7 +294,7 @@ test_that("Testing textEmbed as well as train", {
     # preprocess_PCA = c(0.20),
     preprocess_PCA = NA,
     penalty = 1e-16,
-    multi_cores = "multi_cores_sys_default"
+    multi_cores = multi_cores
   )
 
   expect_that(text_train_results$results$estimate[1], is_a("numeric"))

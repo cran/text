@@ -2,7 +2,7 @@ Package: text
 Type: Package
 Title: Analyses of Text using Transformers Models from HuggingFace,
         Natural Language Processing and Machine Learning
-Version: 1.5
+Version: 1.6
 Authors@R: c(
     person("Oscar", "Kjell", , "oscar.kjell@psy.lu.se", role = c("aut", "cre"), 
       comment = c(ORCID = "0000-0002-2728-6278"),
@@ -24,7 +24,8 @@ LazyData: true
 BuildVignettes: true
 Imports: topics, dplyr, tibble, stringi, tidyr, ggplot2, ggrepel,
         cowplot, rlang, purrr, magrittr, parsnip, recipes (>= 0.1.16),
-        rsample, reticulate, tune, workflows, yardstick, future, furrr
+        rsample, reticulate, tune, workflows, yardstick, future, furrr,
+        hardhat
 RoxygenNote: 7.3.2
 Suggests: knitr, rmarkdown, testthat, rio, glmnet, randomForest,
         overlapping, covr, xml2, ranger, utils, ggwordcloud, reactable,
@@ -32,10 +33,10 @@ Suggests: knitr, rmarkdown, testthat, rio, glmnet, randomForest,
 VignetteBuilder: knitr
 Depends: R (>= 4.00)
 NeedsCompilation: no
-Packaged: 2025-05-02 10:59:16 UTC; oscarkjell
+Packaged: 2025-07-22 12:26:47 UTC; oscarkjell
 Author: Oscar Kjell [aut, cre] (ORCID: <https://orcid.org/0000-0002-2728-6278>),
   Salvatore Giorgi [aut] (ORCID: <https://orcid.org/0000-0001-7381-6295>),
   Andrew Schwartz [aut] (ORCID: <https://orcid.org/0000-0002-6383-3339>)
 Maintainer: Oscar Kjell <oscar.kjell@psy.lu.se>
 Repository: CRAN
-Date/Publication: 2025-05-02 12:00:02 UTC
+Date/Publication: 2025-07-22 14:31:56 UTC

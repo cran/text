@@ -4,30 +4,33 @@
 conda_args <- reticulate:::conda_args
 
 install_rust_if_needed <- function(prompt = TRUE) {
-  # Check if rustc (Rust compiler) is already installed
-  rust_installed <- !is.null(Sys.which("rustc")) && Sys.which("rustc") != ""
+  is_windows <- identical(.Platform$OS.type, "windows")
+  is_unix <- identical(.Platform$OS.type, "unix")
 
-  if (rust_installed) {
+  # Helper to check if an executable exists
+  is_installed <- function(cmd) {
+    nzchar(Sys.which(cmd))
+  }
+
+  # 1. Check if Rust is already installed
+  if (is_installed("rustc")) {
     message(colourise("Rust is already installed. Skipping Rust installation.\n", fg = "blue"))
     return(invisible(NULL))
   }
 
   message("Rust is not installed on this system.")
 
-  # Check if curl is available
-  curl_installed <- !is.null(Sys.which("curl")) && Sys.which("curl") != ""
-
-  if (!curl_installed) {
-    warning("Rust installation aborted: 'curl' command not found on your system.\n",
-            "Please manually install Rust following instructions at https://www.rust-lang.org/")
+  # 2. Check if 'curl' is available (needed for macOS/Linux installation)
+  if (!is_windows && !is_installed("curl")) {
+    warning("Rust installation aborted: 'curl' not found.\nPlease install Rust manually: https://www.rust-lang.org/")
     return(invisible(NULL))
   }
 
-  # Ask user if they want to proceed with installing Rust
+  # 3. Prompt user for permission to install
   ans <- if (prompt) {
     utils::menu(c("No", "Yes"), title = "Do you want to install Rust?")
   } else {
-    2 # default to Yes if no prompt
+    2
   }
 
   if (ans == 1) {
@@ -35,17 +38,232 @@ install_rust_if_needed <- function(prompt = TRUE) {
     return(invisible(NULL))
   }
 
-  # Try installing Rust
+  # 4. Try installing Rust
   tryCatch({
-    message("Downloading and installing Rust...")
-    system("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y", intern = TRUE)
-    message(colourise("Rust installation completed (or already installed).\n", fg = "green"))
+    if (is_windows) {
+      message("Downloading Rust installer for Windows...")
+      installer <- tempfile(fileext = ".exe")
+      download.file("https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe", installer, mode = "wb")
+      message("Launching Rust installer...")
+      shell.exec(installer)
+      message("Rust installer launched. Follow on-screen instructions.\n")
+    } else {
+      message("Downloading and installing Rust for macOS/Linux...")
+      system("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y", intern = TRUE)
+    }
+
+    # 5. Re-check if rustc is now available
+    if (is_installed("rustc")) {
+      message(colourise("Rust installation completed successfully.\n", fg = "green"))
+    } else {
+      warning("Rust installation attempted, but 'rustc' not found in PATH.\n",
+              "Try restarting your terminal or install Rust manually:\n  https://www.rust-lang.org/tools/install")
+    }
+
   }, error = function(e) {
-    warning("Rust installation failed: ", e$message)
+    warning("Rust installation failed: ", e$message, "\nPlease install Rust manually from https://www.rust-lang.org/")
   })
 
   invisible(NULL)
 }
+
+#' Check macos githubaction dependencies
+#' @param verbose If TRUE provides verbose information
+#' @return infomration regrding system dependencies
+#' @noRd
+check_macos_githubaction_dependencies <- function(verbose = TRUE) {
+  if (!is_osx()) return(invisible(NULL))
+
+  # Define required and optional dependencies
+  required_deps <- c("homebrew", "libomp")
+  optional_deps <- c("qpdf")
+
+  status_list <- setNames(logical(length(required_deps)), required_deps)
+  summary_lines <- c("== macOS Required Dependencies ==")
+
+  # Check Homebrew
+  brew_path <- Sys.which("brew")
+  if (brew_path == "") {
+    status_list["homebrew"] <- FALSE
+    summary_lines <- c(
+      summary_lines,
+      "'homebrew' is NOT installed.",
+      "To install it, open your Terminal and run:",
+      '  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+    )
+  } else {
+    status_list["homebrew"] <- TRUE
+    summary_lines <- c(summary_lines, "'homebrew' is installed.")
+  }
+
+  # Check libomp (only if brew is available)
+  if (status_list["homebrew"]) {
+    status_list["libomp"] <- system("brew list libomp", ignore.stdout = TRUE, ignore.stderr = TRUE) == 0
+    if (status_list["libomp"]) {
+      summary_lines <- c(summary_lines, "'libomp' is installed.")
+    } else {
+      summary_lines <- c(
+        summary_lines,
+        "'libomp' is NOT installed.",
+        "To install it, open your Terminal and run:",
+        "  brew install libomp"
+      )
+    }
+  } else {
+    status_list["libomp"] <- FALSE
+  }
+
+  # Optional: Check qpdf
+  optional_status <- list()
+  if (status_list["homebrew"]) {
+    optional_status$qpdf <- system("brew list qpdf", ignore.stdout = TRUE, ignore.stderr = TRUE) == 0
+  } else {
+    optional_status$qpdf <- NA
+  }
+
+  # Identify installed/missing
+  installed <- names(status_list)[status_list]
+  missing <- names(status_list)[!status_list]
+
+  if (length(installed) > 0) {
+    summary_lines <- c(summary_lines, "", "Installed:", paste0("  - ", installed))
+  }
+
+  if (length(missing) > 0) {
+    summary_lines <- c(
+      summary_lines,
+      "",
+      "Missing (required):",
+      paste0("  - ", missing),
+      "",
+      "To install required tools, run:"
+    )
+
+    if ("homebrew" %in% missing) {
+      summary_lines <- c(
+        summary_lines,
+        '  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+      )
+    } else {
+      summary_lines <- c(
+        summary_lines,
+        paste0("  brew install ", paste(missing[missing != "homebrew"], collapse = " "))
+      )
+    }
+
+    warning("Some required macOS system libraries are missing. See message for details.")
+  }
+
+  # Optional summary
+  summary_lines <- c(summary_lines, "", "== Optional Tools ==")
+  if (isTRUE(optional_status$qpdf)) {
+    summary_lines <- c(summary_lines, "'qpdf' is installed.")
+  } else {
+    summary_lines <- c(
+      summary_lines,
+      "'qpdf' is NOT installed.",
+      "You can install it using:",
+      "  brew install qpdf"
+    )
+  }
+
+  # Return result
+  result <- list(
+    os = "macOS",
+    required_deps = required_deps,
+    optional_deps = optional_deps,
+    installed = status_list,
+    missing = missing,
+    optional = optional_status,
+    summary_lines = summary_lines,
+    required_all_ok = length(missing) == 0
+  )
+
+  if (verbose) message(paste(summary_lines, collapse = "\n"))
+  invisible(result)
+}
+
+
+#' Check linux githubaction dependencies
+#' @param verbose If TRUE provides verbose information
+#' @return infomration regrding system dependencies
+#' @noRd
+check_linux_githubaction_dependencies <- function(verbose = TRUE) {
+  if (!is_linux()) return(invisible(NULL))
+
+  # Define required and optional dependencies
+  required_deps <- c(
+    "libcurl4-openssl-dev",
+   # "libgit2-dev",
+    "libssl-dev",
+    "libharfbuzz-dev",
+    "libfribidi-dev",
+    "libxml2-dev",
+    "libpng-dev",
+    "libtiff5-dev",
+    "libjpeg-dev",
+    "libfontconfig1-dev",
+    "libicu-dev",
+   # "libcairo2-dev",
+    "default-jdk"
+  )
+
+  optional_deps <- c("libfreetype6-dev")  # Add optional Linux deps here if needed
+
+  # Check installation status for required deps
+  status_list <- setNames(logical(length(required_deps)), required_deps)
+  for (lib in required_deps) {
+    installed <- system2("dpkg", c("-s", lib), stdout = NULL, stderr = NULL) == 0
+    status_list[lib] <- installed
+  }
+
+  installed <- names(status_list)[status_list]
+  missing <- names(status_list)[!status_list]
+
+  # Format output
+  summary_lines <- c("== Linux Required Dependencies ==")
+
+  if (length(installed) > 0) {
+    summary_lines <- c(summary_lines, "Installed:", paste("  -", installed))
+  }
+
+  if (length(missing) > 0) {
+    summary_lines <- c(
+      summary_lines,
+      "",
+      "Missing (required):",
+      paste("  -", missing),
+      "",
+      "To install them on Debian/Ubuntu systems, run:",
+      paste0("  sudo apt-get install -y ", paste(missing, collapse = " "))
+    )
+    warning("Some required system libraries are missing. See message for details.")
+  }
+
+  # Optional deps (none currently defined)
+  if (length(optional_deps) > 0) {
+    summary_lines <- c(summary_lines, "", "== Optional Dependencies ==")
+    # Placeholder check logic for optional_deps if needed
+  }
+
+  result <- list(
+    os = "Linux",
+    required_deps = required_deps,
+    optional_deps = optional_deps,
+    installed = status_list,
+    missing = missing,
+    summary_lines = summary_lines,
+    required_all_ok = length(missing) == 0
+  )
+
+  if (verbose) message(paste(summary_lines, collapse = "\n"))
+
+  invisible(result)
+}
+
+
+
+
 #' Install text required python packages in conda or virtualenv environment
 #'
 #' @description Install text required python packages (rpp) in a self-contained environment.
@@ -87,15 +305,62 @@ install_rust_if_needed <- function(prompt = TRUE) {
 #' textrpp_install(conda = "~/anaconda/bin/")
 #' }
 #' @export
-textrpp_install <- function(conda = "auto",
-                            update_conda = FALSE,
-                            force_conda = FALSE,
-                            rpp_version = "rpp_version_system_specific_defaults",
-                            python_version = "python_version_system_specific_defaults",
-                            envname = "textrpp_condaenv",
-                            pip = TRUE,
-                            python_path = NULL,
-                            prompt = TRUE) {
+textrpp_install <- function(
+    conda = "auto",
+    update_conda = FALSE,
+    force_conda = FALSE,
+    rpp_version = "rpp_version_system_specific_defaults",
+    python_version = "python_version_system_specific_defaults",
+    envname = "textrpp_condaenv",
+    pip = TRUE,
+    python_path = NULL,
+    prompt = TRUE
+    ) {
+
+
+  # Check system-level dependencies
+  macos_log <- check_macos_githubaction_dependencies(verbose = prompt)
+  linux_log <- check_linux_githubaction_dependencies(verbose = prompt)
+
+  # Collect missing dependencies
+  critical_missing <- character()
+  terminal_command <- NULL
+
+  if (!is.null(macos_log$missing) && length(macos_log$missing) > 0) {
+    critical_missing <- c(critical_missing, macos_log$missing)
+    terminal_command <- paste0("brew install ", paste(macos_log$missing, collapse = " "))
+  }
+
+  if (!is.null(linux_log$missing) && length(linux_log$missing) > 0) {
+    critical_missing <- c(critical_missing, linux_log$missing)
+    terminal_command <- paste0("sudo apt-get install -y ", paste(linux_log$missing, collapse = " "))
+  }
+
+  # Stop or prompt depending on `prompt` setting
+  if (length(critical_missing) > 0) {
+    message("\nSystem dependency check identified the following missing libraries:")
+    for (pkg in critical_missing) {
+      message("  - ", pkg)
+    }
+
+    if (!is.null(terminal_command)) {
+      message("\nTo install them, open your terminal and run:")
+      message("  ", terminal_command)
+    }
+
+    if (!prompt) {
+      message("\nInstallation stopped. Set `prompt = TRUE` if you wish to override and proceed anyway.")
+      return(invisible(NULL))
+    } else {
+      ans <- utils::menu(c("No", "Yes"), title = "\nDo you still want to continue with installation?")
+      if (ans == 1) {
+        message("Installation cancelled due to missing system dependencies.")
+        return(invisible(NULL))
+      }
+    }
+  }
+
+
   # Set system specific default versions
   if (rpp_version[[1]] == "rpp_version_system_specific_defaults") {
     if (is_osx() || is_linux()) {
@@ -435,18 +700,31 @@ textrpp_uninstall <- function(conda = "auto",
 ###### see utils.R in spacyr
 # checking OS functions, thanks to r-tensorflow;
 
+#' Checking whether it is windows
+#' @return TRUE if is is windows otherwise FALSE
+#' @noRd
 is_windows <- function() {
   identical(.Platform$OS.type, "windows")
 }
 
+#' Checking whether it is unix
+#' @return TRUE if is is unix otherwise FALSE
+#' @noRd
 is_unix <- function() {
   identical(.Platform$OS.type, "unix")
 }
 
+
+#' Checking whether it is macOS
+#' @return TRUE if is is macOS otherwise FALSE
+#' @noRd
 is_osx <- function() {
   Sys.info()["sysname"] == "Darwin"
 }
 
+#' Checking whether it is linux
+#' @return TRUE if is is linux otherwise FALSE
+#' @noRd
 is_linux <- function() {
   identical(tolower(Sys.info()[["sysname"]]), "linux")
 }

@@ -78,16 +78,26 @@ reorder_columns <- function(
 }
 
 
-#' Show language examples (Experimental)
+#' Identify language examples.
 #'
-#' This function selects language examples that been used in the textTrain() or textAssess() functions.
+#' This function identifies examples based on the frequency of use of n-grams (see the topics-pacakge),
+#' estimated topic prevalence (see the topics-pacakge), or  assessment scores from textTrain() or textPredict().
 #' @param text (string) the language that was used for prediction/assessment/classification.
 #' @param x_variable (numeric) the variable used for training (y).
 #' @param y_variable (numeric) the outcome from the model (i.e., y_hat).
 #' @param type (string) If you are plotting errors between predicted and targeted scores, you can set the type to "prediction_errors",
 #' to produce two extra plots: distribution of scores and absolute error.
 #' @param n_tile (integer) the n tile to split the data in (to show the most extreme tiles in different colours).
-#' @param n_examples (integer) the number of language examples to show.
+#' @param n_examples (integer) the number of language examples to show/select in each quadrant.
+#' When providing both x_variable and y_variable, each example is categorized into one of nine bivariate quadrants
+#' based on its position in the scatterplot (e.g., low–low, high–high, center).
+#' Within each quadrant, the function selects the most extreme examples by computing the distance to that quadrant’s corner:
+#'	Corner quadrants (1, 3, 7, 9):
+#' Examples closest to the corner points (e.g., min x & max y) are selected using Euclidean distance.
+#' Edge quadrants (2, 4, 6, 8):
+#' Examples furthest along the relevant axis (x or y) are selected.
+#' Center quadrant (5):
+#' Examples closest to the mean of both x and y are selected.
 #' @param jitter (integer) the percentage of jitter to add to the data for the scatter plot.
 # @param x_variable (string) selection method: "predictions", "error", or "targets".
 # @param selection_method (string) specification of which examples to select "min", "max", "min_max", "min_mean_max", "quintiles".
@@ -97,7 +107,7 @@ reorder_columns <- function(
 #' @param error_color =  (string) "darkred",
 #' @param distribution_color  (string) colors of the distribution plot
 #' @param figure_format  (string) file format of the figures.
-#' @param scatter_legend_dot_size (integer) The size of dots in the scatter legend.
+#' @param scatter_legend_dot_size (integer) The size of highlighted dots in the scatter legend.
 #' @param scatter_legend_bg_dot_size (integer) The size of background dots in the scatter legend.
 #' @param scatter_legend_dots_alpha (numeric) The transparency alphe level of the dots.
 #' @param scatter_legend_bg_dots_alpha (numeric) The transparency alphe level of the background dots.
@@ -111,8 +121,13 @@ reorder_columns <- function(
 #' @param scatter_legend_regression_line_colour (string) If a colour string is added, a regression line will be plotted.
 #' @param x_axis_range (numeric vector) range of x axis (e.g., c(1, 100)).
 #' @param y_axis_range (numeric vector) range of y axis (e.g., c(1, 100)).
-#' @param grid_legend_x_axes_label x-axis label of the grid topic plot.
-#' @param grid_legend_y_axes_label y-axis label of the grid topic plot.
+#' @param grid_legend_x_axes_label (string) x-axis label of the grid topic plot.
+#' @param grid_legend_y_axes_label (string) y-axis label of the grid topic plot.
+#' @param grid_legend_title (string)
+#' @param grid_legend_number_size (integer)
+#' @param grid_legend_number_color (string)
+#' @param grid_legend_title_color (string)
+#' @param grid_legend_title_size (integer)
 #' @param seed (integer) The seed to set for reproducibility.
 #' @returns A tibble including examples with descriptive variables.
 #' @importFrom dplyr filter select arrange slice slice_head group_by summarize mutate rename ntile case_when
@@ -122,7 +137,7 @@ reorder_columns <- function(
 #' @importFrom ggplot2 geom_histogram aes labs theme_minimal scale_fill_manual geom_smooth
 #' @importFrom topics topicsScatterLegend
 #' @export
-textTrainExamples <- function(
+textExamples <- function(
     text,
     x_variable,
     y_variable = NULL,
@@ -151,11 +166,16 @@ textTrainExamples <- function(
     scatter_legend_bg_dots_alpha = .20,
   #  scatter_legend_n = c(3, 3, 3),
     scatter_show_axis_values = TRUE,
-  scatter_legend_regression_line_colour = NULL,
+    scatter_legend_regression_line_colour = NULL,
     x_axis_range = NULL,
     y_axis_range = NULL,
     grid_legend_x_axes_label = NULL,
     grid_legend_y_axes_label = NULL,
+    grid_legend_title = NULL,
+    grid_legend_number_size = 8,
+    grid_legend_number_color = "white",
+    grid_legend_title_color = "black",
+    grid_legend_title_size = 0,
     seed = 42
     ){
 
@@ -242,30 +262,44 @@ textTrainExamples <- function(
            color_categories = factor(color_categories, levels = as.character(1:9))
     )
 
-  table(df$x_variable_grouped)
-
-
-
   # Handle square ranking criteria to get text examples separately for 1D and 2D cases #
   if (!is.null(y_variable)) {
-    df <- df %>%
-      dplyr::mutate(
-        ranking_criteria = dplyr::case_when(
-          color_categories %in% c(1, 3, 7, 9) ~ abs((x_variable + y_variable) / 2 - mean((x_variable + y_variable) / 2, na.rm = TRUE)), # Extreme based on both
-          color_categories %in% c(2, 8) ~ abs(y_variable - mean(y_variable, na.rm = TRUE)),  # Extreme based on y_variable
-          color_categories %in% c(4, 6) ~ abs(x_variable - mean(x_variable, na.rm = TRUE)),  # Extreme based on x_variable
-          color_categories == 5 ~ -abs((x_variable + y_variable) / 2 - mean((x_variable + y_variable) / 2, na.rm = TRUE)), # Closest to mean
-          TRUE ~ 0
+    #df <- df %>%
+    #  dplyr::mutate(
+    #    ranking_criteria = dplyr::case_when(
+    #      color_categories %in% c(1, 3, 7, 9) ~ abs((x_variable + y_variable) / 2 - mean((x_variable + y_variable) / 2, na.rm = TRUE)), # Extreme based on both
+    #      color_categories %in% c(2, 8) ~ abs(y_variable - mean(y_variable, na.rm = TRUE)),  # Extreme based on y_variable
+    #      color_categories %in% c(4, 6) ~ abs(x_variable - mean(x_variable, na.rm = TRUE)),  # Extreme based on x_variable
+    #      color_categories == 5 ~ -abs((x_variable + y_variable) / 2 - mean((x_variable + y_variable) / 2, na.rm = TRUE)), # Closest to mean
+    #      TRUE ~ 0
+    #    )
+    #  )
+
+      df <- df %>%
+        mutate(
+          ranking_criteria = case_when(
+            color_categories == "1" ~ sqrt((x_variable - min(x_variable, na.rm = TRUE))^2 + (y_variable - max(y_variable, na.rm = TRUE))^2),
+            color_categories == "2" ~ abs(y_variable - max(y_variable, na.rm = TRUE)),
+            color_categories == "3" ~ sqrt((x_variable - max(x_variable, na.rm = TRUE))^2 + (y_variable - max(y_variable, na.rm = TRUE))^2),
+            color_categories == "4" ~ abs(x_variable - min(x_variable, na.rm = TRUE)),
+            color_categories == "5" ~ sqrt((x_variable - mean(x_variable, na.rm = TRUE))^2 + (y_variable - mean(y_variable, na.rm = TRUE))^2),
+            color_categories == "6" ~ abs(x_variable - max(x_variable, na.rm = TRUE)),
+            color_categories == "7" ~ sqrt((x_variable - min(x_variable, na.rm = TRUE))^2 + (y_variable - min(y_variable, na.rm = TRUE))^2),
+            color_categories == "8" ~ abs(y_variable - min(y_variable, na.rm = TRUE)),
+            color_categories == "9" ~ sqrt((x_variable - max(x_variable, na.rm = TRUE))^2 + (y_variable - min(y_variable, na.rm = TRUE))^2),
+            TRUE ~ NA_real_
+          )
         )
-      )
+
+
   } else {
     df <- df %>%
-      dplyr::mutate(
-        ranking_criteria = dplyr::case_when(
-          color_categories == 1 ~ abs(x_variable - mean(x_variable, na.rm = TRUE)),  # Extreme low
-          color_categories == 3 ~ abs(x_variable - mean(x_variable, na.rm = TRUE)),  # Extreme high
-          color_categories == 2 ~ -abs(x_variable - mean(x_variable, na.rm = TRUE)), # Closest to mean
-          TRUE ~ 0
+      mutate(
+        ranking_criteria = case_when(
+          color_categories == "1" ~ abs(x_variable - min(x_variable, na.rm = TRUE)),  # Far left (low)
+          color_categories == "3" ~ abs(x_variable - max(x_variable, na.rm = TRUE)),  # Far right (high)
+          color_categories == "2" ~ abs(x_variable - mean(x_variable, na.rm = TRUE)), # Center (closest to mean)
+          TRUE ~ NA_real_
         )
       )
   }
@@ -276,19 +310,31 @@ textTrainExamples <- function(
   #### Filter sentences/cases to show as examples ####
   # Filter rows to include only those with specified words in the language variable ####
   if (!is.null(filter_words)) {
-    df <- df %>%
+    df_examples <- df %>%
       dplyr::filter(
-        purrr::map_lgl(language, ~ all(
-          stringi::stri_detect_fixed(.x, filter_words)))
+        purrr::map_lgl(
+          text,
+          ~ all(stringi::stri_detect_regex(.x, paste0("\\b", filter_words, "\\b")))
+        )
       )
+
+    df_examples <- df_examples %>%
+      dplyr::group_by(color_categories) %>%
+      dplyr::arrange(ranking_criteria) %>% # minimal distance = most representative extreme
+      dplyr::slice_head(n = n_examples) %>%
+      dplyr::ungroup()
+
+
+  } else {
+    # Select N most extreme per category
+    df_examples <- df %>%
+      dplyr::group_by(color_categories) %>%
+      dplyr::arrange(ranking_criteria) %>%
+      dplyr::slice_head(n = n_examples) %>%
+      dplyr::ungroup()
+
   }
 
-  # Select N most extreme per category
-  df_examples <- df %>%
-    dplyr::group_by(color_categories) %>%
-    dplyr::arrange(desc(ranking_criteria)) %>%
-    dplyr::slice_head(n = n_examples) %>%
-    dplyr::ungroup()
 
 
   #### Histogram of predictions and targets using the entire dataset ####
@@ -399,6 +445,7 @@ textTrainExamples <- function(
 
   #####
 
+  # Adding dot distribution scatter legened
   scatter_plot <- topics::topicsScatterLegend(
     bivariate_color_codes = distribution_color,
     filtered_test = df_for_distribution,
@@ -447,7 +494,7 @@ textTrainExamples <- function(
   )
 
   # Add regression/correlation line
-  if(!is.null(scatter_legend_regression_line_colour)) {
+  if(!is.null(scatter_legend_regression_line_colour) & !is.null(y_variable)) {
     scatter_plot$legend <- scatter_plot$legend +
       ggplot2::geom_smooth(aes(x = df_for_distribution$x_variable,
                       y = df_for_distribution$y_variable),
@@ -456,6 +503,25 @@ textTrainExamples <- function(
                   color = scatter_legend_regression_line_colour,
                   size = 0.5)
   }
+
+  # Adding matrix legened
+  legend <- topics::topicsGridLegend(
+    bivariate_color_codes = distribution_color,
+    filtered_test = df_for_distribution,
+ #   cor_var = df_for_distribution,
+    save_dir = NULL,
+    figure_format = figure_format,
+    seed = seed,
+    y_axes_1 = y_axes_1,
+    legend_title = grid_legend_title,
+   legend_title_size = grid_legend_title_size,
+    titles_color = grid_legend_title_color,
+    legend_x_axes_label = grid_legend_x_axes_label,
+    legend_y_axes_label = grid_legend_y_axes_label,
+    topic_data_all = df_for_distribution,
+    legend_number_color = grid_legend_number_color,
+    legend_number_size = grid_legend_number_size
+  )
 
   #### Sorting output ####
   # Renaming variable
@@ -475,14 +541,11 @@ textTrainExamples <- function(
 
   # Always add these elements
   results$examples <- df_examples
+  results$legend <- legend
   results$scatter_plot <- scatter_plot$legend
 
   # Return the filtered and selected examples
   return(results)
 }
 
-# Alias functions
-#' @rdname textTrainExamples
-#' @export
-textPredictExamples <- textTrainExamples
 

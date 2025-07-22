@@ -40,17 +40,18 @@ test_that("Bertopic", {
   if (Sys.info()["sysname"] == "Darwin" | Sys.info()["sysname"] == "Windows") {
 
   # Create BERTopic model trained on data["text"] help(textTopics)
-  bert_model <- text::textTopics(data = data,
-                           variable_name = "text",
-                           embedding_model = "distilroberta",
-                           min_df = 2,
-                           set_seed = 42,
-                           save_dir = save_dir_temp)
+
+  bert_model <- text::textTopics(
+    data = data,
+    variable_name = "text",
+    embedding_model = "distilroberta",
+    min_df = 2,
+    set_seed = 42,
+    save_dir = save_dir_temp)
 
   testthat::expect_equal(bert_model$preds$t_1[2],
                          .1115696,
                          tolerance = 0.0001)
-
 
 #  textTopicsReduce(
 #    data = data,
@@ -69,28 +70,30 @@ test_that("Bertopic", {
     test_method = "linear_regression"
     )
 
-#  testthat::expect_equal(test2$test$x.score.estimate[1],
-#                         .1056764,
-#                         tolerance = 0.0001)
+  testthat::expect_equal(test2$test$x.z_score.estimate_beta[1],
+                         .1056764,
+                         tolerance = 0.0001)
 
 
   plots <- text::textTopicsWordcloud(
     model = bert_model,
-    save_dir = save_dir_temp,
+  #  save_dir = save_dir_temp,
     figure_format = "png",
     seed = 42,
   )
 
-#  plots <- text::textTopicsWordcloud(
-#    model = bert_model,
-#    test = test2,
-#   # p_alpha = 0.05,
-#    figure_format = "png",
-#   seed = 42,
-#    save_dir = save_dir_temp
-#  )
-
-
+  plots1 <- text::textTopicsWordcloud(
+    model = bert_model,
+    test = test2,
+    p_alpha = 1,
+    figure_format = "png",
+   seed = 42
+  )
+  plots1$square1
+  plots1$square2
+  plots1$square3
+  plots1$legend
+  plots1$distribution
 
   }
 })
