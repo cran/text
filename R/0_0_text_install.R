@@ -6,66 +6,147 @@ conda_args <- reticulate:::conda_args
 install_rust_if_needed <- function(prompt = TRUE) {
   is_windows <- identical(.Platform$OS.type, "windows")
   is_unix <- identical(.Platform$OS.type, "unix")
+  is_installed <- function(cmd) nzchar(Sys.which(cmd))
 
-  # Helper to check if an executable exists
-  is_installed <- function(cmd) {
-    nzchar(Sys.which(cmd))
-  }
-
-  # 1. Check if Rust is already installed
   if (is_installed("rustc")) {
-    message(colourise("Rust is already installed. Skipping Rust installation.\n", fg = "blue"))
+    message("Rust is already installed. Skipping Rust installation.")
     return(invisible(NULL))
   }
 
   message("Rust is not installed on this system.")
 
-  # 2. Check if 'curl' is available (needed for macOS/Linux installation)
   if (!is_windows && !is_installed("curl")) {
     warning("Rust installation aborted: 'curl' not found.\nPlease install Rust manually: https://www.rust-lang.org/")
     return(invisible(NULL))
   }
 
-  # 3. Prompt user for permission to install
-  ans <- if (prompt) {
-    utils::menu(c("No", "Yes"), title = "Do you want to install Rust?")
-  } else {
-    2
-  }
-
+  ans <- if (prompt) utils::menu(c("No", "Yes"), title = "Do you want to install Rust?") else 2
   if (ans == 1) {
     message("Rust installation cancelled by user.")
     return(invisible(NULL))
   }
 
-  # 4. Try installing Rust
   tryCatch({
     if (is_windows) {
       message("Downloading Rust installer for Windows...")
-      installer <- tempfile(fileext = ".exe")
-      download.file("https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe", installer, mode = "wb")
-      message("Launching Rust installer...")
-      shell.exec(installer)
-      message("Rust installer launched. Follow on-screen instructions.\n")
+      # installer <- tempfile(fileext = ".exe")
+
+      installer <- file.path(Sys.getenv("USERPROFILE"), "rustup-init.exe")
+      url <- "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe"
+      download.file(url, installer, mode = "wb")
+
+      # Use cmd.exe to preserve long filename
+      cmd <- sprintf('cmd.exe /c ""%s" -y --profile minimal --default-host x86_64-pc-windows-msvc"', installer)
+      status <- shell(cmd, wait = TRUE)
+
+      message("Running Rust installer (non-interactive)...")
+
+      if (!identical(status, 0L)) {
+        stop("rustup-init exited with status ", status)
+      }
+
+      # For the current R session, make sure PATH sees Cargo/bin right away
+      cargo_bin <- file.path(Sys.getenv("USERPROFILE"), ".cargo", "bin")
+      if (dir.exists(cargo_bin) && !grepl(cargo_bin, Sys.getenv("PATH"), fixed = TRUE)) {
+        Sys.setenv(PATH = paste(cargo_bin, Sys.getenv("PATH"), sep = ";"))
+      }
+
     } else {
       message("Downloading and installing Rust for macOS/Linux...")
-      system("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y", intern = TRUE)
+      system("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal", intern = TRUE)
+      # Update PATH for current session
+      cargo_bin <- file.path("~/.cargo/bin")
+      Sys.setenv(PATH = paste(path.expand(cargo_bin), Sys.getenv("PATH"), sep = ":"))
     }
 
-    # 5. Re-check if rustc is now available
-    if (is_installed("rustc")) {
-      message(colourise("Rust installation completed successfully.\n", fg = "green"))
+    # Verify
+    rust_ver <- suppressWarnings(system("rustc --version", intern = TRUE))
+    cargo_ver <- suppressWarnings(system("cargo --version", intern = TRUE))
+    if (length(rust_ver) && length(cargo_ver)) {
+      message("Rust installation completed successfully.")
+      message("  ", rust_ver)
+      message("  ", cargo_ver)
+      message("If RStudio still can't find rustc/cargo, restart RStudio so PATH updates.")
     } else {
       warning("Rust installation attempted, but 'rustc' not found in PATH.\n",
-              "Try restarting your terminal or install Rust manually:\n  https://www.rust-lang.org/tools/install")
+              "Try restarting R/RStudio or install Rust manually:\n  https://www.rust-lang.org/tools/install")
     }
 
   }, error = function(e) {
-    warning("Rust installation failed: ", e$message, "\nPlease install Rust manually from https://www.rust-lang.org/")
+    warning("Rust installation failed: ", e$message,
+            "\nPlease install Rust manually from https://www.rust-lang.org/")
   })
+
+  message("Rust installed successfully.")
+  message("Please restart R or RStudio to ensure the PATH update takes effect; and then rerun textrpp_install().")
 
   invisible(NULL)
 }
+
+##
+##install_rust_if_needed <- function(prompt = TRUE) {
+##  is_windows <- identical(.Platform$OS.type, "windows")
+##  is_unix <- identical(.Platform$OS.type, "unix")
+##
+##  # Helper to check if an executable exists
+##  is_installed <- function(cmd) {
+##    nzchar(Sys.which(cmd))
+##  }
+##
+##  # 1. Check if Rust is already installed
+##  if (is_installed("rustc")) {
+##    message(colourise("Rust is already installed. Skipping Rust installation.\n", fg = "blue"))
+##    return(invisible(NULL))
+##  }
+##
+##  message("Rust is not installed on this system.")
+##
+##  # 2. Check if 'curl' is available (needed for macOS/Linux installation)
+##  if (!is_windows && !is_installed("curl")) {
+##    warning("Rust installation aborted: 'curl' not found.\nPlease install Rust manually: https://www.rust-lang.org/")
+##    return(invisible(NULL))
+##  }
+##
+##  # 3. Prompt user for permission to install
+##  ans <- if (prompt) {
+##    utils::menu(c("No", "Yes"), title = "Do you want to install Rust?")
+##  } else {
+##    2
+##  }
+##
+##  if (ans == 1) {
+##    message("Rust installation cancelled by user.")
+##    return(invisible(NULL))
+##  }
+##
+##  # 4. Try installing Rust
+##  tryCatch({
+##    if (is_windows) {
+##      message("Downloading Rust installer for Windows...")
+##      installer <- tempfile(fileext = ".exe")
+##      download.file("https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe", installer, mode = "wb")
+##      message("Launching Rust installer...")
+##      shell.exec(installer)
+##      message("Rust installer launched. Follow on-screen instructions.\n")
+##    } else {
+##      message("Downloading and installing Rust for macOS/Linux...")
+##      system("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y", intern = TRUE)
+##    }
+##
+##    # 5. Re-check if rustc is now available
+##    if (is_installed("rustc")) {
+##      message(colourise("Rust installation completed successfully.\n", fg = "green"))
+##    } else {
+##      warning("Rust installation attempted, but 'rustc' not found in PATH.\n",
+##              "Try restarting your terminal or install Rust manually:\n  https://www.rust-lang.org/tools/install")
+##    }
+##
+##  }, error = function(e) {
+##    warning("Rust installation failed: ", e$message, "\nPlease install Rust manually from https://www.rust-lang.org/")
+##  })
+##
+##  invisible(NULL)
+##}
 
 #' Check macos githubaction dependencies
 #' @param verbose If TRUE provides verbose information
@@ -151,7 +232,7 @@ check_macos_githubaction_dependencies <- function(verbose = TRUE) {
       )
     }
 
-    warning("Some required macOS system libraries are missing. See message for details.")
+    warning(" Some required macOS system libraries are missing. See message for details.")
   }
 
   # Optional summary
@@ -194,7 +275,7 @@ check_linux_githubaction_dependencies <- function(verbose = TRUE) {
   # Define required and optional dependencies
   required_deps <- c(
     "libcurl4-openssl-dev",
-   # "libgit2-dev",
+    "libgit2-dev", #
     "libssl-dev",
     "libharfbuzz-dev",
     "libfribidi-dev",
@@ -204,7 +285,7 @@ check_linux_githubaction_dependencies <- function(verbose = TRUE) {
     "libjpeg-dev",
     "libfontconfig1-dev",
     "libicu-dev",
-   # "libcairo2-dev",
+    "libcairo2-dev", #
     "default-jdk"
   )
 
@@ -237,7 +318,7 @@ check_linux_githubaction_dependencies <- function(verbose = TRUE) {
       "To install them on Debian/Ubuntu systems, run:",
       paste0("  sudo apt-get install -y ", paste(missing, collapse = " "))
     )
-    warning("Some required system libraries are missing. See message for details.")
+    warning(" Some required system libraries are missing. See message for details.")
   }
 
   # Optional deps (none currently defined)
@@ -262,6 +343,170 @@ check_linux_githubaction_dependencies <- function(verbose = TRUE) {
 }
 
 
+
+#' Check Windows GitHub Action dependencies
+#'
+#' Checks if essential Windows dependencies for using the `text` and `talk` packages are available.
+#' Skips checks for Python/Miniconda (handled by `textrpp_install()`) and Java/7-Zip (not needed).
+#'
+#' @param verbose If TRUE, prints detailed messages
+#' @return A named list summarizing installed and missing dependencies
+#' @noRd
+check_windows_githubaction_dependencies <- function(verbose = TRUE) {
+  if (!is_windows()) return(invisible(NULL))
+  missing <- c()
+  summary_lines <- c("== Windows Dependency Check ==")
+
+  # Check for Visual C++ Build Tools
+  vswhere_path <- file.path(
+    Sys.getenv("ProgramFiles(x86)", ""),
+    "Microsoft Visual Studio", "Installer", "vswhere.exe"
+  )
+  has_cpp_buildtools <- file.exists(vswhere_path) &&
+    system(paste0('"', vswhere_path, '" -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64'),
+           ignore.stdout = TRUE, ignore.stderr = TRUE) == 0
+
+  if (has_cpp_buildtools) {
+    summary_lines <- c(summary_lines, "Visual C++ Build Tools are installed.")
+  } else {
+    summary_lines <- c(
+      summary_lines,
+      "Visual C++ Build Tools are NOT installed. ",
+      "Some important Python packages (e.g., hdbscan) require them to compile. ",
+      "Please following these three steps: \n",
+      "1. install it following this link: " ,
+      " https://visualstudio.microsoft.com/visual-cpp-build-tools/ \n",
+      "2. Download Build Tools and run the installer file. IMPORTANT: During installation click Modify and then select Desktop development with C++. \n",
+      " After installation you may have to RESTART R, Rstudio, or even Windows. \n",
+      " For more infomraiton see https://www.r-text.org/articles/ext_install_guide.html."
+    )
+    missing <- "visual_build_tools"
+  }
+
+  # Check if conda TOS for common channels are accepted
+  check_conda_tos <- function(miniconda_path = reticulate::miniconda_path()) {
+    conda_bin <- file.path(miniconda_path, "condabin", "conda.bat")
+    if (!file.exists(conda_bin)) return(NA)
+
+    channels <- c(
+      "https://repo.anaconda.com/pkgs/main",
+      "https://repo.anaconda.com/pkgs/r",
+      "https://repo.anaconda.com/pkgs/msys2"
+    )
+
+    accepted <- TRUE
+    for (channel in channels) {
+      cmd <- paste0('"', conda_bin, '" tos accept --override-channels --channel ', channel)
+      result <- tryCatch(system(cmd, intern = TRUE, ignore.stderr = TRUE), error = function(e) character(0))
+
+      if (any(grepl("Error|failed", result, ignore.case = TRUE))) {
+        accepted <- FALSE
+        summary_lines <<- c(
+          summary_lines,
+          paste0("ToS not accepted for: ", channel),
+          "To fix, run in Command Prompt (not R):",
+          paste0("  ", cmd)
+        )
+      }
+    }
+
+    accepted
+  }
+
+  tos_ok <- check_conda_tos()
+
+  if (isTRUE(tos_ok)) {
+    summary_lines <- c(summary_lines, "Conda channels ToS accepted.")
+  } else if (is.na(tos_ok)) {
+    summary_lines <- c(
+      summary_lines,
+      "Conda not found yet. It will be installed automatically using `textrpp_install()`."
+    )
+  } else {
+    summary_lines <- c(summary_lines, "Some conda channel ToS are not accepted.")
+    missing <- c(missing, "conda_channel_TOS")
+  }
+
+  if (verbose) message(paste(summary_lines, collapse = "\n"))
+
+  invisible(list(
+    os = "Windows",
+    missing = missing,
+    cpp_buildtools = has_cpp_buildtools,
+    conda_tos_ok = isTRUE(tos_ok),
+    summary_lines = summary_lines
+  ))
+}
+
+
+
+#' Ensure that the conda-forge channel is used for conda installations
+#'
+#' This function configures the conda package manager to:
+#' 1. Remove the default Anaconda channels (which may now require Terms of Service acceptance),
+#' 2. Add the conda-forge channel, and
+#' 3. Set strict channel priority to ensure all packages are pulled from conda-forge.
+#'
+#' This is especially useful in non-interactive environments (e.g., CI/CD or automated setup scripts)
+#' where accepting Anaconda's Terms of Service is not feasible.
+#'
+#' @param conda Either "auto" or a path to the conda binary (e.g., from `reticulate::conda_binary()`).
+#' @return Invisibly returns NULL. Side effect is that it modifies the conda configuration.
+#' @noRd
+ensure_conda_forge <- function(conda) {
+  is_windows <- identical(.Platform$OS.type, "windows")
+  if (is.null(conda)) {
+    stop("Cannot configure conda-forge: conda binary is NULL.")
+  }
+
+  if (conda == "auto") {
+    conda <- reticulate::conda_binary("auto")
+    if (is.null(conda)) stop("Could not resolve conda binary with 'auto'.")
+  }
+
+  # Try to remove 'defaults', but catch and warn if it fails
+  remove_defaults <- tryCatch({
+    system2(conda, c("config", "--remove", "channels", "defaults"), stdout = TRUE, stderr = TRUE)
+    TRUE
+  }, warning = function(w) {
+    warning("Could not remove 'defaults' channel from conda config. It may not have been listed explicitly.")
+    FALSE
+  }, error = function(e) {
+    warning("Failed to remove 'defaults' channel. This might be due to multiple .condarc files (e.g., user and system level).")
+    FALSE
+  })
+
+  # Ensure conda-forge is added
+  system2(conda, c("config", "--add", "channels", "conda-forge"), stdout = TRUE, stderr = TRUE)
+
+  # Set strict channel priority
+  system2(conda, c("config", "--set", "channel_priority", "strict"), stdout = TRUE, stderr = TRUE)
+
+  message(" conda-forge channel configured with strict priority.")
+  if (!remove_defaults) {
+
+    message(
+      "\n Note: The 'defaults' channel may still be active due to system-level settings.\n",
+      "Please check your .condarc file, which contain the channel specifications. \n",
+      "In the terminal/comman prompt run: \n",
+      "conda config --add channels conda-forge \n",
+      "conda config --set channel_priority strict \n",
+      "conda config --remove channels defaults")
+
+    #if(is_windows) {
+    #  message(
+    #    "Check the .condarc files manually and remove 'defaults' if necessary.\n",
+    #    "In the terminal run the following to open the file: \n",
+    #    "  Notepad %USERPROFILE%\\.condarc\n\n",
+    #    "remove the word 'defaults' if it exist. \n",
+    #    "If the above does not work, look for the file at:\n",
+    #    "  <conda-root>\\.condarc\n",
+    #    "For example:\n",
+    #    " Notepad C:\\Users\\<name>\\miniconda3\\.condarc"
+    #  )
+    #}
+  }
+}
 
 
 #' Install text required python packages in conda or virtualenv environment
@@ -296,6 +541,8 @@ check_linux_githubaction_dependencies <- function(verbose = TRUE) {
 #' @param envname character; name of the conda-environment to install text required python packages.
 #'   Default is "textrpp_condaenv".
 #' @param prompt logical; ask whether to proceed during the installation
+#' @param conda_forge (boolean) TRUE ensures using forge channels to avoid having to accept
+#' Terms of Service from Anaconda
 #' @examples
 #' \dontrun{
 #' # install text required python packages in a miniconda environment (macOS and Linux)
@@ -314,13 +561,20 @@ textrpp_install <- function(
     envname = "textrpp_condaenv",
     pip = TRUE,
     python_path = NULL,
-    prompt = TRUE
-    ) {
+    prompt = TRUE,
+    conda_forge = TRUE
+) {
 
+  # install rust for singularity machine -- but it gives error in github action
+  # reticulate::py_run_string("import os\nos.system(\"curl --proto '=https' --tlsv1.2 -sSf
+  # https://sh.rustup.rs | sh -s -- -y\")")
+  #system("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y")
+  install_rust_if_needed(prompt = prompt)
 
   # Check system-level dependencies
   macos_log <- check_macos_githubaction_dependencies(verbose = prompt)
   linux_log <- check_linux_githubaction_dependencies(verbose = prompt)
+  windows_log <- check_windows_githubaction_dependencies(verbose = prompt)
 
   # Collect missing dependencies
   critical_missing <- character()
@@ -336,6 +590,14 @@ textrpp_install <- function(
     terminal_command <- paste0("sudo apt-get install -y ", paste(linux_log$missing, collapse = " "))
   }
 
+  if (!is.null(windows_log$missing) && length(windows_log$missing) > 0) {
+    critical_missing <- c(critical_missing, windows_log$missing)
+
+    if (length(critical_missing) > 0) {
+      stop("Please see the Windows Dependency Check above.")
+    }
+  }
+
   # Stop or prompt depending on `prompt` setting
   if (length(critical_missing) > 0) {
     message("\nSystem dependency check identified the following missing libraries:")
@@ -343,7 +605,7 @@ textrpp_install <- function(
       message("  - ", pkg)
     }
 
-    if (!is.null(terminal_command)) {
+    if (!is.null(terminal_command) & is.null(windows_log)) {
       message("\nTo install them, open your terminal and run:")
       message("  ", terminal_command)
     }
@@ -352,7 +614,13 @@ textrpp_install <- function(
       message("\nInstallation stopped. Set `prompt = TRUE` if you wish to override and proceed anyway.")
       return(invisible(NULL))
     } else {
-      ans <- utils::menu(c("No", "Yes"), title = "\nDo you still want to continue with installation?")
+      title_message <- paste(
+        "\nSome required dependencies are missing (see messages above).",
+        "This will likely cause the installation to fail.",
+        "Do you still want to continue?"
+      )
+
+      ans <- utils::menu(c("No", "Yes"), title = title_message)
       if (ans == 1) {
         message("Installation cancelled due to missing system dependencies.")
         return(invisible(NULL))
@@ -432,12 +700,6 @@ textrpp_install <- function(
     )
   }
 
-  # install rust for singularity machine -- but it gives error in github action
-  # reticulate::py_run_string("import os\nos.system(\"curl --proto '=https' --tlsv1.2 -sSf
-  # https://sh.rustup.rs | sh -s -- -y\")")
-  #system("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y")
-  install_rust_if_needed(prompt = prompt)
-
   # resolve and look for conda help(conda_binary)
   conda <- tryCatch(reticulate::conda_binary(conda), error = function(e) NULL)
   have_conda <- !is.null(conda)
@@ -457,6 +719,9 @@ textrpp_install <- function(
       if (ans == 2) {
         reticulate::install_miniconda(update = update_conda)
         conda <- tryCatch(reticulate::conda_binary("auto"), error = function(e) NULL)
+        if (is.null(conda)) stop("Miniconda installation succeeded, but conda binary could not be found.")
+        # Ensure using forge channels to avoid having to accept Terms of Service from Anaconda
+        if(conda_forge) ensure_conda_forge(conda)
       } else {
         stop("Conda environment installation failed (no conda binary found)\n", call. = FALSE)
       }
@@ -469,11 +734,11 @@ textrpp_install <- function(
 
     # process the installation of text required python packages
     process_textrpp_installation_conda(conda,
-      rpp_version,
-      python_version,
-      prompt,
-      envname = envname,
-      pip = pip
+                                       rpp_version,
+                                       python_version,
+                                       prompt,
+                                       envname = envname,
+                                       pip = pip
     )
 
     # Windows installation
@@ -497,18 +762,22 @@ textrpp_install <- function(
       # OK adds help(install_miniconda)
       reticulate::install_miniconda(update = update_conda)
       conda <- tryCatch(reticulate::conda_binary("auto"), error = function(e) NULL)
+      if (is.null(conda)) stop("Miniconda installation succeeded, but conda binary could not be found.")
     }
     # Update mini_conda
     if (have_conda && update_conda || have_conda && force_conda) {
       reticulate::install_miniconda(update = update_conda, force = force_conda)
     }
+    # Ensure using forge channels to avoid having to accept Terms of Service from Anaconda
+    if(conda_forge) ensure_conda_forge(conda)
+
     # process the installation of text required python packages
     process_textrpp_installation_conda(conda,
-      rpp_version,
-      python_version,
-      prompt,
-      envname = envname,
-      pip = pip
+                                       rpp_version,
+                                       python_version,
+                                       prompt,
+                                       envname = envname,
+                                       pip = pip
     )
   }
 
@@ -685,9 +954,9 @@ textrpp_uninstall <- function(conda = "auto",
   conda_envs <- reticulate::conda_list(conda = conda)
   conda_env <- subset(conda_envs, conda_envs$name == envname)
   if (nrow(conda_env) != 1) {
-    stop("conda environment", envname, "is not found", call. = FALSE)
+    stop("The conda environment ", envname, " is not found", call. = FALSE)
   }
-  message("A conda environment", envname, "will be removed\n")
+  message("The conda environment ", envname, " will be removed\n")
   ans <- ifelse(prompt, utils::menu(c("No", "Yes"), title = "Proceed?"), 2)
   if (ans == 1) stop("condaenv removal is cancelled by user", call. = FALSE)
   python <- reticulate::conda_remove(envname = envname)

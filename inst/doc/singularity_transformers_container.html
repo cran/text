@@ -634,10 +634,10 @@ From: ubuntu:20.04
      # Install R
      apt-get update
      apt-get install -y --no-install-recommends software-properties-common dirmngr  wget uuid-runtime
-     wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | \
+     wget -qO- https://cran.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | \
        tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
      add-apt-repository \
-       &quot;deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/&quot;
+       &quot;deb https://cran.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/&quot;
      apt-get install -y --no-install-recommends \
      r-base=${R_VERSION}* \
      r-base-core=${R_VERSION}* \
@@ -659,7 +659,7 @@ From: ubuntu:20.04
      libjpeg-dev
      
      # Add a default CRAN mirror
-     echo &quot;options(repos = c(CRAN = &#39;https://cran.rstudio.com/&#39;), download.file.method = &#39;libcurl&#39;)&quot; &gt;&gt; /usr/lib/R/etc/Rprofile.site
+     echo &quot;options(repos = c(CRAN = &#39;https://cran.R-project.com/&#39;), download.file.method = &#39;libcurl&#39;)&quot; &gt;&gt; /usr/lib/R/etc/Rprofile.site
 
      # Fix R package libpaths (helps RStudio Server find the right directories)
      mkdir -p /usr/lib64/R/etc

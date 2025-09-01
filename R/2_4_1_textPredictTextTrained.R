@@ -1043,6 +1043,8 @@ textPredictTest <- function(y1,
                             seed = 20250622,
                             ...) {
 
+  if (is.null(y2) && !is.null(y1)) y2 = y1
+  if (!is.null(y2) && is.null(y1)) y1 = y2
   set.seed(seed)
 
   if(method == "bootstrap"){
@@ -1138,15 +1140,15 @@ textPredictTest <- function(y1,
       # Summarize distributions
       mean_cor1 <- mean(boot_results$cor1)
       sd_cor1   <- sd(boot_results$cor1)
-      ci_cor1   <- stats::quantile(boot_results$cor1, c(0.025, 0.975))
+      ci_cor1   <- quantile(boot_results$cor1, c(0.025, 0.975))
 
       mean_cor2 <- mean(boot_results$cor2)
       sd_cor2   <- sd(boot_results$cor2)
-      ci_cor2   <- stats::quantile(boot_results$cor2, c(0.025, 0.975))
+      ci_cor2   <- quantile(boot_results$cor2, c(0.025, 0.975))
 
       mean_diff <- mean(boot_results$cor_diff)
       sd_diff   <- sd(boot_results$cor_diff)
-      ci_diff   <- stats::quantile(boot_results$cor_diff, c(0.025, 0.975))
+      ci_diff   <- quantile(boot_results$cor_diff, c(0.025, 0.975))
 
       # One-tailed p-values in both directions
       p_value_one_tailed_greater <- mean(boot_results$cor_diff <= 0)
@@ -1206,14 +1208,14 @@ textPredictTest <- function(y1,
           levels1 <- length(unique(df$truth1))
           if (levels1 > 2) {
             auc1 <- yardstick::roc_auc_vec(
-              truth = df$truth1,
-              estimate = as.matrix(df[, grepl("^pred1_", names(df))]),
-              estimator = "macro_weighted"
+              truth = as.factor(df$truth1),
+              estimate = as.matrix(df[, grepl("^pred1$", names(df))]),
+              estimator = "hand_till"
             )
           } else {
             auc1 <- yardstick::roc_auc_vec(
-              truth = df$truth1,
-              estimate = df$pred1,
+              truth = as.factor(df$truth1),
+              estimate = as.matrix(df$pred1)[,1],
               event_level = "first"
             )
           }
@@ -1222,14 +1224,14 @@ textPredictTest <- function(y1,
           levels2 <- length(unique(df$truth2))
           if (levels2 > 2) {
             auc2 <- yardstick::roc_auc_vec(
-              truth = df$truth2,
-              estimate = as.matrix(df[, grepl("^pred2_", names(df))]),
-              estimator = "macro_weighted"
+              truth = as.factor(df$truth2),
+              estimate = as.matrix(df[, grepl("^pred2$", names(df))]),
+              estimator = "hand_till"
             )
           } else {
             auc2 <- yardstick::roc_auc_vec(
-              truth = df$truth2,
-              estimate = df$pred2,
+              truth = as.factor(df$truth2),
+              estimate = as.matrix(df$pred2)[,1],
               event_level = "first"
             )
           }
@@ -1242,15 +1244,15 @@ textPredictTest <- function(y1,
       # Summarize distributions
       mean_auc1 <- mean(boot_results$auc1)
       sd_auc1   <- sd(boot_results$auc1)
-      ci_auc1   <- stats::quantile(boot_results$auc1, c(0.025, 0.975))
+      ci_auc1   <- quantile(boot_results$auc1, c(0.025, 0.975))
 
       mean_auc2 <- mean(boot_results$auc2)
       sd_auc2   <- sd(boot_results$auc2)
-      ci_auc2   <- stats::quantile(boot_results$auc2, c(0.025, 0.975))
+      ci_auc2   <- quantile(boot_results$auc2, c(0.025, 0.975))
 
       mean_diff <- mean(boot_results$auc_diff)
       sd_diff   <- sd(boot_results$auc_diff)
-      ci_diff   <- stats::quantile(boot_results$auc_diff, c(0.025, 0.975))
+      ci_diff   <- quantile(boot_results$auc_diff, c(0.025, 0.975))
 
       # One-tailed p-values in both directions
       p_value_one_tailed_greater <- mean(boot_results$auc_diff <= 0)
@@ -1363,8 +1365,8 @@ textPredictTest <- function(y1,
     x_list_dist <- list(boot_y1_distribution$corr_y1, boot_y2_distribution$corr_y2)
 
     if (requireNamespace("text", quietly = TRUE)) {
-    output <- overlapping::overlap(x_list_dist)
-    output <- list(output$OV[[1]])
+      output <- overlapping::overlap(x_list_dist)
+      output <- list(output$OV[[1]])
     }
 
     names(output) <- "overlapp_p_value"

@@ -340,16 +340,31 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<p>The <em>text</em>-package provides users access to HuggingFace
-Transformers in R through <a href="https://rstudio.github.io/reticulate/">reticulate</a>, which
-interfaces with <a href="https://www.python.org/">Python</a>. It relies
-on Python packages such as <a href="https://pytorch.org/">torch</a> and
-<a href="https://huggingface.co/docs/transformers/index">transformers</a>.
-</br></br> To use these features, you need to install: • The text
-package in R • A Python environment with the required packages
-</br></br> The easiest way is to use <code>textrpp_install()</code> to
-install a preconfigured Conda environment and then initialize it with
-<code>textrpp_initialize()</code>.</p>
+<p>No one knows everything — and you don’t need to! Many of our users
+are not computer scientists, so some of the installation steps and
+technical terms may feel unfamiliar at first. That’s completely
+normal.</p>
+<p>This guide is written to walk you through the process step by step,
+with explanations along the way. And remember: search engines (like
+DuckDuckGo) and chatbots (like ChatGPT) can be helpful allies if you
+ever get stuck or encounter a new concept.</p>
+<p>If you run into issues that aren’t covered here, please reach out to
+us at: <a href="mailto:rtext.contact@gmail.com" class="email">rtext.contact@gmail.com</a>, so that we can improve the
+instructions for everyone.</p>
+<p>To get started, follow these steps:<br> <br> <b>1) Install R and
+RStudio</b><br> Use the links below to download and install:<br> - <a href="https://CRAN.R-project.org/">R (version 4.0.0 or higher)</a><br> -
+<a href="https://posit.co/download/rstudio-desktop/">RStudio
+(recommended)</a><br> <br> <b>2) Install and set up the text package
+</b><br> The text package gives you access to HuggingFace Transformers
+through <a href="https://rstudio.github.io/reticulate/">reticulate</a>
+(enabling advanced language analysis), which connects R to <a href="https://www.python.org/">Python</a> (while remaining in an R
+environment). It uses Python packages like torch and transformers.<br>
+<br> To make this easy, run:<br> - <code>textrpp_install()</code> –
+installs a ready-to-use Python/Conda environment<br> -
+<code>textrpp_initialize()</code> – activates the environment for use in
+R<br> <br> This setup will handle most Python and system dependencies
+automatically – however, you may be isntructed to install system level
+dependencis as further described below.</p>
 <div id="set-up-a-python-environment-for-the-text-package" class="section level2">
 <h2>Set up a python environment for the text-package</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
@@ -367,15 +382,82 @@ install a preconfigured Conda environment and then initialize it with
 <span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="co"># Test that textEmbed works</span></span>
 <span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="fu">textEmbed</span>(<span class="st">&quot;hello&quot;</span>)</span></code></pre></div>
 </div>
-<div id="troubleshooting" class="section level2">
-<h2>Troubleshooting</h2>
+<div id="system-level-dependencies" class="section level2">
+<h2>System-level dependencies</h2>
+<p>Different operating systems require different system-level
+dependencies, especially when working with Python packages that rely on
+compiled extensions or specialized libraries. Below is a summary of
+what’s commonly required and how to install it.</p>
+<div id="windows" class="section level3">
+<h3>Windows</h3>
+<div id="microsoft-c-build-tools" class="section level4">
+<h4>Microsoft C++ Build Tools</h4>
+<p>Some Python packages (e.g., hdbscan, flair) require compilation with
+Visual C++. Windows users may need to manually install <b>Microsoft C++
+Build Tools</b>. You must have C++ build tools for Python packages that
+need compilation. <br> <br> Install the latest version of Microsoft C++
+Build Tools:<br> 1. Download and run the installer from <a href="https://visualstudio.microsoft.com/visual-cpp-build-tools/" class="uri">https://visualstudio.microsoft.com/visual-cpp-build-tools/</a>.
+<br> 2. During installation, check: <br> - “Desktop development with
+C++” or “C++ build tools”. <br> - Ensure “Windows 11 SDK” is also
+selected on the right menu. <br> 3. Complete installation and restart
+your computer. <br> <br></p>
+</div>
+<div id="terms-of-service-conflict-annaconda-forge-channel" class="section level4">
+<h4>Terms of Service conflict – Annaconda forge channel</h4>
+<p>Python environments used by the text and talk packages rely on
+packages from the conda-forge channel.<br></p>
+<p>You don’t need to install Anaconda manually – the textrpp_install()
+function will install Miniconda and set conda-forge as the default
+channel.<br></p>
+<p>However, if you’ve previously installed Anaconda or changed channels,
+you might encounter ToS conflicts (Terms of Service).<br></p>
+<p>If errors mention pkgs/main or tos accept, you can fix it by running
+the following in <b>Terminal/Command Prompt</b> (not R):<br></p>
+<pre class="terminal"><code># Run this in your Terminal (not in R)
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+conda config --remove channels defaults</code></pre>
+</div>
+</div>
+<div id="macos" class="section level3">
+<h3>MacOS</h3>
+<p>On macOS, most system-level dependencies are typically pre-installed.
+For any missing components, the text package automatically detects them
+and provides clear instructions to guide the user through
+installation.</p>
+<div id="homebrew-libomp" class="section level4">
+<h4>1 Homebrew &amp; libomp</h4>
+<p>Install Homebrew (if not already installed):</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Run this in your Terminal (not in R)</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="ex">/bin/bash</span> <span class="at">-c</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-fsSL</span> https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh<span class="va">)</span><span class="st">&quot;</span></span></code></pre></div>
+</div>
+<div id="install-libomp" class="section level4">
+<h4>2. Install libomp:</h4>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Run this in your Terminal (not in R)</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="ex">brew</span> install libomp</span></code></pre></div>
+</div>
+</div>
+<div id="ubuntu" class="section level3">
+<h3>Ubuntu</h3>
+<p>On recent Ubuntu distributions (e.g., 22.04+), most core dependencies
+are available.</p>
+<p>If needed, you can install them with:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Run this in your Terminal (not in R)</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">sudo</span> apt update</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">sudo</span> apt install build-essential libomp-dev</span></code></pre></div>
+<p>build-essential: provides gcc, g++, and make <br> libomp-dev: for
+OpenMP support <br></p>
+</div>
+</div>
+<div id="general-troubleshooting" class="section level2">
+<h2>General troubleshooting</h2>
 <div id="check-if-you-have-install-permissions" class="section level3">
 <h3>1. Check if you have install permissions</h3>
 <p>Can you install an R package like dplyr?</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;dplyr&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;dplyr&quot;</span>)</span></code></pre></div>
 <p>Can you install system-level tools like Python/miniconda?</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>reticulate<span class="sc">::</span><span class="fu">install_miniconda</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">library</span>(reticulate)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>reticulate<span class="sc">::</span><span class="fu">install_miniconda</span>()</span></code></pre></div>
 <p>If you do not have premissions, please contact your administrator for
 advice.</p>
 </div>
@@ -384,24 +466,24 @@ advice.</p>
 <p>After restarting R, functions like textEmbed() can stop working
 again.</p>
 <p>Solution: Persist the initialization in your R profile:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_initialize</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="at">condaenv =</span> <span class="st">&quot;textrpp_condaenv&quot;</span>,</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">refresh_settings =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">save_profile =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>) </span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_initialize</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="at">condaenv =</span> <span class="st">&quot;textrpp_condaenv&quot;</span>,</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="at">refresh_settings =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">save_profile =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>) </span></code></pre></div>
 </div>
 <div id="install-the-development-version-from-github." class="section level3">
 <h3>3. Install the development version from GitHub.</h3>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># install.packages(&quot;devtools&quot;)</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;oscarkjell/text&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># install.packages(&quot;devtools&quot;)</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;oscarkjell/text&quot;</span>)</span></code></pre></div>
 </div>
 <div id="force-reinstallation-of-the-environment" class="section level3">
 <h3>4. Force reinstallation of the environment</h3>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_install</span>(</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">update_conda =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">force_conda =</span> <span class="cn">TRUE</span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_install</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="at">update_conda =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">force_conda =</span> <span class="cn">TRUE</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>)</span></code></pre></div>
 </div>
 <div id="install-the-python-environment-using-reticulate" class="section level3">
 <h3>5. Install the python environment using reticulate</h3>
@@ -413,9 +495,9 @@ detailed information.</p>
 <h3>6. Inspect diagnostic information</h3>
 <p>If something isn’t working right, it is a good start to examine what
 is installed and running on your system.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>log <span class="ot">&lt;-</span> text<span class="sc">::</span><span class="fu">textDiagnostics</span>()</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>log </span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">library</span>(text)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>log <span class="ot">&lt;-</span> text<span class="sc">::</span><span class="fu">textDiagnostics</span>()</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>log </span></code></pre></div>
 <p>Because the text package requires some system-level setup,
 installation is automatically verified on Windows, macOS, and Ubuntu
 through our <a href="https://github.com/OscarKjell/text/actions">GitHub
@@ -432,16 +514,16 @@ libraries being tested.</p>
 <h2>Virtual environments</h2>
 <p>It is also possible to use virtual environments (although it is
 currently only tested on MacOS).</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Create a virtual environment with text required python packages.</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co"># Note that you have to provide a python path.</span></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_install_virtualenv</span>(<span class="at">rpp_version =</span> <span class="fu">c</span>(<span class="st">&quot;torch==1.7.1&quot;</span>, <span class="st">&quot;transformers==4.12.5&quot;</span>, <span class="st">&quot;numpy&quot;</span>, <span class="st">&quot;nltk&quot;</span>),</span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>                                 <span class="at">python_path =</span> <span class="st">&quot;/usr/local/bin/python3.9&quot;</span>,</span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>                                 <span class="at">envname =</span> <span class="st">&quot;textrpp_virtualenv&quot;</span>)</span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co"># Initialize the virtual environment.</span></span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_initialize</span>(<span class="at">virtualenv =</span> <span class="st">&quot;textrpp_virtualenv&quot;</span>,</span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>                         <span class="at">condaenv =</span> <span class="cn">NULL</span>,</span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>                         <span class="at">save_profile =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Create a virtual environment with text required python packages.</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co"># Note that you have to provide a python path.</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_install_virtualenv</span>(<span class="at">rpp_version =</span> <span class="fu">c</span>(<span class="st">&quot;torch==1.7.1&quot;</span>, <span class="st">&quot;transformers==4.12.5&quot;</span>, <span class="st">&quot;numpy&quot;</span>, <span class="st">&quot;nltk&quot;</span>),</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>                                 <span class="at">python_path =</span> <span class="st">&quot;/usr/local/bin/python3.9&quot;</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>                                 <span class="at">envname =</span> <span class="st">&quot;textrpp_virtualenv&quot;</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co"># Initialize the virtual environment.</span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>text<span class="sc">::</span><span class="fu">textrpp_initialize</span>(<span class="at">virtualenv =</span> <span class="st">&quot;textrpp_virtualenv&quot;</span>,</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>                         <span class="at">condaenv =</span> <span class="cn">NULL</span>,</span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a>                         <span class="at">save_profile =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 </div>
 <div id="solving-omp-errors-and-rrstudio-crashes" class="section level2">
 <h2>Solving OMP errors and R/Rstudio crashes</h2>
@@ -472,12 +554,6 @@ Please see:<br />
 <a href="https://www.python.org/">Python</a><br />
 <a href="https://pytorch.org/">torch</a><br />
 <a href="https://huggingface.co/docs/transformers/index">transformers</a></p>
-</div>
-<div id="share-advise" class="section level2">
-<h2>Share advise</h2>
-<p><em>If you find a good solution please feel free to email oscar [ d_o
-t] kjell [a_t] psy [DOT] lu [d_o_t]se so that we can update above
-instructions.</em></p>
 </div>
 
 

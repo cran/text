@@ -38,7 +38,7 @@ Important: Language-based assessments can be developed in one context—such as 
 
 Because of this, users are responsible for evaluating whether a model is appropriate for their specific use case. This means checking whether the training and evaluation conditions align with their own data—and, if needed, validating the model’s performance on a subset of their own data before making any conclusions. That’s why each model in the L-BAM Library comes with detailed documentation on its training data, performance metrics, and development process. Transparent documentation helps users make informed decisions and supports reproducible, trustworthy research (for more information see Nilsson et al., in progress).
 
-If you want to add a pre-trained model to the L-BAM library, please fill out the details in this [Google sheet](https://docs.google.com/spreadsheets/d/1K16JdK7zOmuRktqgaYs5sgaHnkUVwB9v6ERxZdd9iW8/edit#gid=0) and email us (*oscar [ d_o t] kjell [a _ t] psy [DOT] lu [d_o_t]se*) so that we can update the table online.
+If you want to add a pre-trained model to the L-BAM library, please fill out the details in this [Google sheet](https://docs.google.com/spreadsheets/d/1K16JdK7zOmuRktqgaYs5sgaHnkUVwB9v6ERxZdd9iW8/edit#gid=0) and email us (*rtext.contact@gmail.com*) so that we can update the table online.
 
 *Note that you can adjust the width of the columns when scrolling the table.*
 
@@ -50,7 +50,7 @@ model_data <- read.csv(system.file("extdata",
                                    "The_L-BAM_Library.csv",
                                    package = "text"),
                        header = TRUE, 
-                       skip = 3)
+                       skip = 6)
 
 reactable::reactable(
   data = model_data,
@@ -60,47 +60,53 @@ reactable::reactable(
   resizable = TRUE,
   theme = reactableTheme(
     borderColor = "#1f7a1f",
-  #  stripedColor = "#e6ffe6",
+    #  stripedColor = "#e6ffe6",
     highlightColor = "#ebfaeb",
     cellPadding = "8px 12px",
     style = list(fontFamily = "-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif")
   ),
   columns = list(
-    Construct_Concept_Behaviours = colDef(minWidth = 280),
-    Outcome = colDef(minWidth = 280),
-    Language = colDef(minWidth = 280),
-    Language_type = colDef(minWidth = 280),
-    Level = colDef(minWidth = 280),
-    N_training = colDef(minWidth = 280),
-    N_evaluation = colDef(minWidth = 280),
-    Source = colDef(minWidth = 280),
-    Participants_training = colDef(minWidth = 280),
-    Participants_evaluation = colDef(minWidth = 280),
-    Label_types = colDef(minWidth = 280),
-    Language_domain_distribution = colDef(minWidth = 280),
-    Open_data = colDef(minWidth = 280),
-    Model_type = colDef(minWidth = 280),
-    Features = colDef(minWidth = 280),
-    Validation_metric1 = colDef(minWidth = 280),
-    N_fold_cv_accuracy.1 = colDef(minWidth = 280),
-    Held_out_accuracy.1 = colDef(minWidth = 280),
-    SEMP_accuracy.1 = colDef(minWidth = 280),
-    Other_metrics_n_fold_cv = colDef(minWidth = 280),
-    Other_metrics_held_out = colDef(minWidth = 280),
-    Other_metrics_SEMP = colDef(minWidth = 280),
-    Ethical_approval = colDef(minWidth = 280),
-    Ethical_statement = colDef(minWidth = 280),
-    Reference = colDef(minWidth = 280),
-    Date = colDef(minWidth = 280),
-    Contact_details = colDef(minWidth = 280),
-    License = colDef(minWidth = 280),
-    Study_type = colDef(minWidth = 280),
-    Original = colDef(minWidth = 280),
-    Miscellaneous = colDef(minWidth = 280),
-    Command_info = colDef(minWidth = 800),
-    Name = colDef(minWidth = 280),
-    Path = colDef(minWidth = 280),
-    Model_Type = colDef(minWidth = 280)
+    Name = colDef(minWidth = 480),
+    Construct_Concept_Behaviours	= colDef(minWidth = 280),
+    Use_case_binary	= colDef(minWidth = 280),
+    Use_case_detailed	= colDef(minWidth = 280),
+    Reference	= colDef(minWidth = 280),
+    Contact_details	= colDef(minWidth = 280),
+    Outcome	= colDef(minWidth = 280),
+    Language= colDef(minWidth = 280),
+    Language_type= colDef(minWidth = 280),
+    Level	= colDef(minWidth = 280),
+    N_training= colDef(minWidth = 280),
+    N_evaluation_or_N_generalisation= colDef(minWidth = 280),
+    Source	= colDef(minWidth = 280),
+    Participants_training	= colDef(minWidth = 1680),
+    Participants_evaluation_or_generalisation	= colDef(minWidth = 1680),
+    Label_types		= colDef(minWidth = 280),
+    Language_domain_distribution 		= colDef(minWidth = 280),
+    Open_data		= colDef(minWidth = 480),
+    Open_code		= colDef(minWidth = 480),
+    Model_type		= colDef(minWidth = 280),
+    Features		= colDef(minWidth = 280),
+    Validation_metric1		= colDef(minWidth = 280),
+    N_fold_cv_accuracy_1_not_in_generalisation	= colDef(minWidth = 280),
+    Held_out_accuracy_1		= colDef(minWidth = 280),
+    Held_out_accuracy_2		= colDef(minWidth = 280),
+    SEMP_accuracy_1		= colDef(minWidth = 280),
+    Other_metrics_n_fold_cv		= colDef(minWidth = 280),
+    Other_metrics_held_out_1		= colDef(minWidth = 280),
+    Other_metrics_held_out_2		= colDef(minWidth = 280),
+    Other_metrics_SEMP		= colDef(minWidth = 280),
+    Other_evaluation		= colDef(minWidth = 280),
+    Ethical_approval		= colDef(minWidth = 280),
+    Ethical_statement		= colDef(minWidth = 1680),
+    Date		= colDef(minWidth = 280),
+    License		= colDef(minWidth = 280),
+    Original		= colDef(minWidth = 280),
+    Miscellaneous		= colDef(minWidth = 280),
+    Command_info		= colDef(minWidth = 280),
+    Name_description		= colDef(minWidth = 1280),
+    Path		= colDef(minWidth = 480),
+    Model_Type	= colDef(minWidth = 280)
   ), 
   showPageSizeOptions = TRUE,
   groupBy = "Construct_Concept_Behaviours"
@@ -108,6 +114,26 @@ reactable::reactable(
 ```
 
 
+> **Responsible Sharing and Use of Language-Based Assessment Models**
+>
+> **Guidelines for contributors**  
+> To support transparency, traceability, and responsible use, contributors should:  
+> - **Fill out the L-BAM Submission Sheet:** Complete the submission form at [r-text.org/articles/LBAM.html](https://r-text.org/articles/LBAM.html).  
+>   Include key metadata such as model name, outcome variable(s), model type, training data size, validation metrics, ethical considerations, and relevant meta data (e.g., links to papers or preprints).  
+> - **Public Hosting:** Host the model on a publicly accessible platform with version control (e.g., OSF, Hugging Face, GitHub, Bitbucket) to ensure reproducibility and long-term access.  
+> - **Contact:** Email a library maintainer (see contact details at [r-text.org/articles/LBAM.html](https://r-text.org/articles/LBAM.html)) using the same email address provided under `contact_details` in the metadata.  
+>
+> Once these steps are completed, the model will be published in the L-BAM library, making it accessible to the broader research community.  
+>
+> **Guidelines for users**  
+> Before using a model from the L-BAM library, we recommend the following steps to ensure its suitability for your research context:  
+> - **Verify Source and Contact Information:** Review the listed contact details. If in doubt, reach out to the model contributor for clarification.  
+>   - Using models may carry security risks (e.g., malicious code).  
+>   - Each model must include a designated contact person with a valid email address (not placeholder/fabricated) and must be hosted on a platform with version control (e.g., OSF) for transparency and traceability.  
+>   - Always review and trust the source before loading a model. For extra caution, consider loading models in secure, isolated environments (e.g., Docker).  
+>   - Check for linked preprints or peer-reviewed publications describing the model.  
+> - **Critically Evaluate Development and Validation Details:** Examine how the model has been validated, including reported performance metrics (e.g., RMSE, correlations) and the populations used. Ensure these align with your use case.  
+> - **Test Generalisability:** Apply the model to new data in your context (ideally with criterion variables available for at least a subset, e.g., 100 out of 10,000 texts). This allows you to directly test generalisability.  
 
 ### Overview of L-BAM pipelines
 Training and using models from the L-BAM library involves three key steps.
