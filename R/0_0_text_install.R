@@ -377,8 +377,8 @@ check_windows_githubaction_dependencies <- function(verbose = TRUE) {
       "1. install it following this link: " ,
       " https://visualstudio.microsoft.com/visual-cpp-build-tools/ \n",
       "2. Download Build Tools and run the installer file. IMPORTANT: During installation click Modify and then select Desktop development with C++. \n",
-      " After installation you may have to RESTART R, Rstudio, or even Windows. \n",
-      " For more infomraiton see https://www.r-text.org/articles/ext_install_guide.html."
+      "3. After installation you may have to RESTART R, Rstudio, or even Windows. \n",
+      " For more information see https://www.r-text.org/articles/ext_install_guide.html."
     )
     missing <- "visual_build_tools"
   }
@@ -631,50 +631,52 @@ textrpp_install <- function(
 
   # Set system specific default versions
   if (rpp_version[[1]] == "rpp_version_system_specific_defaults") {
-    if (is_osx() || is_linux()) {
-      rpp_version <- c(
-        "torch==2.2.0",
-        "transformers==4.38.0",
-        "huggingface_hub==0.20.0",
-        "numpy==1.26.0",
-        "pandas==2.0.3",
-        "nltk==3.8.1",
-        "scikit-learn==1.3.0", # higher versions 1.4 and 1.5 yield errors in textTopics() and warnings in textTrain
-        "datasets==2.16.1",
-        "evaluate==0.4.0",
-        "accelerate==0.26.0",
-        "bertopic==0.16.3",
-        "jsonschema==4.19.2",
-        "sentence-transformers==2.2.2",
-        "flair==0.13.0",
-        "umap-learn==0.5.6",
-        "hdbscan==0.8.33",
-        "scipy==1.10.1",
-        "aiohappyeyeballs==2.4.4"
-      )
-    }
-    if (is_windows()) {
-      rpp_version <- c(
-        "torch==2.2.0",
-        "transformers==4.38.0",
-        "huggingface_hub==0.20.0",
-        "numpy==1.26.0",
-        "pandas==2.0.3",
-        "nltk==3.8.1",
-        "scikit-learn==1.3.0",
-        "datasets==2.16.1",
-        "evaluate==0.4.0",
-        "accelerate==0.26.0",
-        "bertopic==0.16.3",
-        "jsonschema==4.19.2",
-        "sentence-transformers==2.2.2",
-        "flair==0.13.0",
-        "umap-learn==0.5.6",
-        "hdbscan==0.8.33",
-        "scipy==1.10.1",
-        "aiohappyeyeballs==2.4.4"
-      )
-    }
+
+    rpp_version = c("textrpp_py") # https://pypi.org/project/textrpp-py/
+    #if (is_osx() || is_linux()) {
+    #  rpp_version <- c(
+    #    "torch==2.2.0",
+    #    "transformers==4.38.0",
+    #    "huggingface_hub==0.20.0",
+    #    "numpy==1.26.0",
+    #    "pandas==2.0.3",
+    #    "nltk==3.8.1",
+    #    "scikit-learn==1.3.0", # higher versions 1.4 and 1.5 yield errors in textTopics() and warnings in textTrain
+    #    "datasets==2.16.1",
+    #    "evaluate==0.4.0",
+    #    "accelerate==0.26.0",
+    #    "bertopic==0.16.3",
+    #    "jsonschema==4.19.2",
+    #    "sentence-transformers==2.2.2",
+    #    "flair==0.13.0",
+    #    "umap-learn==0.5.6",
+    #    "hdbscan==0.8.33",
+    #    "scipy==1.10.1",
+    #    "aiohappyeyeballs==2.4.4"
+    #  )
+    #}
+    #if (is_windows()) {
+    #  rpp_version <- c(
+    #    "torch==2.2.0",
+    #    "transformers==4.38.0",
+    #    "huggingface_hub==0.20.0",
+    #    "numpy==1.26.0",
+    #    "pandas==2.0.3",
+    #    "nltk==3.8.1",
+    #    "scikit-learn==1.3.0",
+    #    "datasets==2.16.1",
+    #    "evaluate==0.4.0",
+    #    "accelerate==0.26.0",
+    #    "bertopic==0.16.3",
+    #    "jsonschema==4.19.2",
+    #    "sentence-transformers==2.2.2",
+    #    "flair==0.13.0",
+    #    "umap-learn==0.5.6",
+    #    "hdbscan==0.8.33",
+    #    "scipy==1.10.1",
+    #    "aiohappyeyeballs==2.4.4"
+    #  )
+    #}
   }
 
   if (python_version == "python_version_system_specific_defaults") {

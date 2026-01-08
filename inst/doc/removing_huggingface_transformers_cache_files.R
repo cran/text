@@ -5,13 +5,13 @@ knitr::opts_chunk$set(
 )
 
 ## ----setup, eval = FALSE, warning=FALSE, message=FALSE------------------------
-#  
-#  library(text)
-#  
-#  # Check downloaded, available models.
-#  textModels()
-#  
-#  # Delete a specified model and model associated files.
-#  textModelsRemove("name_of_model_to_be_removed")
-#  
+# 
+# library(text)
+# 
+# # Check downloaded, available models.
+# textModels()
+# 
+# # Delete a specified model and model associated files.
+# textModelsRemove("name_of_model_to_be_removed")
+# 
 

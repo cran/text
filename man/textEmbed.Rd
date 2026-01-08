@@ -6,6 +6,8 @@
 \usage{
 textEmbed(
   texts,
+  text_ids = NULL,
+  group_ids = NULL,
   model = "bert-base-uncased",
   layers = -2,
   dim_name = TRUE,
@@ -21,17 +23,20 @@ textEmbed(
   model_max_length = NULL,
   max_token_to_sentence = 4,
   tokenizer_parallelism = FALSE,
-  device = "cpu",
+  device = NULL,
   hg_gated = FALSE,
   hg_token = Sys.getenv("HUGGINGFACE_TOKEN", unset = ""),
   logging_level = "error",
-  implementation = "original",
   trust_remote_code = FALSE,
   ...
 )
 }
 \arguments{
 \item{texts}{A character variable or a tibble/dataframe with at least one character variable.}
+
+\item{text_ids}{(Numeric) unique identifiers for each text_string. If empty, it will be defaulted to 1:nrow(texts).}
+
+\item{group_ids}{(Numeric; experimental) unique identifiers incase there are group ids. If empty, it will be defaulted to 1:nrow(texts).}
 
 \item{model}{Character string specifying pre-trained language model (default 'bert-base-uncased').
  For full list of options see pretrained models at
@@ -90,8 +95,9 @@ switching to embedding text sentence by sentence.}
 
 \item{tokenizer_parallelism}{(boolean) If TRUE this will turn on tokenizer parallelism. Default FALSE.}
 
-\item{device}{Name of device to use: 'cpu', 'gpu', 'gpu:k' or 'mps'/'mps:k' for MacOS, where k is a
-specific device number such as 'mps:1'.}
+\item{device}{(character) Name of device to use: 'cpu', 'gpu', 'gpu:k' or 'mps'/'mps:k'
+for MacOS, where k is a specific device number. (default = "cpu"). Default is NULL, which sets gpu:0/mps:0
+depending on OS.}
 
 \item{hg_gated}{Set to TRUE if the accessed model is gated.}
 
@@ -102,9 +108,6 @@ be set to avoid the need to enter the token each time.}
 
 \item{logging_level}{Set the logging level. Default: "warning".
 Options (ordered from less logging to more logging): critical, error, warning, info, debug}
-
-\item{implementation}{(boolean; experiments) If TRUE the text is split using the DLATK-method; this method appears better for longer texts (but it does not
-return token level word embeddings, nor word_types embeddings at this stage).}
 
 \item{trust_remote_code}{(boolean) use a model with custom code on the Huggingface Hub}
 

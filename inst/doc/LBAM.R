@@ -5,20 +5,20 @@ knitr::opts_chunk$set(
 )
 
 ## ----textPredict_examples, eval = FALSE, echo=TRUE----------------------------
-#  library(text)
-#  
-#  # Example calling a model using the URL
-#  textPredict(
-#    model_info = "valence_facebook_mxbai23_eijsbroek2024",
-#    texts = "what is the valence of this text?"
-#  )
-#  
-#  
-#  # Example calling a model having an abbreviation
-#  textClassify(
-#    model_info = "implicitpower_roberta23_nilsson2024",
-#    texts = "It looks like they have problems collaborating."
-#  )
+# library(text)
+# 
+# # Example calling a model using the URL
+# textPredict(
+#   model_info = "valence_facebook_mxbai23_eijsbroek2024",
+#   texts = "what is the valence of this text?"
+# )
+# 
+# 
+# # Example calling a model having an abbreviation
+# textClassify(
+#   model_info = "implicitpower_roberta23_nilsson2024",
+#   texts = "It looks like they have problems collaborating."
+# )
 
 ## ----models_table, eval = TRUE, echo=FALSE------------------------------------
 library("reactable")

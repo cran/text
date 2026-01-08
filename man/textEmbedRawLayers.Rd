@@ -6,13 +6,15 @@
 \usage{
 textEmbedRawLayers(
   texts,
+  text_ids = NULL,
+  group_ids = NULL,
   model = "bert-base-uncased",
   layers = -2,
   return_tokens = TRUE,
   word_type_embeddings = FALSE,
   decontextualize = FALSE,
   keep_token_embeddings = TRUE,
-  device = "cpu",
+  device = NULL,
   tokenizer_parallelism = FALSE,
   model_max_length = NULL,
   max_token_to_sentence = 4,
@@ -25,6 +27,10 @@ textEmbedRawLayers(
 }
 \arguments{
 \item{texts}{A character variable or a tibble with at least one character variable.}
+
+\item{text_ids}{(Numeric) unique identifiers for each text_string. If empty, it will be defaulted to 1:nrow(texts).}
+
+\item{group_ids}{(Numeric; experimental) unique identifiers incase there are group ids. If empty, it will be defaulted to 1:nrow(texts).}
 
 \item{model}{(character) Character string specifying pre-trained language model
 (default = 'bert-base-uncased'). For full list of options see pretrained models at
@@ -55,7 +61,8 @@ at a time). (default = TRUE)}
 (when using word_types aggregation). (default= TRUE)}
 
 \item{device}{(character) Name of device to use: 'cpu', 'gpu', 'gpu:k' or 'mps'/'mps:k'
-for MacOS, where k is a specific device number. (default = "cpu")}
+for MacOS, where k is a specific device number. (default = "cpu"). Default is NULL, which sets gpu:0/mps:0
+depending on OS.}
 
 \item{tokenizer_parallelism}{(boolean) If TRUE this will turn on tokenizer parallelism.
 (default = FALSE).}
