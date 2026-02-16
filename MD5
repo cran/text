@@ -1,6 +1,6 @@
-3bedac3130f1eb5bb2d2a2ca9f4bbba9 *DESCRIPTION
+af27ceb3f6310f611fdde540d23530d1 *DESCRIPTION
 ce74a066bf29096993da289348aa4ab8 *NAMESPACE
-fca077a8a838348fcdf263ab7177dd6c *NEWS.md
+97f72dc0250bb337aed13a51bc1bdbfc *NEWS.md
 14a6c8c226f7c1650d310b11cece4fdc *R/0_0_1_text_initialize.R
 f20ca6bea62725ff4ba361b352041814 *R/0_0_2_textDiagnostics.R
 76ef8420aa78cf94eff174103e93dc1b *R/0_0_text_install.R
@@ -34,8 +34,8 @@ fa087d1bf68942f13dd4dc70bc06ab59 *R/5_4_textSum.R
 a8e2246924aa7a59a1fdc07eea6cf59d *R/5_7_textZeroShot.R
 8389f12db9c4c49c3857986910acf8d7 *R/6_1_textFineTune.R
 6c080f74ca712cbf7f9126f8002a274c *R/6_2_textFineTuneDomain.R
-7e52f2e7d6ff5bbe86f6cfafb9a189c7 *R/7_1_textTopics.R
-861fedfb2d19777ae05ca408b4909c7e *R/7_2_textTopicsAnalysis.R
+ee3d83f725a6b6277393f57cf5da3728 *R/7_1_textTopics.R
+6c7a1823c03b8e09d2b302291ce301e4 *R/7_2_textTopicsAnalysis.R
 e3e91a7e809e3105f36c507b99183ecc *R/ExampleDataDescription.R
 0f71e171d014d4a7468c38f911735293 *R/zzz.R
 0594510ef38c20bf5f7b6b48e82e3ef6 *README.md
@@ -50,7 +50,7 @@ cf4789c7bd8b57f333c71f7b13264ee6 *data/raw_embeddings_1.rda
 d7b7b2e343a4f7007aa61622cd7b5358 *inst/CITATION
 7ed55fd6941346c5d77cc2eb45e5feaf *inst/doc/LBAM.R
 2b9cde49d5e8fbcd124b967ba9764feb *inst/doc/LBAM.Rmd
-f8905d593073540cca97f6060caa6bee *inst/doc/LBAM.html
+5882b4d1ea215c0a647abd2cc3fc608c *inst/doc/LBAM.html
 cfe3574596063a4aeddc7ef3639f6567 *inst/doc/ext_install_guide.R
 04d3eb7e8f4a7a913f624b95ef739c7d *inst/doc/ext_install_guide.Rmd
 5f6215848047a1e08c6cfe82574377cd *inst/doc/ext_install_guide.html
@@ -90,7 +90,7 @@ f89fe68ae1a6df9920ae1026c22fb113 *inst/python/__pycache__/run_mlm.cpython-39.pyc
 920f378a61303dc8d0d5b0135c27096e *inst/python/__pycache__/task_finetune.cpython-39.pyc
 21d74c9b8bfa5c8dee58c2a370932ccd *inst/python/__pycache__/transformer_embs.cpython-39.pyc
 c071c582800ceabb86f8d53e1dcf4838 *inst/python/args2.json
-902be36dc7b0d46bf8e2f93389f43572 *inst/python/bert_topic.py
+87cd30cfaf9d21af30e44f7d8736a64f *inst/python/bert_topic.py
 780e5ea6062799a3d9b5217d328c65cc *inst/python/huggingface_Interface3.py
 69306a46ecff80ecb81ba800a17055d1 *inst/python/huggingface_Interface4.py
 48acfeb84b70c2a7aad5a905ecbaf8d7 *inst/python/mlm_args2.json
@@ -162,7 +162,7 @@ bad32e0c441754658a104f6b6cf4d101 *man/textSimilarityMatrix.Rd
 dafeddd058014e192c05801bdb66bd0b *man/textSum.Rd
 49b11e2b5bb6c23643677d724d3c5fe8 *man/textTokenize.Rd
 4905b821c8145f8aa7dd0be669d12ac0 *man/textTokenizeAndCount.Rd
-880175891ca9e1afb0f33524ea2f8b78 *man/textTopics.Rd
+0b9862bb7af5911a7f2264508f1afa5d *man/textTopics.Rd
 401bb50fffe070803a36ca7c69b76e9b *man/textTopicsReduce.Rd
 6121e63884ec4b940ed43a3687b3db22 *man/textTopicsTest.Rd
 f28272e3a39a743e6919cdda26ab8700 *man/textTopicsTree.Rd
@@ -203,7 +203,7 @@ ebb13ab07849267f7dcd81ca6e203def *tests/testthat/test_2_6_textPredict_implicitmo
 949cbb7546e7dc9e57a0a7359502b96e *tests/testthat/test_4_textPlot.R
 665fec97c77f640ae51124e96566bab0 *tests/testthat/test_5_Tasks.R
 378a2c02770a209af7afc222777cce8a *tests/testthat/test_6_textFineTune.R
-34887a65ede18f5245ce5a8205199250 *tests/testthat/test_7_textTopics.R
+34e03bc19bc7a6c43538dbbb02f16fda *tests/testthat/test_7_textTopics.R
 ad03dffa27c842f75d5c84630cfe036b *tests/testthat/test_Assess_tutorial.R
 d1ad8029792d2915195bab25785ead29 *tests/testthat/test_PM_tutorial.R
 d25b4add2db92365d3499ed27479aaf9 *tests/testthat/test_zz_UNinstall_test.R
