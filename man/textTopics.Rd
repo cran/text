@@ -2,6 +2,7 @@
 % Please edit documentation in R/7_1_textTopics.R
 \name{textTopics}
 \alias{textTopics}
+\alias{textBERTopics}
 \title{BERTopic}
 \usage{
 textTopics(
@@ -21,7 +22,33 @@ textTopics(
   num_top_words = 10L,
   n_gram_range = c(1L, 3L),
   stopwords = "english",
-  min_df = 5L,
+  min_df = "default",
+  max_df = 1,
+  bm25_weighting = FALSE,
+  reduce_frequent_words = TRUE,
+  set_seed = 8L,
+  save_dir
+)
+
+textBERTopics(
+  data,
+  variable_name,
+  embedding_model = "distilroberta",
+  representation_model = c("mmr", "keybert"),
+  umap_n_neighbors = 15L,
+  umap_n_components = 5L,
+  umap_min_dist = 0,
+  umap_metric = "cosine",
+  hdbscan_min_cluster_size = 5L,
+  hdbscan_min_samples = NULL,
+  hdbscan_metric = "euclidean",
+  hdbscan_cluster_selection_method = "eom",
+  hdbscan_prediction_data = TRUE,
+  num_top_words = 10L,
+  n_gram_range = c(1L, 3L),
+  stopwords = "english",
+  min_df = "default",
+  max_df = 1,
   bm25_weighting = FALSE,
   reduce_frequent_words = TRUE,
   set_seed = 8L,
@@ -82,7 +109,17 @@ the vectorizer (e.g., \code{c(1L, 3L)}).}
 
 \item{stopwords}{Character string naming the stopword dictionary to use (e.g. \code{"english"}).}
 
-\item{min_df}{Integer. Minimum document frequency for terms included in the vectorizer.}
+\item{min_df}{Integer or \code{NULL}. Minimum number of documents a term must
+appear in to be included in the vocabulary. Higher values remove rare terms
+and noise. If \code{NULL} or "default", the value is set automatically based on data
+size: \code{1} for fewer than 3,000 data rows, \code{2} for 3,000–4,999,
+\code{3} for 5,000–49,999, and \code{5} for larger datasets.}
+
+\item{max_df}{Integer or float. Maximum document frequency for terms included
+in the vocabulary. If an integer, terms appearing in more than \code{max_df}
+documents are excluded. If a float between 0.0 and 1.0, it is interpreted
+as a proportion of documents. Use this to filter out overly common terms
+not captured by stop words. Defaults to \code{1.0} (no upper limit).}
 
 \item{bm25_weighting}{Logical. If \code{TRUE}, uses BM25 weighting in the class-based TF-IDF
 transformer (can improve term weighting in some corpora).}
